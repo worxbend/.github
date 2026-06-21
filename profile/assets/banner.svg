@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" viewBox="0 0 1200 360">
+  <title id="title">Worxbend GitHub profile banner</title>
+  <desc id="desc">A dark technical banner with the Worxbend logo, project tags, and a welcome message.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0d1117"/>
+      <stop offset="0.42" stop-color="#10233f"/>
+      <stop offset="1" stop-color="#18220f"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="140" y1="60" x2="1040" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00d1b2"/>
+      <stop offset="0.52" stop-color="#2f81f7"/>
+      <stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0v32" fill="none" stroke="#ffffff" stroke-opacity="0.055" stroke-width="1"/>
+    </pattern>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.18 0 0 0 0 0.51 0 0 0 0 0.95 0 0 0 0.65 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="1200" height="360" rx="32" fill="url(#bg)"/>
+  <rect width="1200" height="360" rx="32" fill="url(#grid)"/>
+  <path d="M88 282C216 184 280 276 390 156C502 34 640 104 732 176C838 260 940 236 1112 82" fill="none" stroke="url(#accent)" stroke-width="9" stroke-linecap="round" opacity="0.72"/>
+  <path d="M86 86h170c18 0 32 14 32 32v74c0 18-14 32-32 32H86c-18 0-32-14-32-32v-74c0-18 14-32 32-32Z" fill="url(#accent)" filter="url(#glow)"/>
+  <path d="M95 113h150c10 0 18 8 18 18v48c0 10-8 18-18 18H95c-10 0-18-8-18-18v-48c0-10 8-18 18-18Z" fill="#0d1117" opacity="0.9"/>
+  <path d="M104 126h28l18 54 26-54h21l26 54 18-54h28l-33 82h-25l-25-52-25 52h-25l-32-82Z" fill="#f8fafc"/>
+  <text x="330" y="128" fill="#f8fafc" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="56" font-weight="800" letter-spacing="0">worxbend</text>
+  <text x="333" y="172" fill="#c9d1d9" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" font-weight="500">practical open-source tools from a Linux workbench</text>
+  <g font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">
+    <rect x="333" y="208" width="92" height="38" rx="19" fill="#00d1b2" fill-opacity="0.16" stroke="#00d1b2" stroke-opacity="0.7"/>
+    <text x="356" y="233" fill="#8ff8e7">Rust</text>
+    <rect x="439" y="208" width="74" height="38" rx="19" fill="#2f81f7" fill-opacity="0.16" stroke="#2f81f7" stroke-opacity="0.7"/>
+    <text x="462" y="233" fill="#9dccff">Go</text>
+    <rect x="527" y="208" width="96" height="38" rx="19" fill="#dc322f" fill-opacity="0.16" stroke="#dc322f" stroke-opacity="0.7"/>
+    <text x="550" y="233" fill="#ffaaa8">Scala</text>
+    <rect x="637" y="208" width="82" height="38" rx="19" fill="#f97316" fill-opacity="0.16" stroke="#f97316" stroke-opacity="0.7"/>
+    <text x="660" y="233" fill="#fdc192">Java</text>
+    <rect x="733" y="208" width="106" height="38" rx="19" fill="#a855f7" fill-opacity="0.16" stroke="#a855f7" stroke-opacity="0.7"/>
+    <text x="756" y="233" fill="#d8b4fe">Kotlin</text>
+    <rect x="853" y="208" width="102" height="38" rx="19" fill="#4a90d9" fill-opacity="0.16" stroke="#4a90d9" stroke-opacity="0.7"/>
+    <text x="876" y="233" fill="#b4d8ff">GTK4</text>
+  </g>
+  <text x="333" y="286" fill="#8b949e" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20">Linux desktop apps • workstation bootstrap • OBS control • AirGradient tooling</text>
+</svg>
