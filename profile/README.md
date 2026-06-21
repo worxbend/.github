@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/worxbend">
-    <img src="./assets/banner.svg" alt="Worxbend - practical open-source tools for Linux, developer workflows, and home-lab automation" width="100%" />
+    <img src="./assets/banner.svg" alt="Worxbend - learning projects, personal Linux tools, and experiments" width="100%" />
   </a>
 </div>
 
@@ -24,13 +24,13 @@
 <br />
 
 <div align="center">
-  <img src="./assets/logo.svg" alt="Worxbend logo" width="118" />
+  <img src="./assets/logo.svg" alt="Worxbend graffiti logo" width="132" />
   <h1>Welcome to Worxbend 👋</h1>
   <p>
-    <strong>Small, practical open-source tools for Linux desktops, developer workflows, streaming control, air-quality monitoring, and home-lab automation.</strong>
+    <strong>A collection of learning projects, personal experiments, and a few handy Linux tools that are useful to me.</strong>
   </p>
   <p>
-    This organization is a personal engineering bench: focused projects, direct implementations, and experiments that turn into useful utilities when they earn their keep.
+    This is not a polished product shop and not a production-ready code catalog. Some of it is careful practice, some of it is weekend hacking, and yes, some of it is AI-generated slop that I keep around because it solves a personal itch.
   </p>
 </div>
 
@@ -52,27 +52,31 @@
 <table>
   <tr>
     <td width="50%" valign="top">
-      <h2>🚀 Current Focus</h2>
+      <h2>🧪 What This Is</h2>
       <ul>
-        <li><strong>Declarative workstation setup</strong> with Fluxion profiles, package installs, Flatpaks, fonts, dotfiles, and repeatable state.</li>
-        <li><strong>Linux desktop apps</strong> using Rust, GTK 4, libadwaita, Tokio, and local-first workflows.</li>
-        <li><strong>AirGradient tooling</strong> across desktop, GNOME Shell, Android, and local device workflows.</li>
-        <li><strong>OBS control surfaces</strong> for Linux streaming and studio automation.</li>
-        <li><strong>Scala learning workspace</strong> with Mill, reusable libraries, deployment recipes, and technical notes.</li>
+        <li><strong>Learning projects</strong> for trying languages, frameworks, APIs, desktop stacks, and deployment patterns.</li>
+        <li><strong>Personal Linux utilities</strong> for workstation setup, fonts, dotfiles, desktop workflows, and automation.</li>
+        <li><strong>AirGradient and OBS tooling</strong> built around my own devices, setup, and daily workflow.</li>
+        <li><strong>Scratchpad repositories</strong> where ideas are tested before they are either cleaned up or abandoned.</li>
+        <li><strong>AI-assisted experiments</strong> that may be messy, useful, incomplete, or all three at once.</li>
       </ul>
     </td>
     <td width="50%" valign="top">
-      <h2>🧰 Project Shape</h2>
+      <h2>⚠️ What This Is Not</h2>
       <ul>
-        <li>Small tools over frameworks.</li>
-        <li>Local-first behavior over hosted dependencies.</li>
-        <li>Clear command-line and desktop UX.</li>
-        <li>Useful experiments that can become maintained utilities.</li>
-        <li>Linux, open source, and pragmatic automation.</li>
+        <li>Not production-ready software.</li>
+        <li>Not a promise of stable APIs, releases, packaging, or support.</li>
+        <li>Not always idiomatic, perfectly tested, or cleanly maintained.</li>
+        <li>Not a portfolio of finished products.</li>
+        <li>Not something you should run blindly on important machines.</li>
       </ul>
     </td>
   </tr>
 </table>
+
+<blockquote>
+  <strong>Heads up:</strong> code here is shared in the spirit of learning in public. Use it for ideas, experiments, and personal setups. Review before running, fork what helps, and expect rough edges.
+</blockquote>
 
 <h2>✨ Featured Projects</h2>
 
@@ -161,11 +165,11 @@
 <h2>💬 Welcome</h2>
 
 <p>
-  Thanks for stopping by. If you are looking through the code, expect practical experiments, sharp edges where a project is still young, and a bias toward tools that can be run, inspected, and improved locally.
+  Thanks for stopping by. If you are looking through the code, expect learning notes, half-finished ideas, useful scripts, personal automation, rough prototypes, and the occasional AI-assisted shortcut that got the job done.
 </p>
 
 <p>
-  Issues, ideas, and small focused pull requests are welcome when they match the project direction. The best contributions usually improve reliability, packaging, docs, Linux desktop integration, or the everyday developer workflow.
+  Issues and small pull requests are welcome when they match the direction of a project, especially for Linux usability, packaging, docs, and obvious bugs. Just keep in mind that most repositories here are personal tools first and community projects second.
 </p>
 
 <br />
