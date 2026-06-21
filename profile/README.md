@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/worxbend">
-    <img src="./assets/banner.svg" alt="Worxbend - learning projects, personal Linux tools, and experiments" width="100%" />
+    <img src="./assets/banner.png" alt="Worxbend - learning projects, personal Linux tools, and experiments" width="100%" />
   </a>
 </div>
 
@@ -24,7 +24,7 @@
 <br />
 
 <div align="center">
-  <img src="./assets/logo.svg" alt="Worxbend graffiti logo" width="132" />
+  <img src="./assets/logo.png" alt="Worxbend graffiti logo" width="132" />
   <h1>Welcome to Worxbend 👋</h1>
   <p>
     <strong>A collection of learning projects, personal experiments, and a few handy Linux tools that are useful to me.</strong>

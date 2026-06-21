@@ -1,43 +1,56 @@
 <svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" viewBox="0 0 256 256">
-  <title id="title">Worxbend graffiti logo</title>
-  <desc id="desc">A graffiti-style WXB tag with colorful paint strokes on a dark wall.</desc>
+  <title id="title">Worxbend street-art logo</title>
+  <desc id="desc">A street-art graffiti WXB tag with sticker outlines, paint drips, and spray speckles.</desc>
   <defs>
     <linearGradient id="wall" x1="18" y1="10" x2="238" y2="246" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#151922"/>
       <stop offset="0.55" stop-color="#0d1117"/>
-      <stop offset="1" stop-color="#1f2937"/>
+      <stop offset="1" stop-color="#261a2d"/>
     </linearGradient>
-    <linearGradient id="paint" x1="46" y1="82" x2="218" y2="175" gradientUnits="userSpaceOnUse">
+    <linearGradient id="paint" x1="28" y1="72" x2="228" y2="176" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#00f5d4"/>
-      <stop offset="0.42" stop-color="#2f81f7"/>
-      <stop offset="0.76" stop-color="#ff2e88"/>
-      <stop offset="1" stop-color="#f97316"/>
+      <stop offset="0.33" stop-color="#2f81f7"/>
+      <stop offset="0.66" stop-color="#ff2e88"/>
+      <stop offset="1" stop-color="#facc15"/>
     </linearGradient>
-    <filter id="spray" x="-18%" y="-18%" width="136%" height="136%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.86" numOctaves="2" seed="7" result="noise"/>
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.6"/>
+    <pattern id="brick" width="58" height="34" patternUnits="userSpaceOnUse">
+      <path d="M0 0h58v34H0z" fill="none"/>
+      <path d="M0 0h58M0 17h58M0 34h58M29 0v17M0 17v17M58 17v17" stroke="#ffffff" stroke-opacity="0.055" stroke-width="1.4"/>
+    </pattern>
+    <filter id="rough" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.08 0.22" numOctaves="3" seed="21" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.4"/>
     </filter>
-    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="9" stdDeviation="6" flood-color="#000000" flood-opacity="0.58"/>
+    <filter id="shadow" x="-28%" y="-28%" width="156%" height="156%">
+      <feDropShadow dx="0" dy="9" stdDeviation="6" flood-color="#000000" flood-opacity="0.64"/>
     </filter>
   </defs>
-  <rect width="256" height="256" rx="38" fill="url(#wall)"/>
-  <path d="M20 64c44-18 86-23 128-15 29 5 58 3 88-8" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="9" stroke-linecap="round"/>
-  <path d="M22 194c50 13 96 12 139-4 28-10 51-8 72 5" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="11" stroke-linecap="round"/>
-  <g opacity="0.34">
-    <circle cx="38" cy="88" r="2.6" fill="#00f5d4"/>
-    <circle cx="62" cy="64" r="1.8" fill="#2f81f7"/>
-    <circle cx="218" cy="82" r="2.4" fill="#ff2e88"/>
-    <circle cx="205" cy="203" r="2.1" fill="#f97316"/>
-    <circle cx="92" cy="214" r="1.9" fill="#00f5d4"/>
+  <rect width="256" height="256" rx="34" fill="url(#wall)"/>
+  <rect width="256" height="256" rx="34" fill="url(#brick)"/>
+  <path d="M18 71c44-20 84-24 121-13 30 9 63 3 99-18" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="14" stroke-linecap="round"/>
+  <path d="M20 211c43 10 81 8 114-6 32-13 64-11 96 7" fill="none" stroke="#ffffff" stroke-opacity="0.07" stroke-width="13" stroke-linecap="round"/>
+  <g opacity="0.38">
+    <circle cx="34" cy="91" r="2.5" fill="#00f5d4"/>
+    <circle cx="61" cy="52" r="1.8" fill="#2f81f7"/>
+    <circle cx="214" cy="77" r="2.6" fill="#ff2e88"/>
+    <circle cx="205" cy="209" r="2.2" fill="#facc15"/>
+    <circle cx="92" cy="220" r="1.9" fill="#00f5d4"/>
     <circle cx="230" cy="145" r="1.6" fill="#ffffff"/>
-    <circle cx="28" cy="151" r="1.7" fill="#ffffff"/>
+    <circle cx="27" cy="154" r="1.7" fill="#ffffff"/>
+    <circle cx="152" cy="39" r="1.7" fill="#f97316"/>
   </g>
-  <path d="M31 139c13-30 25-55 36-76 8-14 21-10 20 6l-3 60 33-61c7-12 22-9 22 6l-1 55 33-62c9-17 31-8 24 11l-45 114c-5 13-24 12-25-3l-2-57-34 60c-7 13-27 9-27-7l1-61-13 28c-10 22-27 9-19-13Z" fill="#101820" stroke="#f8fafc" stroke-width="22" stroke-linejoin="round" stroke-linecap="round" filter="url(#shadow)"/>
-  <path d="M31 139c13-30 25-55 36-76 8-14 21-10 20 6l-3 60 33-61c7-12 22-9 22 6l-1 55 33-62c9-17 31-8 24 11l-45 114c-5 13-24 12-25-3l-2-57-34 60c-7 13-27 9-27-7l1-61-13 28c-10 22-27 9-19-13Z" fill="none" stroke="#0d1117" stroke-width="13" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M31 139c13-30 25-55 36-76 8-14 21-10 20 6l-3 60 33-61c7-12 22-9 22 6l-1 55 33-62c9-17 31-8 24 11l-45 114c-5 13-24 12-25-3l-2-57-34 60c-7 13-27 9-27-7l1-61-13 28c-10 22-27 9-19-13Z" fill="none" stroke="url(#paint)" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" filter="url(#spray)"/>
-  <path d="M43 83c28 10 57 7 86-9 22-13 45-14 69-4" fill="none" stroke="#00f5d4" stroke-width="5" stroke-linecap="round" opacity="0.76"/>
-  <path d="M55 204c35-10 66-10 94-1 19 6 39 3 61-10" fill="none" stroke="#ff2e88" stroke-width="5" stroke-linecap="round" opacity="0.74"/>
-  <path d="M191 101c13 2 24 8 34 18M187 116c16 5 27 14 34 27" fill="none" stroke="#f97316" stroke-width="5" stroke-linecap="round" opacity="0.86"/>
-  <text x="52" y="226" fill="#f8fafc" font-family="Arial Black, Impact, sans-serif" font-size="22" font-weight="900" letter-spacing="1">WXB</text>
+  <g filter="url(#shadow)">
+    <path d="M28 139c13-31 26-58 39-82 8-16 30-11 29 7l-4 64 36-65c8-15 29-11 29 7l-1 60 35-67c10-20 38-9 29 13l-49 121c-6 16-29 15-31-3l-2-62-37 65c-8 16-33 11-33-8l1-66-15 31c-11 25-38 8-26-15Z" fill="#f8fafc" stroke="#090d18" stroke-width="23" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M53 78c41-13 75-10 103 7 15 9 13 31-4 35l-44 11 37 34c14 13 2 37-16 31l-77-23c-17-5-21-28-7-38l26-19-24-17c-14-10-10-18 6-21Z" fill="#f8fafc" stroke="#090d18" stroke-width="16" stroke-linejoin="round" stroke-linecap="round" opacity="0.98"/>
+  </g>
+  <g filter="url(#rough)">
+    <path d="M28 139c13-31 26-58 39-82 8-16 30-11 29 7l-4 64 36-65c8-15 29-11 29 7l-1 60 35-67c10-20 38-9 29 13l-49 121c-6 16-29 15-31-3l-2-62-37 65c-8 16-33 11-33-8l1-66-15 31c-11 25-38 8-26-15Z" fill="none" stroke="url(#paint)" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M53 78c41-13 75-10 103 7 15 9 13 31-4 35l-44 11 37 34c14 13 2 37-16 31l-77-23c-17-5-21-28-7-38l26-19-24-17c-14-10-10-18 6-21Z" fill="none" stroke="url(#paint)" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" opacity="0.98"/>
+  </g>
+  <path d="M49 199c0 18-3 30-9 35-6 4-11-3-7-11 4-7 5-15 5-24" fill="#00f5d4" opacity="0.75"/>
+  <path d="M146 196c0 20-4 33-10 38-6 5-11-4-7-12 4-8 6-16 6-26" fill="#ff2e88" opacity="0.72"/>
+  <path d="M205 168c2 18-1 30-7 35-6 5-11-3-7-11 3-7 4-15 3-24" fill="#facc15" opacity="0.72"/>
+  <path d="M35 216c50-17 92-18 127-2 20 9 39 6 58-10" fill="none" stroke="#00f5d4" stroke-width="5" stroke-linecap="round" opacity="0.82"/>
+  <path d="M34 62c55 22 97 25 128 9 24-12 44-10 60 6" fill="none" stroke="#ff2e88" stroke-width="5" stroke-linecap="round" opacity="0.76"/>
+  <text x="54" y="226" fill="#f8fafc" font-family="Arial Black, Impact, sans-serif" font-size="24" font-weight="900" letter-spacing="2">WXB</text>
 </svg>

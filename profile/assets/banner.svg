@@ -1,50 +1,72 @@
 <svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" viewBox="0 0 1200 360">
-  <title id="title">Worxbend GitHub profile banner</title>
-  <desc id="desc">A dark technical banner with the Worxbend logo, project tags, and a welcome message.</desc>
+  <title id="title">Worxbend street-art banner</title>
+  <desc id="desc">A street-art graffiti banner on a dark brick wall with a large Worxbend tag, paint drips, stickers, and spray marks.</desc>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="360" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#0d1117"/>
-      <stop offset="0.42" stop-color="#10233f"/>
-      <stop offset="1" stop-color="#18220f"/>
+    <linearGradient id="wall" x1="0" y1="0" x2="1200" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#111827"/>
+      <stop offset="0.45" stop-color="#0d1117"/>
+      <stop offset="1" stop-color="#1f1b2e"/>
     </linearGradient>
-    <linearGradient id="accent" x1="140" y1="60" x2="1040" y2="300" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#00d1b2"/>
-      <stop offset="0.52" stop-color="#2f81f7"/>
-      <stop offset="1" stop-color="#f97316"/>
+    <linearGradient id="tag" x1="130" y1="95" x2="1080" y2="242" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00f5d4"/>
+      <stop offset="0.28" stop-color="#2f81f7"/>
+      <stop offset="0.56" stop-color="#ff2e88"/>
+      <stop offset="0.82" stop-color="#f97316"/>
+      <stop offset="1" stop-color="#facc15"/>
     </linearGradient>
-    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
-      <path d="M32 0H0v32" fill="none" stroke="#ffffff" stroke-opacity="0.055" stroke-width="1"/>
+    <pattern id="brick" width="92" height="44" patternUnits="userSpaceOnUse">
+      <path d="M0 0h92v44H0z" fill="none"/>
+      <path d="M0 0h92M0 44h92M0 22h92M46 0v22M0 22v22M92 22v22" stroke="#ffffff" stroke-opacity="0.06" stroke-width="2"/>
     </pattern>
-    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="16" result="blur"/>
-      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.18 0 0 0 0 0.51 0 0 0 0 0.95 0 0 0 0.65 0"/>
-      <feMerge>
-        <feMergeNode/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
+    <filter id="rough" x="-8%" y="-20%" width="116%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035 0.14" numOctaves="3" seed="12" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="4.5"/>
+    </filter>
+    <filter id="spray" x="-20%" y="-40%" width="140%" height="180%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="2" seed="9" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.4"/>
+    </filter>
+    <filter id="shadow" x="-20%" y="-30%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="13" stdDeviation="7" flood-color="#000000" flood-opacity="0.62"/>
     </filter>
   </defs>
-  <rect width="1200" height="360" rx="32" fill="url(#bg)"/>
-  <rect width="1200" height="360" rx="32" fill="url(#grid)"/>
-  <path d="M88 282C216 184 280 276 390 156C502 34 640 104 732 176C838 260 940 236 1112 82" fill="none" stroke="url(#accent)" stroke-width="9" stroke-linecap="round" opacity="0.72"/>
-  <path d="M86 86h170c18 0 32 14 32 32v74c0 18-14 32-32 32H86c-18 0-32-14-32-32v-74c0-18 14-32 32-32Z" fill="url(#accent)" filter="url(#glow)"/>
-  <path d="M95 113h150c10 0 18 8 18 18v48c0 10-8 18-18 18H95c-10 0-18-8-18-18v-48c0-10 8-18 18-18Z" fill="#0d1117" opacity="0.9"/>
-  <path d="M104 126h28l18 54 26-54h21l26 54 18-54h28l-33 82h-25l-25-52-25 52h-25l-32-82Z" fill="#f8fafc"/>
-  <text x="330" y="128" fill="#f8fafc" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="56" font-weight="800" letter-spacing="0">worxbend</text>
-  <text x="333" y="172" fill="#c9d1d9" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" font-weight="500">practical open-source tools from a Linux workbench</text>
-  <g font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">
-    <rect x="333" y="208" width="92" height="38" rx="19" fill="#00d1b2" fill-opacity="0.16" stroke="#00d1b2" stroke-opacity="0.7"/>
-    <text x="356" y="233" fill="#8ff8e7">Rust</text>
-    <rect x="439" y="208" width="74" height="38" rx="19" fill="#2f81f7" fill-opacity="0.16" stroke="#2f81f7" stroke-opacity="0.7"/>
-    <text x="462" y="233" fill="#9dccff">Go</text>
-    <rect x="527" y="208" width="96" height="38" rx="19" fill="#dc322f" fill-opacity="0.16" stroke="#dc322f" stroke-opacity="0.7"/>
-    <text x="550" y="233" fill="#ffaaa8">Scala</text>
-    <rect x="637" y="208" width="82" height="38" rx="19" fill="#f97316" fill-opacity="0.16" stroke="#f97316" stroke-opacity="0.7"/>
-    <text x="660" y="233" fill="#fdc192">Java</text>
-    <rect x="733" y="208" width="106" height="38" rx="19" fill="#a855f7" fill-opacity="0.16" stroke="#a855f7" stroke-opacity="0.7"/>
-    <text x="756" y="233" fill="#d8b4fe">Kotlin</text>
-    <rect x="853" y="208" width="102" height="38" rx="19" fill="#4a90d9" fill-opacity="0.16" stroke="#4a90d9" stroke-opacity="0.7"/>
-    <text x="876" y="233" fill="#b4d8ff">GTK4</text>
+  <rect width="1200" height="360" rx="28" fill="url(#wall)"/>
+  <rect width="1200" height="360" rx="28" fill="url(#brick)"/>
+  <path d="M38 74c176-54 314-54 414 1 78 42 181 35 310-22 116-51 244-44 384 22" fill="none" stroke="#ffffff" stroke-opacity="0.05" stroke-width="34" stroke-linecap="round"/>
+  <g opacity="0.2">
+    <circle cx="106" cy="74" r="5" fill="#00f5d4"/>
+    <circle cx="184" cy="271" r="4" fill="#ff2e88"/>
+    <circle cx="1056" cy="88" r="6" fill="#facc15"/>
+    <circle cx="1096" cy="250" r="4" fill="#2f81f7"/>
+    <circle cx="596" cy="42" r="4" fill="#ffffff"/>
+    <circle cx="742" cy="302" r="5" fill="#f97316"/>
+    <circle cx="486" cy="298" r="3" fill="#00f5d4"/>
   </g>
-  <text x="333" y="286" fill="#8b949e" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20">Linux desktop apps • workstation bootstrap • OBS control • AirGradient tooling</text>
+  <g filter="url(#shadow)">
+    <path d="M104 177c16-31 31-60 45-87 9-17 33-12 32 8l-4 78 43-83c9-18 34-14 34 7l-2 74 43-81c12-22 42-10 32 15l-59 151c-7 18-33 17-35-4l-2-77-45 82c-10 18-38 12-37-10l1-82-18 39c-13 29-43 10-28-30Z" fill="#f8fafc" stroke="#0b1020" stroke-width="28" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M384 96c60-16 113-13 160 8 20 9 18 39-4 43l-77 13 60 64c18 19-2 49-28 40-51-17-100-17-147-2-22 7-37-23-19-39l56-50-45-35c-18-15-6-37 44-42Z" fill="#f8fafc" stroke="#0b1020" stroke-width="25" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M631 88c42-4 79 2 111 17 24 11 25 43 2 55l-31 17 39 35c22 20 3 57-26 49l-106-29c-21-6-27-34-10-47l35-27-31-22c-22-16-11-45 17-48Z" fill="#f8fafc" stroke="#0b1020" stroke-width="25" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M820 103c67-17 123-14 169 8 25 12 22 48-5 54l-88 20 70 52c23 17 8 55-20 52l-137-13c-27-3-36-38-13-52l58-37-49-37c-21-16-12-40 15-47Z" fill="#f8fafc" stroke="#0b1020" stroke-width="25" stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
+  <g filter="url(#rough)">
+    <path d="M104 177c16-31 31-60 45-87 9-17 33-12 32 8l-4 78 43-83c9-18 34-14 34 7l-2 74 43-81c12-22 42-10 32 15l-59 151c-7 18-33 17-35-4l-2-77-45 82c-10 18-38 12-37-10l1-82-18 39c-13 29-43 10-28-30Z" fill="none" stroke="url(#tag)" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M384 96c60-16 113-13 160 8 20 9 18 39-4 43l-77 13 60 64c18 19-2 49-28 40-51-17-100-17-147-2-22 7-37-23-19-39l56-50-45-35c-18-15-6-37 44-42Z" fill="none" stroke="url(#tag)" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M631 88c42-4 79 2 111 17 24 11 25 43 2 55l-31 17 39 35c22 20 3 57-26 49l-106-29c-21-6-27-34-10-47l35-27-31-22c-22-16-11-45 17-48Z" fill="none" stroke="url(#tag)" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M820 103c67-17 123-14 169 8 25 12 22 48-5 54l-88 20 70 52c23 17 8 55-20 52l-137-13c-27-3-36-38-13-52l58-37-49-37c-21-16-12-40 15-47Z" fill="none" stroke="url(#tag)" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
+  <g filter="url(#spray)" opacity="0.86">
+    <path d="M92 282c198-39 370-46 516-20 160 29 319 15 477-42" fill="none" stroke="#00f5d4" stroke-width="7" stroke-linecap="round"/>
+    <path d="M108 74c188 42 335 49 441 20 90-25 208-18 353 22" fill="none" stroke="#ff2e88" stroke-width="6" stroke-linecap="round"/>
+    <path d="M786 63c45 16 84 40 117 71M809 43c53 22 96 52 129 91" fill="none" stroke="#f97316" stroke-width="7" stroke-linecap="round"/>
+  </g>
+  <g>
+    <path d="M150 267c0 26-4 42-13 48-8 5-14-4-8-15 5-10 8-21 8-33" fill="#00f5d4" opacity="0.7"/>
+    <path d="M688 246c0 28-5 46-14 53-8 6-15-5-8-17 6-10 8-22 8-36" fill="#ff2e88" opacity="0.72"/>
+    <path d="M1000 245c2 27-2 44-11 50-8 5-15-5-9-17 5-11 7-22 6-34" fill="#facc15" opacity="0.7"/>
+  </g>
+  <g font-family="Arial Black, Impact, sans-serif" font-weight="900">
+    <text x="102" y="322" fill="#f8fafc" font-size="24" letter-spacing="2">LEARNING PROJECTS</text>
+    <text x="430" y="322" fill="#c9d1d9" font-size="24" letter-spacing="2">PERSONAL LINUX TOOLS</text>
+    <text x="820" y="322" fill="#f8fafc" font-size="24" letter-spacing="2">ROUGH EDGES WELCOME</text>
+  </g>
 </svg>
