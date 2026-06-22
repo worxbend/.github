@@ -24,7 +24,7 @@
 <br />
 
 <div align="center">
-  <img src="./assets/logo.png" alt="Worxbend graffiti logo" width="132" />
+  <img src="./assets/logo.png" alt="Worxbend blueprint logo" width="132" />
   <h1>Welcome to Worxbend 👋</h1>
   <p>
     <strong>A collection of learning projects, personal experiments, and a few handy Linux tools that are useful to me.</strong>
