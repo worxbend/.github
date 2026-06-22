@@ -1,75 +1,75 @@
 <svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" viewBox="0 0 256 256">
-  <title id="title">Worxbend blueprint logo</title>
-  <desc id="desc">A blueprint-style WXB logo with drafting grid, measurement lines, schematic marks, and cyan technical drawing strokes.</desc>
+  <title id="title">Worxbend street-tech graffiti logo</title>
+  <desc id="desc">A bold WXB graffiti sticker logo with Silicon Valley circuit traces, neon paint, halftone texture, drips, and hard street-art shadows.</desc>
   <defs>
-    <linearGradient id="paper" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#061a35"/>
-      <stop offset="0.54" stop-color="#09284e"/>
-      <stop offset="1" stop-color="#041326"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#070910"/>
+      <stop offset="0.55" stop-color="#111827"/>
+      <stop offset="1" stop-color="#271221"/>
     </linearGradient>
-    <pattern id="smallGrid" width="12" height="12" patternUnits="userSpaceOnUse">
-      <path d="M12 0H0v12" fill="none" stroke="#75d9ff" stroke-opacity="0.14" stroke-width="1"/>
+    <linearGradient id="paint" x1="28" y1="72" x2="232" y2="174" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00f5d4"/>
+      <stop offset="0.34" stop-color="#2f81f7"/>
+      <stop offset="0.66" stop-color="#ff2e88"/>
+      <stop offset="1" stop-color="#ffe600"/>
+    </linearGradient>
+    <pattern id="brick" width="48" height="30" patternUnits="userSpaceOnUse">
+      <path d="M0 0h48v30H0z" fill="none"/>
+      <path d="M0 0h48M0 15h48M0 30h48M24 0v15M0 15v15M48 15v15" stroke="#f8fafc" stroke-opacity="0.065" stroke-width="1.4"/>
     </pattern>
-    <pattern id="largeGrid" width="48" height="48" patternUnits="userSpaceOnUse">
-      <path d="M48 0H0v48" fill="none" stroke="#a8efff" stroke-opacity="0.22" stroke-width="1.2"/>
+    <pattern id="dots" width="12" height="12" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="1" fill="#ffffff" opacity="0.26"/>
+      <circle cx="9" cy="8" r="0.8" fill="#ffffff" opacity="0.18"/>
     </pattern>
-    <filter id="paperNoise" x="0" y="0" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="2" seed="91" result="noise"/>
-      <feColorMatrix in="noise" type="saturate" values="0"/>
-      <feComponentTransfer>
-        <feFuncA type="table" tableValues="0 0.08"/>
-      </feComponentTransfer>
+    <filter id="poster" x="-26%" y="-26%" width="152%" height="152%">
+      <feDropShadow dx="7" dy="9" stdDeviation="0" flood-color="#000000" flood-opacity="0.95"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#00f5d4" flood-opacity="0.52"/>
     </filter>
-    <filter id="inkGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#7ce7ff" flood-opacity="0.75"/>
+    <filter id="rough" x="-18%" y="-18%" width="136%" height="136%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.08 0.24" numOctaves="3" seed="52" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.2"/>
     </filter>
-    <marker id="arrow" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
-      <path d="M0 0l7 3.5L0 7z" fill="#a8efff"/>
-    </marker>
   </defs>
 
-  <rect width="256" height="256" rx="30" fill="url(#paper)"/>
-  <rect width="256" height="256" rx="30" fill="url(#smallGrid)"/>
-  <rect width="256" height="256" rx="30" fill="url(#largeGrid)"/>
-  <rect width="256" height="256" rx="30" filter="url(#paperNoise)" opacity="0.8"/>
+  <rect width="256" height="256" rx="32" fill="url(#bg)"/>
+  <rect width="256" height="256" rx="32" fill="url(#brick)"/>
+  <rect width="256" height="256" rx="32" fill="url(#dots)" opacity="0.38"/>
 
-  <g fill="none" stroke="#d8fbff" stroke-opacity="0.42" stroke-width="1.2">
-    <path d="M24 24h208v208H24z"/>
-    <path d="M36 36h184v184H36z" stroke-dasharray="7 6"/>
-    <path d="M128 12v232M12 128h232"/>
-    <circle cx="128" cy="128" r="78"/>
-    <circle cx="128" cy="128" r="55" stroke-dasharray="6 7"/>
+  <circle cx="58" cy="68" r="58" fill="#ff2e88"/>
+  <circle cx="203" cy="54" r="54" fill="#00f5d4"/>
+  <circle cx="198" cy="184" r="62" fill="#ff7a18"/>
+  <circle cx="68" cy="202" r="58" fill="#f8fafc"/>
+
+  <g opacity="0.95" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M30 86h59l27 31h66l31-28" fill="none" stroke="#00f5d4" stroke-width="6"/>
+    <path d="M30 181h52l34-27h58l48 36" fill="none" stroke="#ff2e88" stroke-width="6"/>
+    <path d="M62 36h48m48 184h52M193 94l31-14" fill="none" stroke="#ffe600" stroke-width="4"/>
   </g>
 
-  <g fill="none" stroke="#55dbff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" filter="url(#inkGlow)">
-    <path d="M49 78l24 102 28-66 28 66 24-102"/>
-    <path d="M78 78l25 102"/>
-    <path d="M153 78h32c24 0 38 12 38 31 0 12-7 22-20 27 16 4 25 16 25 32 0 21-15 34-42 34h-33z"/>
-    <path d="M178 101v24h12c10 0 16-4 16-12s-6-12-16-12z"/>
-    <path d="M178 154v25h14c11 0 17-5 17-13s-6-12-17-12z"/>
-    <path d="M105 88l51 104M156 88l-51 104"/>
+  <g filter="url(#poster)" font-family="Noto Sans, Arial Black, Impact, sans-serif" font-weight="900" text-anchor="middle">
+    <text x="128" y="164" fill="#090d18" stroke="#090d18" stroke-width="28" font-size="95" letter-spacing="-6">WXB</text>
+    <text x="128" y="164" fill="#f8fafc" stroke="#f8fafc" stroke-width="14" font-size="95" letter-spacing="-6">WXB</text>
+    <text x="128" y="164" fill="url(#paint)" stroke="#090d18" stroke-width="4" font-size="95" letter-spacing="-6">WXB</text>
   </g>
 
-  <g fill="none" stroke="#d8fbff" stroke-width="1.5" stroke-linecap="round" opacity="0.9">
-    <path d="M46 64h164" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-    <path d="M46 207h164" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-    <path d="M34 78h24M34 180h24M198 78h24M198 180h24"/>
-    <path d="M58 78V64M198 78V64M58 180v27M198 180v27"/>
+  <g filter="url(#rough)" opacity="0.94" stroke-linecap="round">
+    <path d="M34 114c41-20 76-26 105-18 25 7 51 3 78-12" fill="none" stroke="#ff2e88" stroke-width="6"/>
+    <path d="M31 184c48-17 89-19 122-6 26 10 49 6 70-13" fill="none" stroke="#00f5d4" stroke-width="6"/>
+    <path d="M70 111c-8 34-7 64 3 90M128 98c-8 39-6 72 6 100M190 103c-13 34-14 64-2 91" fill="none" stroke="#ffe600" stroke-width="5"/>
   </g>
 
-  <g font-family="Noto Sans Mono, ui-monospace, monospace" fill="#a8efff" font-size="12" opacity="0.9">
-    <text x="37" y="31">WXB-MARK</text>
-    <text x="150" y="31">REV 01</text>
-    <text x="61" y="226">WORXBEND</text>
-    <text x="34" y="139" transform="rotate(-90 34 139)">GRID 12</text>
-    <text x="224" y="119" transform="rotate(90 224 119)">1:1</text>
+  <g fill="#f8fafc" opacity="0.92">
+    <circle cx="21" cy="42" r="2.4" fill="#00f5d4"/>
+    <circle cx="40" cy="152" r="2"/>
+    <circle cx="74" cy="26" r="2.5" fill="#ffe600"/>
+    <circle cx="112" cy="216" r="2.4" fill="#2f81f7"/>
+    <circle cx="218" cy="29" r="2.4" fill="#ff2e88"/>
+    <circle cx="231" cy="146" r="2"/>
+    <circle cx="202" cy="224" r="2.5" fill="#00f5d4"/>
   </g>
 
-  <g fill="#d8fbff" opacity="0.8">
-    <circle cx="128" cy="128" r="3"/>
-    <circle cx="58" cy="78" r="2.4"/>
-    <circle cx="198" cy="180" r="2.4"/>
-    <circle cx="36" cy="36" r="2.2"/>
-    <circle cx="220" cy="220" r="2.2"/>
+  <g font-family="Noto Sans, Arial, sans-serif" font-weight="900" text-anchor="middle">
+    <path d="M57 205h142l-14 33H43z" fill="#f8fafc" filter="url(#poster)"/>
+    <text x="121" y="229" fill="#090d18" font-size="24" letter-spacing="1">WORXBEND</text>
   </g>
 </svg>
