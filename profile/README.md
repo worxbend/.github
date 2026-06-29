@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/worxbend">
-    <img src="./assets/banner.png" alt="Worxbend - learning projects, personal Linux tools, and experiments" width="100%" />
+    <img src="./assets/banner.svg" alt="Worxbend - learning projects, Linux tools, and practical experiments" width="100%" />
   </a>
 </div>
 
@@ -23,16 +23,22 @@
 
 <br />
 
-<div align="center">
-  <img src="./assets/logo.png" alt="Worxbend graffiti logo" width="132" />
-  <h1>Welcome to Worxbend 👋</h1>
-  <p>
-    <strong>A collection of learning projects, personal experiments, and a few handy Linux tools that are useful to me.</strong>
-  </p>
-  <p>
-    This is not a polished product shop and not a production-ready code catalog. Some of it is careful practice, some of it is weekend hacking, and yes, some of it is AI-generated slop that I keep around because it solves a personal itch.
-  </p>
-</div>
+<table>
+  <tr>
+    <td width="170" align="center" valign="middle">
+      <img src="./assets/logo.svg" alt="Worxbend logo" width="128" />
+    </td>
+    <td valign="middle">
+      <h1>Worxbend</h1>
+      <p>
+        <strong>Learning projects, practical Linux tools, and experiments that help me understand systems by building them.</strong>
+      </p>
+      <p>
+        This is a working shelf rather than a product catalog. Some repositories are careful practice, some are weekend prototypes, and some are AI-assisted utilities kept around because they solve a real personal itch.
+      </p>
+    </td>
+  </tr>
+</table>
 
 <br />
 
@@ -75,7 +81,7 @@
 </table>
 
 <blockquote>
-  <strong>Heads up:</strong> code here is shared in the spirit of learning in public. Use it for ideas, experiments, and personal setups. Review before running, fork what helps, and expect rough edges.
+  <strong>Heads up:</strong> code here is shared in the spirit of learning in public. Use it for ideas, experiments, and personal setups. Review before running, fork what helps, and expect project-specific assumptions.
 </blockquote>
 
 <h2>✨ Featured Projects</h2>
@@ -165,7 +171,7 @@
 <h2>💬 Welcome</h2>
 
 <p>
-  Thanks for stopping by. If you are looking through the code, expect learning notes, half-finished ideas, useful scripts, personal automation, rough prototypes, and the occasional AI-assisted shortcut that got the job done.
+  Thanks for stopping by. If you are looking through the code, expect learning notes, half-finished ideas, useful scripts, personal automation, early prototypes, and the occasional AI-assisted shortcut that got the job done.
 </p>
 
 <p>

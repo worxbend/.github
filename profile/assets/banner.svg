@@ -1,110 +1,81 @@
 <svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" viewBox="0 0 1200 360">
-  <title id="title">Worxbend street-tech graffiti banner</title>
-  <desc id="desc">A bold street-art banner with a Worxbend graffiti tag, Silicon Valley circuit traces, sticker graphics, spray paint, halftone texture, and neon city energy.</desc>
+  <title id="title">Worxbend profile banner</title>
+  <desc id="desc">A clean technical banner for Worxbend with a geometric W mark, workstation-inspired grid lines, and labels for learning projects, Linux tools, and open source notes.</desc>
   <defs>
-    <linearGradient id="night" x1="0" y1="0" x2="1200" y2="360" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#080a10"/>
-      <stop offset="0.48" stop-color="#111827"/>
-      <stop offset="1" stop-color="#23111f"/>
+    <linearGradient id="backdrop" x1="0" y1="0" x2="1200" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#08111f"/>
+      <stop offset="0.48" stop-color="#102235"/>
+      <stop offset="1" stop-color="#14131f"/>
     </linearGradient>
-    <linearGradient id="sunset" x1="260" y1="60" x2="960" y2="300" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#00f5d4"/>
-      <stop offset="0.28" stop-color="#2f81f7"/>
-      <stop offset="0.54" stop-color="#ff2e88"/>
-      <stop offset="0.78" stop-color="#ff7a18"/>
-      <stop offset="1" stop-color="#ffe600"/>
+    <linearGradient id="surface" x1="155" y1="70" x2="1015" y2="318" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#13283c" stop-opacity="0.94"/>
+      <stop offset="0.55" stop-color="#111827" stop-opacity="0.96"/>
+      <stop offset="1" stop-color="#221827" stop-opacity="0.94"/>
     </linearGradient>
-    <linearGradient id="acid" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#00f5d4"/>
-      <stop offset="0.5" stop-color="#ff2e88"/>
-      <stop offset="1" stop-color="#ffe600"/>
+    <linearGradient id="accent" x1="218" y1="82" x2="380" y2="236" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#23d3c3"/>
+      <stop offset="0.48" stop-color="#4f8cff"/>
+      <stop offset="1" stop-color="#ff5f8f"/>
     </linearGradient>
-    <pattern id="brick" width="82" height="40" patternUnits="userSpaceOnUse">
-      <path d="M0 0h82v40H0z" fill="none"/>
-      <path d="M0 0h82M0 20h82M0 40h82M41 0v20M0 20v20M82 20v20" stroke="#f8fafc" stroke-opacity="0.07" stroke-width="2"/>
+    <linearGradient id="accentWide" x1="112" y1="60" x2="1096" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#23d3c3"/>
+      <stop offset="0.48" stop-color="#4f8cff"/>
+      <stop offset="1" stop-color="#ffb454"/>
+    </linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0v48" fill="none" stroke="#d8e8ff" stroke-opacity="0.055" stroke-width="1"/>
     </pattern>
-    <pattern id="halftone" width="18" height="18" patternUnits="userSpaceOnUse">
-      <circle cx="5" cy="5" r="1.5" fill="#ffffff" opacity="0.3"/>
-      <circle cx="14" cy="13" r="1" fill="#ffffff" opacity="0.18"/>
+    <pattern id="pinGrid" width="88" height="88" patternUnits="userSpaceOnUse">
+      <circle cx="7" cy="7" r="1.6" fill="#d8e8ff" opacity="0.24"/>
     </pattern>
-    <filter id="rough" x="-8%" y="-18%" width="116%" height="136%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.04 0.16" numOctaves="3" seed="34" result="noise"/>
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="4.8"/>
+    <filter id="softShadow" x="-10%" y="-14%" width="120%" height="128%">
+      <feDropShadow dx="0" dy="20" stdDeviation="20" flood-color="#020617" flood-opacity="0.42"/>
     </filter>
-    <filter id="poster" x="-12%" y="-24%" width="124%" height="148%">
-      <feDropShadow dx="10" dy="14" stdDeviation="0" flood-color="#000000" flood-opacity="0.92"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#00f5d4" flood-opacity="0.45"/>
-    </filter>
-    <filter id="spray" x="-20%" y="-40%" width="140%" height="180%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.88" numOctaves="2" seed="19" result="noise"/>
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.2"/>
-    </filter>
-    <filter id="stickerShadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="6" dy="7" stdDeviation="0" flood-color="#000000" flood-opacity="0.74"/>
+    <filter id="markShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="13" stdDeviation="10" flood-color="#020617" flood-opacity="0.45"/>
     </filter>
   </defs>
 
-  <rect width="1200" height="360" rx="26" fill="url(#night)"/>
-  <rect width="1200" height="360" rx="26" fill="url(#brick)"/>
-  <rect width="1200" height="360" rx="26" fill="url(#halftone)" opacity="0.38"/>
+  <rect width="1200" height="360" rx="28" fill="url(#backdrop)"/>
+  <rect width="1200" height="360" rx="28" fill="url(#grid)"/>
+  <rect width="1200" height="360" rx="28" fill="url(#pinGrid)" opacity="0.65"/>
 
-  <g opacity="0.82">
-    <circle cx="238" cy="84" r="70" fill="#ff2e88"/>
-    <circle cx="1042" cy="125" r="86" fill="#ff7a18"/>
-    <circle cx="913" cy="218" r="102" fill="#00f5d4"/>
-    <circle cx="509" cy="278" r="76" fill="#f8fafc"/>
-    <circle cx="652" cy="78" r="46" fill="#ffe600"/>
-    <circle cx="86" cy="218" r="98" fill="#00f5d4"/>
+  <path d="M-26 320C140 216 256 214 392 287c121 65 250 54 389-34 150-96 300-105 465-28v135H-26z" fill="#22d3ee" opacity="0.08"/>
+  <path d="M-30 80c172-45 310-39 415 19 98 54 210 58 337 10 154-58 304-49 508 45V0H-30z" fill="#ff5f8f" opacity="0.08"/>
+  <path d="M102 61h996" stroke="url(#accentWide)" stroke-width="2" stroke-linecap="round" opacity="0.88"/>
+
+  <g filter="url(#softShadow)">
+    <path d="M92 92c0-18 14-32 32-32h952c18 0 32 14 32 32v176c0 18-14 32-32 32H124c-18 0-32-14-32-32z" fill="url(#surface)" stroke="#d8e8ff" stroke-opacity="0.12"/>
+    <path d="M126 267h948" stroke="#d8e8ff" stroke-opacity="0.12" stroke-width="1"/>
+    <path d="M435 92v176" stroke="#d8e8ff" stroke-opacity="0.10" stroke-width="1"/>
   </g>
 
-  <g opacity="0.95" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M64 96h128l38 52h164l32-41h186l48 64h204l31-38h218" fill="none" stroke="#00f5d4" stroke-width="7"/>
-    <path d="M92 270h180l44-45h202l37 35h202l60-57h250" fill="none" stroke="#ff2e88" stroke-width="8"/>
-    <path d="M742 54l172 86 94-28" fill="none" stroke="#ff7a18" stroke-width="8"/>
-    <path d="M318 58h74m88 0h52m410 230h83m36 0h72" fill="none" stroke="#ffe600" stroke-width="5"/>
+  <g transform="translate(144 98)" filter="url(#markShadow)">
+    <rect x="0" y="0" width="246" height="164" rx="28" fill="#07111f" stroke="#d8e8ff" stroke-opacity="0.13"/>
+    <path d="M28 122 59 42h33l31 64 31-64h33l31 80h-33l-17-45-24 45h-40L80 77l-17 45z" fill="url(#accent)"/>
+    <path d="M28 122 59 42h33l31 64 31-64h33l31 80" fill="none" stroke="#f8fbff" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" opacity="0.88"/>
+    <path d="M42 29h56M164 135h43M188 31h26M30 143h28" stroke="#ffb454" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="58" cy="31" r="5" fill="#23d3c3"/>
+    <circle cx="207" cy="135" r="5" fill="#ff5f8f"/>
   </g>
 
-  <g fill="#0b1020" stroke="#f8fafc" stroke-opacity="0.35" stroke-width="3" opacity="0.84">
-    <path d="M42 290h58v-70h35v70h62v-106h38v106h60v-58h34v58h46v40H42z"/>
-    <path d="M846 292h54v-86h38v86h45v-128h42v128h55v-74h35v74h43v39H846z"/>
+  <g font-family="Inter, Segoe UI, Arial, sans-serif">
+    <text x="486" y="152" fill="#f8fbff" font-size="72" font-weight="800" letter-spacing="0">Worxbend</text>
+    <text x="491" y="194" fill="#b9c8da" font-size="25" font-weight="600" letter-spacing="0">Learning projects, Linux tools, and practical experiments.</text>
+    <g font-size="17" font-weight="800" letter-spacing="1.6">
+      <rect x="488" y="223" width="216" height="34" rx="17" fill="#23d3c3" opacity="0.14"/>
+      <text x="508" y="246" fill="#7de8df">LEARNING PROJECTS</text>
+      <rect x="726" y="223" width="150" height="34" rx="17" fill="#4f8cff" opacity="0.15"/>
+      <text x="746" y="246" fill="#9fc1ff">LINUX TOOLS</text>
+      <rect x="898" y="223" width="203" height="34" rx="17" fill="#ffb454" opacity="0.14"/>
+      <text x="918" y="246" fill="#ffd08a">OPEN SOURCE NOTES</text>
+    </g>
   </g>
 
-  <g filter="url(#stickerShadow)" font-family="Noto Sans, Arial, sans-serif" font-weight="900">
-    <path d="M82 55h188l-18 58H62z" fill="#f8fafc"/>
-    <text x="83" y="95" fill="#0b1020" font-size="31" letter-spacing="1">SHIP IT</text>
-    <path d="M908 38h184l22 61H930z" fill="#f8fafc"/>
-    <text x="939" y="79" fill="#0b1020" font-size="30" letter-spacing="1">BUILD</text>
-    <path d="M690 258h244l-18 45H670z" fill="#f8fafc"/>
-    <text x="708" y="290" fill="#0b1020" font-size="26" letter-spacing="1">OPEN SOURCE</text>
-  </g>
-
-  <g filter="url(#poster)" font-family="Noto Sans, Arial Black, Impact, sans-serif" font-weight="900" text-anchor="middle">
-    <text x="604" y="222" fill="#090d18" stroke="#090d18" stroke-width="31" font-size="138" letter-spacing="-4">Worxbend</text>
-    <text x="604" y="222" fill="#f8fafc" stroke="#f8fafc" stroke-width="17" font-size="138" letter-spacing="-4">Worxbend</text>
-    <text x="604" y="222" fill="url(#sunset)" stroke="#090d18" stroke-width="5" font-size="138" letter-spacing="-4">Worxbend</text>
-  </g>
-
-  <g filter="url(#rough)" opacity="0.92">
-    <path d="M131 142c178-52 324-62 438-31 96 26 178 27 246 3 91-32 177-35 258-11" fill="none" stroke="#ff2e88" stroke-width="8" stroke-linecap="round"/>
-    <path d="M121 240c158-23 298-26 419-8 172 25 335 10 488-46" fill="none" stroke="#00f5d4" stroke-width="8" stroke-linecap="round"/>
-    <path d="M282 112c29 44 35 95 18 154M472 94c-14 61-11 111 9 150M748 110c-17 57-9 105 24 145M958 91c-24 60-26 113-8 159" fill="none" stroke="#ffe600" stroke-width="6" stroke-linecap="round"/>
-  </g>
-
-  <g fill="#f8fafc" opacity="0.9">
-    <circle cx="38" cy="44" r="3"/>
-    <circle cx="126" cy="26" r="4" fill="#00f5d4"/>
-    <circle cx="376" cy="300" r="3" fill="#ff2e88"/>
-    <circle cx="604" cy="42" r="4" fill="#ffe600"/>
-    <circle cx="772" cy="305" r="3" fill="#2f81f7"/>
-    <circle cx="1118" cy="46" r="4" fill="#ff2e88"/>
-    <circle cx="1163" cy="279" r="3" fill="#00f5d4"/>
-    <circle cx="1028" cy="303" r="3" fill="#f8fafc"/>
-  </g>
-
-  <g font-family="Noto Sans, Arial, sans-serif" font-weight="900" text-anchor="middle">
-    <rect x="42" y="314" width="1116" height="32" rx="16" fill="#090d18" opacity="0.9"/>
-    <text x="238" y="336" fill="#f8fafc" font-size="20" letter-spacing="2">LEARNING PROJECTS</text>
-    <text x="598" y="336" fill="#f8fafc" font-size="20" letter-spacing="2">LINUX TOOLS</text>
-    <text x="953" y="336" fill="#f8fafc" font-size="20" letter-spacing="2">ROUGH EDGES WELCOME</text>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.62">
+    <path d="M969 108h52l24 24h40" stroke="#23d3c3" stroke-width="4"/>
+    <path d="M963 291h71l23-25h36" stroke="#ff5f8f" stroke-width="4"/>
+    <path d="M92 110h41l24-24h50" stroke="#ffb454" stroke-width="4"/>
+    <path d="M155 300h85l30-30h46" stroke="#4f8cff" stroke-width="4"/>
   </g>
 </svg>
