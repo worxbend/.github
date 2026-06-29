@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/worxbend">
-    <img src="./assets/banner.svg" alt="Worxbend - learning projects, Linux tools, and practical experiments" width="100%" />
+    <img src="./assets/banner.png" alt="Worxbend - learning projects, Linux tools, and practical experiments" width="100%" />
   </a>
 </div>
 
@@ -26,7 +26,7 @@
 <table>
   <tr>
     <td width="170" align="center" valign="middle">
-      <img src="./assets/logo.svg" alt="Worxbend logo" width="128" />
+      <img src="./assets/logo.png" alt="Worxbend logo" width="128" />
     </td>
     <td valign="middle">
       <h1>Worxbend</h1>
