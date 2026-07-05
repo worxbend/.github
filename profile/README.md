@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/worxbend">
-    <img src="./assets/banner.png" alt="Worxbend - learning projects, Linux tools, and practical experiments" width="100%" />
+    <img src="./assets/banner.png" alt="Worxbend" width="100%" />
   </a>
 </div>
 
