@@ -29,7 +29,6 @@
       <img src="./assets/logo.png" alt="Worxbend logo" width="128" />
     </td>
     <td valign="middle">
-      <h1>Worxbend</h1>
       <p>
         <strong>Learning projects, practical Linux tools, and experiments that help me understand systems by building them.</strong>
       </p>
