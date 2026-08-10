@@ -1,18 +1,20 @@
 /**
  * The catalogue every other module reads.
  *
- * Nothing in here is a hand-written list of repositories any more. The facts arrive from GitHub's
- * public API, fetched in the visitor's own browser with no credentials (core/github.js), and this
- * module is where those facts meet the editorial decisions in overrides.js: which subject a
- * repository belongs to, how to describe it in plain language, which few to feature.
+ * Three files meet here, and each answers a different question:
+ *
+ *   catalog.config.js  which projects appear, and in which section   — chosen by hand
+ *   overrides.js       how each one is described in plain language   — written by hand
+ *   core/github.js     what is currently true about them             — fetched from GitHub
  *
  * The split matters. Anything GitHub can tell us — stars, primary language, topics, the last time
- * somebody pushed — regenerates by itself and can never go stale. Anything requiring judgement is
- * written by a person and is never overwritten. A repository nobody has written about still
- * appears; it simply falls back to its own GitHub description.
+ * somebody pushed — refreshes by itself and can never go stale. Anything requiring judgement is
+ * written by a person and is never overwritten. A repository listed in the config that nobody has
+ * written a description for still appears; it falls back to its own GitHub description.
  *
- * What is shown: every public, non-fork, non-archived repository on the three accounts that has
- * been pushed to in the last six months, minus anything in the EXCLUDE list.
+ * What is shown: exactly the repositories named in catalog.config.js, and nothing else. A
+ * repository that GitHub does not return — renamed, made private, deleted — is skipped and named
+ * in the browser console rather than left as an empty card.
  *
  * How loading works
  * -----------------
@@ -24,10 +26,11 @@
  */
 
 import { SEED } from './seed.js';
-import { COPY, EXCLUDE, KEEP_BOTH, PREFER_OWNER, CLUSTER_RULES } from './overrides.js';
-import { ACCOUNTS, fetchCatalog, isActive, ACTIVE_MONTHS, clearCache } from '../core/github.js';
+import { COPY } from './overrides.js';
+import { SECTIONS, FEATURED } from './catalog.config.js';
+import { ACCOUNTS, fetchCatalog, clearCache } from '../core/github.js';
 
-export { ACTIVE_MONTHS, clearCache };
+export { clearCache };
 
 /**
  * The accounts the catalogue is drawn from, keyed by login so a project can name one.
@@ -39,44 +42,45 @@ export const OWNERS = Object.fromEntries(
   ACCOUNTS.map((a) => [a.login, { login: a.login, kind: a.kind, label: a.label, url: a.url }]),
 );
 
-export const CLUSTERS = [
-  {
-    id: 'streaming',
-    name: 'Streaming & OBS',
-    blurb: 'Controllers, dashboards and browser overlays for OBS Studio, plus chat clients and bots for Twitch and YouTube — everything that runs while a live stream is on air.',
-    glyph: '◈',
-  },
-  {
-    id: 'air',
-    name: 'Air Quality',
-    blurb: 'Ways of reading an AirGradient air-quality monitor: a desktop window, a phone app, a terminal, a panel icon, an e-paper screen, a wall of LEDs and a metrics stack, all talking to the sensor on the local network rather than to a cloud account.',
-    glyph: '◇',
-  },
-  {
-    id: 'iot',
-    name: 'IoT & Edge',
-    blurb: 'Firmware for small Wi-Fi microcontroller boards — cameras, relays, LED panels — together with the network services on the other end of the wire that receive their frames and send them commands.',
-    glyph: '◆',
-  },
-  {
-    id: 'linux',
-    name: 'Linux & Provisioning',
-    blurb: 'Tools that take a fresh Linux machine, or a homelab of them, and bring it to a known state from files kept in version control: packages, dotfiles, fonts, binaries and monitoring.',
-    glyph: '▣',
-  },
-  {
-    id: 'scala',
-    name: 'Scala & JVM',
-    blurb: 'Libraries and services for the Java Virtual Machine, mostly written in Scala 3 — API clients, an authentication server, data pipelines and ports of existing libraries to the Flix language.',
-    glyph: '⬡',
-  },
-  {
-    id: 'labs',
-    name: 'Labs',
-    blurb: 'Experiments that exist to answer a question rather than to ship a product: a browser game, an automated writing journal, a webcam filter and other one-off sketches.',
-    glyph: '⬢',
-  },
-];
+/**
+ * The sections of the catalogue, without their repository lists.
+ *
+ * The user interface only ever needs the label part of a section — its id, name, glyph and blurb —
+ * so that is all this exposes. Membership is resolved once, below, into `SELECTED`.
+ */
+export const CLUSTERS = SECTIONS.map(({ id, name, glyph, blurb }) => ({ id, name, glyph, blurb }));
+
+/** `owner/repository`, lower-cased, so a config entry and a GitHub answer compare as equal. */
+function repoKey(owner, name) {
+  return `${owner}/${name}`.toLowerCase();
+}
+
+/**
+ * Every repository the config selects, mapped to the section that selected it.
+ *
+ * Built once at module load. A repository listed under two sections keeps the first, because
+ * silently showing the same card twice is worse than picking one and saying so in the console.
+ */
+const SELECTED = new Map();
+for (const section of SECTIONS) {
+  for (const entry of section.repos) {
+    const key = entry.toLowerCase();
+    if (SELECTED.has(key)) {
+      console.warn(
+        `[catalog.config] ${entry} is listed under both "${SELECTED.get(key)}" and ` +
+        `"${section.id}" — keeping "${SELECTED.get(key)}".`,
+      );
+      continue;
+    }
+    SELECTED.set(key, section.id);
+  }
+}
+
+/** The featured set, in the same lower-cased form, so a typo in either file cannot half-match. */
+const FEATURED_KEYS = new Set(FEATURED.map((entry) => entry.toLowerCase()));
+
+/** How many repositories the config asks for. The page compares this against what it found. */
+export const SELECTED_COUNT = SELECTED.size;
 
 /**
  * Language colours, taken from GitHub's own language palette (the `linguist` project), so a
@@ -130,33 +134,6 @@ export function langColor(name) {
   return (name && LANGS[name]) || LANG_FALLBACK;
 }
 
-/** Lower-cased haystack used by the cluster rules, built once per repository. */
-function haystack(repo) {
-  return {
-    name: repo.name.toLowerCase(),
-    topics: repo.topics.map((t) => t.toLowerCase()),
-    lang: repo.lang || '',
-  };
-}
-
-/**
- * Decide which cluster a repository belongs to.
- *
- * An explicit `cluster` in overrides.js always wins. Otherwise the rules are tried in order and
- * the first match takes it; a repository matching nothing lands in `labs`, which is the honest
- * answer for a sketch nobody has written about.
- */
-function clusterFor(repo, override) {
-  if (override?.cluster) return override.cluster;
-  const hay = haystack(repo);
-  for (const rule of CLUSTER_RULES) {
-    if (rule.topics?.some((t) => hay.topics.includes(t))) return rule.cluster;
-    if (rule.names?.some((n) => hay.name.includes(n))) return rule.cluster;
-    if (rule.langs?.includes(hay.lang)) return rule.cluster;
-  }
-  return 'labs';
-}
-
 /**
  * A URL-safe id for the location hash and the card's DOM id.
  *
@@ -202,14 +179,14 @@ function taglineFromDescription(description) {
  * inventing a summary.
  */
 function toProject(repo, id) {
-  const key = `${repo.owner}/${repo.name}`;
-  const override = COPY[key];
+  const key = repoKey(repo.owner, repo.name);
+  const override = COPY[`${repo.owner}/${repo.name}`];
   const described = Boolean(override?.desc || repo.description);
   return {
     id,
     name: repo.name,
     owner: repo.owner,
-    cluster: clusterFor(repo, override),
+    cluster: SELECTED.get(key),
     lang: repo.lang || 'Other',
     langs: repo.lang ? [repo.lang] : [],
     stars: repo.stars,
@@ -220,40 +197,11 @@ function toProject(repo, id) {
     desc: override?.desc || repo.description ||
       'This repository has no description on GitHub yet. Open it to see what is inside.',
     topics: repo.topics,
-    featured: override?.featured === true,
+    featured: FEATURED_KEYS.has(key),
     /** True when a person wrote this entry, so the UI can tell a summary from a placeholder. */
     curated: Boolean(override?.desc),
     described,
   };
-}
-
-/**
- * Drop the copies left behind when a project moved between accounts.
- *
- * The same repository name on two accounts is almost always one project and one leftover, and
- * showing both makes the catalogue look padded. The winner is decided by PREFER_OWNER, and a name
- * listed in KEEP_BOTH opts out of the whole thing.
- */
-function dedupe(repos) {
-  const byName = new Map();
-  for (const repo of repos) {
-    const key = repo.name.toLowerCase();
-    if (KEEP_BOTH.has(repo.name) || KEEP_BOTH.has(key)) {
-      byName.set(`${repo.owner}/${key}`, repo);
-      continue;
-    }
-    const held = byName.get(key);
-    if (!held) {
-      byName.set(key, repo);
-      continue;
-    }
-    const rank = (r) => {
-      const index = PREFER_OWNER.indexOf(r.owner);
-      return index === -1 ? PREFER_OWNER.length : index;
-    };
-    if (rank(repo) < rank(held)) byName.set(key, repo);
-  }
-  return [...byName.values()];
 }
 
 /** Sort: stars first, then most recently pushed, then alphabetically. Stable and predictable. */
@@ -262,31 +210,41 @@ function order(a, b) {
 }
 
 /**
- * The whole pipeline: filter, de-duplicate, assign ids, layer the copy on, sort.
+ * Which configured repositories were not in the last set of facts, so the page can say so.
+ *
+ * Kept as module state rather than returned, because `buildProjects` is called from two places and
+ * only the caller that loads the live catalogue has anything useful to do with the answer.
+ */
+let lastMissing = [];
+
+/**
+ * The whole pipeline: keep what the config selected, assign ids, layer the copy on, sort.
  *
  * Exported so it can be exercised directly without a network call — hand it a seed-shaped array
  * and it returns exactly what the page would render.
  */
-export function buildProjects(repos, now = Date.now()) {
-  const eligible = dedupe(
-    repos.filter(
-      (repo) =>
-        !repo.isFork &&
-        !repo.isArchived &&
-        isActive(repo, now) &&
-        !EXCLUDE.has(`${repo.owner}/${repo.name}`),
-    ),
-  );
+export function buildProjects(repos) {
+  const found = new Map();
+  for (const repo of repos) {
+    const key = repoKey(repo.owner, repo.name);
+    // A config entry is the only way in, and the first answer for a key wins: GitHub can return
+    // the same repository twice across page boundaries if something is pushed mid-fetch.
+    if (SELECTED.has(key) && !found.has(key)) found.set(key, repo);
+  }
 
-  // Assign ids only once the final set is known, so a name that is unique after de-duplication
-  // gets the short id and only genuine collisions carry an owner prefix.
+  lastMissing = [...SELECTED.keys()].filter((key) => !found.has(key));
+
+  // Ids are assigned once the final set is known, so a repository whose name is unique gets the
+  // short id — `#/p/scenedeck` reads better than `#/p/worxbend-scenedeck` — and only a genuine
+  // collision between two accounts carries an owner prefix.
+  const chosen = [...found.values()];
   const counts = new Map();
-  for (const repo of eligible) {
+  for (const repo of chosen) {
     const key = slug(repo.name);
     counts.set(key, (counts.get(key) || 0) + 1);
   }
 
-  return eligible
+  return chosen
     .map((repo) => {
       const base = slug(repo.name);
       const id = counts.get(base) > 1 ? `${slug(repo.owner)}-${base}` : base;
@@ -309,7 +267,10 @@ export const catalogMeta = {
   fetchedAt: null,
   error: null,
   accounts: [],
-  activeMonths: ACTIVE_MONTHS,
+  /** How many repositories catalog.config.js asks for. */
+  selected: SELECTED_COUNT,
+  /** Configured repositories GitHub did not return, as `owner/repository` strings. */
+  missing: [],
 };
 
 const listeners = new Set();
@@ -343,7 +304,16 @@ export async function loadCatalog({ force = false } = {}) {
 
   // An empty answer is treated as a failure rather than as "there are no repositories", because
   // wiping a full catalogue is far worse than showing a slightly old one.
-  if (next.length > 0) replace(next);
+  if (next.length > 0) {
+    replace(next);
+    catalogMeta.missing = lastMissing;
+    if (lastMissing.length > 0) {
+      console.warn(
+        '[catalog.config] listed but not returned by GitHub — check the spelling, or whether the ' +
+        `repository was renamed or made private: ${lastMissing.join(', ')}`,
+      );
+    }
+  }
 
   for (const fn of listeners) {
     try {

@@ -57,12 +57,6 @@ export const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
  */
 export const PARTIAL_CACHE_TTL_MS = 5 * 60 * 1000;
 
-/** Only repositories pushed to within this many months are shown. */
-export const ACTIVE_MONTHS = 6;
-
-/** A month is counted as 30.5 days so the window does not depend on which months it spans. */
-const ACTIVE_MS = ACTIVE_MONTHS * 30.5 * 24 * 60 * 60 * 1000;
-
 /**
  * Pagination stops here. Every account currently fits in one page of 100; the cap exists so a
  * mistake in the loop can never turn into a hundred requests against a 60-per-hour budget.
@@ -102,13 +96,6 @@ function normalise(raw, login) {
     isFork: Boolean(raw.fork),
     isArchived: Boolean(raw.archived),
   };
-}
-
-/** True when a repository has been pushed to inside the active window. */
-export function isActive(repo, now = Date.now()) {
-  if (!repo.updated) return false;
-  const pushed = Date.parse(`${repo.updated}T00:00:00Z`);
-  return Number.isFinite(pushed) && now - pushed <= ACTIVE_MS;
 }
 
 // --- Cache ---------------------------------------------------------------------------------

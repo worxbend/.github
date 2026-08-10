@@ -57,6 +57,21 @@ Fluid headings use `clamp()` but must land on scale values at the ends.
 
 ---
 
+### Spacing rhythm
+
+`--sp-N` is a linear 4px scale. Two values are deliberately fluid, because a phone should not
+inherit a wide monitor's empty space:
+
+| Token | Where it applies |
+| --- | --- |
+| `--sp-section` | Between major page regions. Lives on `.section` as block padding. |
+| `--sp-stack` | Between the children of one region. Lives on `.wrap`, which is a flex column. |
+| `--sp-stack-tight` | Between parts of one idea — kicker/heading/standfirst, or a search field and its filter chips. Applied with `.stack.stack--tight`. |
+
+`base.css` removes every default margin, so a component never carries spacing of its own: a
+container states the gap once and any component can be dropped into it. Adding a `margin` to a
+component to separate it from a sibling is the thing this rule exists to prevent.
+
 ## 2. Theme system
 
 Five themes. The user picks one; it persists. There is **no** `prefers-color-scheme` media query
@@ -103,9 +118,10 @@ Neutrals must be hue-biased toward that theme's accent. No pure `#808080`.
 
 ## 3. Data model
 
-> **Superseded.** The catalogue was hand-maintained when this brief was written. It is now fetched
-> live, in the visitor's browser, with no credentials. The shape below still describes a project
-> entry, but it is produced rather than typed. See **3a** for how it is actually assembled.
+> **Superseded.** The shape below still describes one project entry, but it is produced rather
+> than typed: every fact about a repository is fetched live in the visitor's browser, with no
+> credentials, and *which* repositories appear is a hand-written list in
+> `data/catalog.config.js`. See **3a** for how the two meet.
 
 `docs/assets/js/data/projects.js` exports the catalog. Shape of one entry:
 
@@ -122,7 +138,7 @@ export const CLUSTERS = [
   { id: 'iot',        name: 'IoT & Edge',           blurb: '…', glyph: '◆' },
   { id: 'linux',      name: 'Linux & Provisioning', blurb: '…', glyph: '▣' },
   { id: 'scala',      name: 'Scala & JVM',          blurb: '…', glyph: '⬡' },
-  { id: 'labs',       name: 'Labs',                 blurb: '…', glyph: '⬢' },
+  { id: 'cad',        name: 'CAD & 3D printing',    blurb: '…', glyph: '⬢' },
 ];
 
 export const LANGS = { Rust: '#dea584', Go: '#00ADD8', Scala: '#c22d40', /* … */ };
@@ -163,8 +179,9 @@ overwritten.**
 | --- | --- | --- |
 | `core/github.js` | hand | The fetch. Three anonymous calls to GitHub's public REST API — one per account — with an ETag revalidation, a six-hour `localStorage` cache, and a fallback chain. |
 | `data/seed.js` | `scripts/refresh-seed.py` | A committed snapshot, used for the first paint and as the last fallback. Never the source of truth. |
-| `data/overrides.js` | hand | The editorial layer: `EXCLUDE`, `COPY` (plain-language descriptions, cluster pins, `featured`), `CLUSTER_RULES`, `PREFER_OWNER`, `KEEP_BOTH`. |
-| `data/projects.js` | hand | The merge. Filters, de-duplicates, assigns ids, layers the copy on, sorts, and publishes `PROJECTS`, `loadCatalog()` and `onCatalogChange()`. |
+| `data/catalog.config.js` | hand | **The selection.** `SECTIONS` — one entry per subject, each carrying its label copy and the `owner/repository` lines that belong to it — and `FEATURED`. Nothing outside this file can put a project on the site. |
+| `data/overrides.js` | hand | The prose layer: `COPY`, keyed by `owner/repository`, holding `tagline` and `desc`. Nothing else. |
+| `data/projects.js` | hand | The merge. Keeps what the config selected, assigns ids, layers the copy on, sorts, and publishes `PROJECTS`, `CLUSTERS`, `loadCatalog()` and `onCatalogChange()`. |
 
 Rules that follow from this and must not be broken:
 
@@ -180,9 +197,15 @@ Rules that follow from this and must not be broken:
   an empty response is treated as a failure rather than as "there are no repositories".
 - **Say which source answered.** `catalogMeta.source` drives a line in the instrument section. A
   page quietly showing month-old numbers is worse than one that admits it.
-- **Membership is automatic**: every public, non-fork, non-archived repository on the accounts in
-  `ACCOUNTS`, pushed to within `ACTIVE_MONTHS`, minus `EXCLUDE`. Adding a repository to the site
-  means pushing a commit to it, nothing else.
+- **Membership is chosen, not inferred.** The catalogue is exactly the repositories named in
+  `data/catalog.config.js`, and adding one is a single line in that file. It used to be every
+  repository pushed to in the last six months, which is a rule about activity rather than intent:
+  a sandbox touched last week outranked a finished tool, and every throwaway experiment appeared
+  the moment it was committed to. A configured repository that GitHub does not return — renamed,
+  made private, deleted — is skipped, counted in `catalogMeta.missing`, and named in the console.
+- **The section list is config too.** `CLUSTERS` is derived from `SECTIONS`, and `ui/app.js`
+  renders the section cards and the filter chips from it at boot. The equivalent markup in
+  `index.html` is the no-JavaScript fallback, not a second source of truth.
 - **Anything derived from the catalogue must rebuild when it changes** — the search index, the
   default order, the card cache, the headline figures, and the constellation. `ui/app.js` does
   this through `onCatalogChange`; a new derived value has to be added there too.
