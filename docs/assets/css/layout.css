@@ -124,9 +124,9 @@
      lets it push the content down by its real height. */
   position: sticky;
   inset-block-start: 0;
-  /* One step above the content layer so the bar stays on top of sections
-     scrolling underneath it, without needing a token of its own. */
-  z-index: calc(var(--z-content) + 1);
+  /* The rail is page furniture, so it takes the navigation layer from tokens.css rather than
+     computing a one-off value next to the content layer. */
+  z-index: var(--z-nav);
   display: flex;
   flex-direction: row;
   align-items: center;

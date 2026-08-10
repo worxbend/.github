@@ -35,6 +35,10 @@ concurrency:
 
 jobs:
   deploy:
+    # `workflow_dispatch` lets whoever starts the run pick any branch, tag or commit, and
+    # `actions/checkout` honours that choice — so without this guard a manual run could publish an
+    # unreviewed branch's `docs/` to the live site. Only `main` is ever deployed.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

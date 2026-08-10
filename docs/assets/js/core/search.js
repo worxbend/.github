@@ -398,8 +398,18 @@ function queryTerms(text) {
  * Filters
  * ============================================================================================ */
 
-/** Accepted inline filter keys, including a couple of natural aliases. */
-const FILTER_ALIASES = {
+/**
+ * Accepted inline filter keys, including a couple of natural aliases.
+ *
+ * Built with a null prototype on purpose. A plain object literal inherits from
+ * `Object.prototype`, so an unguarded `FILTER_ALIASES[word]` also answers to `constructor`,
+ * `toString`, `valueOf`, `hasOwnProperty` and `__proto__` — every one of which is truthy and none
+ * of which is a filter name. Somebody typing `constructor:x` into the search box would get a
+ * truthy key, then `filters[key]` would be `undefined`, and `.push` on it would throw straight
+ * out of `search()` and take the catalogue down. With no prototype there is nothing to inherit,
+ * and the string check at each lookup is the second line of defence.
+ */
+const FILTER_ALIASES = Object.assign(Object.create(null), {
   lang: 'lang',
   language: 'lang',
   owner: 'owner',
@@ -411,7 +421,7 @@ const FILTER_ALIASES = {
   tag: 'topic',
   stars: 'stars',
   star: 'stars',
-};
+});
 
 function emptyFilters() {
   return { lang: [], owner: [], cluster: [], topic: [], stars: [] };
@@ -486,7 +496,11 @@ function parseQuery(raw) {
     const word = raw.slice(wordStart, i);
 
     if (colon > wordStart) {
-      const key = FILTER_ALIASES[fold(raw.slice(wordStart, colon))];
+      const alias = FILTER_ALIASES[fold(raw.slice(wordStart, colon))];
+      // Belt and braces alongside the null prototype. Anything that is not one of the filter
+      // names above is not a filter, and the word falls through to be searched as ordinary text —
+      // so `constructor:x` looks for the words "constructor" and "x" rather than throwing.
+      const key = typeof alias === 'string' ? alias : '';
       let value = raw.slice(colon + 1, i);
       if (value.length >= 2) {
         const first = value[0];
@@ -517,7 +531,7 @@ function normalizeStructuredFilters(input) {
 
   for (const rawKey of Object.keys(input)) {
     const key = FILTER_ALIASES[fold(rawKey)];
-    if (!key) continue;
+    if (typeof key !== 'string') continue;
     const value = input[rawKey];
     if (value === null || value === undefined || value === '') continue;
 

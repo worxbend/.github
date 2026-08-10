@@ -1296,6 +1296,14 @@ export const telemetry = {
    * Resolves even when there is no database to clear.
    */
   async clear() {
+    // Land any batch that is mid-write before emptying the store.
+    //
+    // `runFlush()` removes a batch from `buffer` before it finishes writing it, so clearing the
+    // buffer does not stop that write. Without this the flush could commit *after* the delete
+    // transaction, and a visitor who asked for every event to be removed would be left with some
+    // still stored. `query()`, `summary()` and `export()` already wait for the same reason.
+    await flushNow();
+
     cancelScheduledFlush();
     buffer = [];
     memoryEvents = [];

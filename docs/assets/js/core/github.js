@@ -45,8 +45,17 @@ export const ACCOUNTS = [
   },
 ];
 
-/** How long a successful answer is trusted before the page asks GitHub again. */
+/** How long a complete answer is trusted before the page asks GitHub again. */
 export const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+
+/**
+ * How long an answer that was missing an account is trusted.
+ *
+ * Much shorter, because it is a stopgap rather than a result. Long enough that a failing account
+ * is not retried on every single page view; short enough that a transient outage does not leave a
+ * whole account missing from the catalogue for the rest of the day.
+ */
+export const PARTIAL_CACHE_TTL_MS = 5 * 60 * 1000;
 
 /** Only repositories pushed to within this many months are shown. */
 export const ACTIVE_MONTHS = 6;
@@ -213,7 +222,12 @@ export async function fetchCatalog({ seed = [], force = false } = {}) {
   const cached = readCache();
   const now = Date.now();
 
-  if (!force && cached && now - cached.fetchedAt < CACHE_TTL_MS) {
+  // If any account failed last time, the answer is trusted for a few minutes rather than six
+  // hours, so the failure is retried soon. Otherwise one timeout on a first visit would hide a
+  // whole account for the rest of the day — and because a cache hit reports no error, the page
+  // would cheerfully say everything was fine.
+  const ttl = cached?.partial ? PARTIAL_CACHE_TTL_MS : CACHE_TTL_MS;
+  if (!force && cached && now - cached.fetchedAt < ttl) {
     return {
       repos: cached.repos,
       source: 'cache',
@@ -271,9 +285,10 @@ export async function fetchCatalog({ seed = [], force = false } = {}) {
       }
     }
 
-    const entry = { version: CACHE_VERSION, fetchedAt: now, repos, etags, accounts: reached };
+    const partial = reached.length < ACCOUNTS.length;
+    const entry = { version: CACHE_VERSION, fetchedAt: now, repos, etags, accounts: reached, partial };
     writeCache(entry);
-    return { repos, source: 'network', fetchedAt: now, error: firstError, accounts: reached };
+    return { repos, source: 'network', fetchedAt: now, error: firstError, accounts: reached, partial };
   } catch (error) {
     // The network is the least reliable link in the chain, so failing here is expected rather
     // than exceptional: fall back to whatever is on hand and say so.

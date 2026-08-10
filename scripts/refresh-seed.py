@@ -47,13 +47,20 @@ def read_accounts() -> list[tuple[str, str]]:
     whole account quietly missing from the offline fallback but present online — which is exactly
     the kind of bug nobody thinks to look for.
     """
-    text = CORE.read_text()
+    text = CORE.read_text(encoding="utf-8")
     block = re.search(r"export const ACCOUNTS = \[(.*?)\n\];", text, re.S)
     if not block:
         fail("could not find ACCOUNTS in core/github.js")
     found = re.findall(r"login:\s*'([^']+)'\s*,\s*kind:\s*'([^']+)'", block.group(1), re.S)
     if not found:
         fail("ACCOUNTS in core/github.js did not parse")
+    # A partial parse is the dangerous case: the regular expression matches two of three accounts,
+    # every request succeeds, and the seed silently ships without one whole account. Counting the
+    # `login:` keys independently catches that, where checking for "at least one match" would not.
+    declared = len(re.findall(r"login:\s*'", block.group(1)))
+    if declared != len(found):
+        fail(f"parsed {len(found)} of {declared} accounts from core/github.js — "
+             "the ACCOUNTS literal is not in the shape this script expects")
     return found
 
 
@@ -128,7 +135,8 @@ def main() -> None:
 /** Every public repository on the three accounts, in the same shape a live response produces. */
 export const SEED = """
 
-    OUT.write_text(header + json.dumps(rows, indent=2, ensure_ascii=False) + ";\n")
+    OUT.write_text(header + json.dumps(rows, indent=2, ensure_ascii=False) + ";\n",
+                   encoding="utf-8")
     print(f"refresh-seed: wrote {len(rows)} repositories to {OUT.relative_to(ROOT)}")
 
 

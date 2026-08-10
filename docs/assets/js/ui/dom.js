@@ -35,6 +35,34 @@ const ATTRIBUTE_ONLY = new Set(['list', 'form', 'download', 'role']);
 const FORBIDDEN = new Set(['innerHTML', 'outerHTML', 'innerText', 'srcdoc']);
 
 /**
+ * Attributes whose value the browser will follow as a URL.
+ *
+ * These need checking because a URL is the one remaining way a plain string can become executable
+ * code: `href="javascript:…"` runs when the link is clicked, and `data:text/html,…` opens a
+ * document the page has no control over.
+ */
+const URL_KEYS = new Set(['href', 'src', 'action', 'formAction', 'formaction', 'poster', 'data']);
+
+/** Schemes that execute or navigate somewhere the page did not intend. */
+const UNSAFE_SCHEME = /^\s*(javascript|data|vbscript|file)\s*:/i;
+
+/**
+ * Refuse a URL that would run code instead of going somewhere.
+ *
+ * When this module was written every URL on the page came from a checked-in file, so this was
+ * only a contract on paper. The catalogue is now fetched live from GitHub, and a repository's
+ * `homepage` is free text its owner controls — which is exactly the shape of input that turns a
+ * documented guarantee into a real one. A rejected value becomes '#' and is reported once, rather
+ * than silently producing a link that does nothing a visitor expects.
+ */
+function safeUrl(value, key) {
+  const text = String(value);
+  if (!UNSAFE_SCHEME.test(text)) return text;
+  console.warn(`[dom] refused an unsafe ${key} value: ${text.slice(0, 60)}`);
+  return '#';
+}
+
+/**
  * Create an element.
  *
  * @param {string} tag        the tag name, for example 'button'
@@ -100,12 +128,14 @@ export function h(tag, attrs = null, children = null) {
         continue;
       }
 
+      const safe = URL_KEYS.has(key) ? safeUrl(value, key) : value;
+
       if (!ATTRIBUTE_ONLY.has(key) && key in el) {
-        el[key] = value;
+        el[key] = safe;
         continue;
       }
 
-      el.setAttribute(key, String(value));
+      el.setAttribute(key, String(safe));
     }
   }
 

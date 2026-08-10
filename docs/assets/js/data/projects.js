@@ -167,6 +167,26 @@ function slug(text) {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
+/**
+ * Make a repository's homepage field into something a browser can follow, or drop it.
+ *
+ * GitHub does not validate this field. Several of these repositories set it without a scheme —
+ * `obs.worxbend.com` rather than `https://obs.worxbend.com` — and a browser reads a bare value
+ * like that as a path relative to the current page, so the link would land somewhere inside this
+ * site instead of on the project's own page. Anything that is not plainly http or https is
+ * dropped rather than guessed at.
+ */
+function normaliseHomepage(home) {
+  const text = (home || '').trim();
+  if (!text) return undefined;
+  if (/^https?:\/\//i.test(text)) return text;
+  // A scheme we do not recognise (including `javascript:`) is not something to repair.
+  if (/^[a-z][a-z0-9+.-]*:/i.test(text)) return undefined;
+  // Looks like a bare host, for example `obs.worxbend.com` or `worxbend.github.io/twi/`.
+  if (/^[\w-]+(\.[\w-]+)+(\/|$)/.test(text)) return `https://${text}`;
+  return undefined;
+}
+
 /** First sentence of a GitHub description, trimmed to something that fits a card's subtitle. */
 function taglineFromDescription(description) {
   if (!description) return '';
@@ -195,7 +215,7 @@ function toProject(repo, id) {
     stars: repo.stars,
     updated: repo.updated,
     url: repo.url,
-    home: repo.home || undefined,
+    home: normaliseHomepage(repo.home),
     tagline: override?.tagline || taglineFromDescription(repo.description) || 'No description yet',
     desc: override?.desc || repo.description ||
       'This repository has no description on GitHub yet. Open it to see what is inside.',

@@ -646,6 +646,19 @@ export async function mountGlyphs(canvas, { palette = null, intensity = 0.12 } =
       return app;
     } catch {
       // Import failure, a rejected init, or no WebGL context. The page is fine without us.
+      //
+      // If the throw happened *after* `app` was assigned — building the glyph atlas, or the first
+      // resize — then a renderer exists and owns this canvas's WebGL context. Dropping the
+      // reference without destroying it would strand that context: a later retry could not obtain
+      // a second one for the same canvas, so the layer could never come back, and the orphan would
+      // keep counting against the browser's per-page context limit and compete with the starfield.
+      if (app) {
+        try {
+          app.destroy(true, { children: true, texture: true });
+        } catch {
+          /* Already half torn down; nothing more to release. */
+        }
+      }
       app = null;
       return null;
     } finally {
