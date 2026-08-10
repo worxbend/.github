@@ -1,0 +1,6 @@
+# Do not run Jekyll on this folder.
+#
+# GitHub Pages historically piped every site through Jekyll, a static-site generator that
+# ignores any file or folder whose name starts with an underscore. This site is plain HTML, CSS
+# and JavaScript with no generator involved, so the presence of this file tells Pages to publish
+# the folder byte for byte.

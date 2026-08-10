@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="worxbend">
+  <!-- The same mark the page wears in its top-left corner: a terminal prompt on a dark tile.
+       Drawn as vectors rather than exported as a bitmap so it stays sharp at every size a browser
+       asks for, from a 16px tab strip to a 180px home-screen icon. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#12203F"/>
+      <stop offset="1" stop-color="#070A14"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#tile)"/>
+  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="13.25" fill="none" stroke="#4C7DFF" stroke-opacity="0.55" stroke-width="1.5"/>
+  <!-- The chevron: the "greater than" sign that opens a shell prompt. -->
+  <path d="M20 22 L32 32 L20 42" fill="none" stroke="#4C7DFF" stroke-width="6"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- The cursor rule that follows it. Gold, the second accent, so the mark carries both. -->
+  <path d="M36 42 H46" fill="none" stroke="#FFD23F" stroke-width="6" stroke-linecap="round"/>
+</svg>

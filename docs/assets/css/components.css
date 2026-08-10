@@ -1,0 +1,1365 @@
+/* ==========================================================================
+   components.css — every visual component on the site.
+
+   House rules for this file, so it stays predictable for whoever edits next:
+
+   1. No literal colours. Ever. Every colour is a var() pointing at a token
+      defined in tokens.css. That is what makes the five themes possible:
+      switching `data-theme` on <html> re-points the tokens and every rule in
+      here follows along without being touched.
+   2. No rule in this file may live inside a `[data-theme="…"]` block. If a
+      component needs to look different per theme, the difference belongs in
+      the token, not here.
+   3. One class per selector (BEM-ish: `.card`, `.card__title`,
+      `.card--featured`). Pseudo-classes (`:hover`), pseudo-elements
+      (`::after`) and attribute states (`[aria-selected="true"]`) may be
+      attached to that class. Descendant selectors are avoided so that any
+      component can be moved anywhere in the document without its styles
+      breaking. The only exceptions are the two sibling selectors in `.toggle`,
+      where a real checkbox input has to drive the appearance of the visual
+      track next to it — that is the price of building the switch on a native
+      input instead of faking one with a div.
+   4. No `!important`. If a rule is not winning, the selector is wrong.
+
+   Non-colour values (radii, spacing, timings) are written as plain numbers
+   here on purpose: they are the component's own geometry, not a themeable
+   decision, so there is no token to look up.
+
+   Fonts and the type scale come from tokens.css. The second value inside each
+   `var(--font-…, …)` is a safety net: if the token is missing for any reason
+   the text still renders in the right *kind* of face rather than falling back
+   to Times New Roman.
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   Wordmark — the worxbend mark.
+   A monospaced chevron tile ("angle bracket", the shape used in code) sits in
+   front of the name, with a small pill saying which GitHub account this is.
+   -------------------------------------------------------------------------- */
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.wordmark__tile {
+  display: grid;
+  place-items: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--accent);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-sm, 0.9375rem);
+  font-weight: 700;
+  /* The tile is decorative furniture around the name; it should not be read
+     out as a separate word by a screen reader. */
+  user-select: none;
+}
+
+.wordmark__name {
+  font-family: var(--font-display, "Segoe UI Semibold", system-ui, sans-serif);
+  font-size: var(--fs-lg, 1.125rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+
+.wordmark__pill {
+  padding: 0.15rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--ink-3);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-3xs, 0.6875rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+
+/* --------------------------------------------------------------------------
+   Rail — the fixed side navigation, plus its telemetry readout and theme
+   swatches. The rail is the "instrument bezel" of the page.
+   -------------------------------------------------------------------------- */
+
+/* Only the decoration lives here. The rail's size, padding and gap are skeleton geometry and
+   belong to layout.css, which retunes all three above 1100px. Repeating them here would win on
+   source order — both selectors are a single class, and a media query adds no specificity — so a
+   `padding` shorthand in this file would silently cancel the wide-screen padding next door. */
+.rail {
+  border-inline-end: 1px solid var(--line);
+  background: var(--ground-2);
+}
+
+.rail__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.5rem 0.4rem 0.9rem;
+  border-radius: 6px;
+  color: var(--ink-2);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-2xs, 0.75rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 160ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+              background-color 160ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+/* The tick mark. Drafting drawings mark every station on a rule; this is that,
+   and it doubles as the active indicator so nothing jumps when it lights up. */
+.rail__link::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block: 0.45rem;
+  inline-size: 2px;
+  border-radius: 2px;
+  background: var(--line-strong);
+  transition: background-color 160ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.rail__link:hover {
+  color: var(--ink);
+  background: var(--panel-hover);
+}
+
+.rail__link:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Active is expressed twice on purpose: `aria-current` is what assistive
+   technology reads, the modifier class is what JS toggles when the section is
+   not a page in the routing sense. Either one paints the same. */
+.rail__link--active,
+.rail__link[aria-current="page"],
+.rail__link[aria-current="true"] {
+  color: var(--ink);
+  background: var(--panel);
+}
+
+.rail__link--active::before,
+.rail__link[aria-current="page"]::before,
+.rail__link[aria-current="true"]::before {
+  background: var(--accent);
+}
+
+/* Live coordinate / telemetry readout. Tabular numerals keep the digits from
+   shifting sideways as the values tick, which would otherwise look like a
+   glitch rather than a measurement. */
+.rail__readout {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink-3);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-3xs, 0.6875rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+}
+
+.rail__value {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.rail__themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0;
+  margin: 0;
+}
+
+/* Each swatch shows the accent colour of the theme it selects — including the
+   four themes that are not loaded, which is why it cannot read --accent: that
+   token only ever holds the *current* theme's value, so all five buttons would
+   come out the same colour.
+
+   tokens.css solves it with five theme-independent tokens, one per theme:
+   --swatch-foundation, --swatch-matrix, --swatch-blueprint, --swatch-nebula
+   and --swatch-solar. The markup points each button at its own by setting
+   `--swatch: var(--swatch-matrix)` and so on, so the colours stay in the
+   stylesheet where every other colour on this site lives. The `var(--accent)`
+   fallback below keeps the button visible if a swatch is ever left unset. */
+.rail__swatch {
+  inline-size: 1.15rem;
+  block-size: 1.15rem;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--swatch, var(--accent));
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.rail__swatch:hover {
+  transform: scale(1.15);
+}
+
+.rail__swatch:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.rail__swatch--on,
+.rail__swatch[aria-pressed="true"] {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px var(--ground-2), 0 0 0 3px var(--ink-3);
+}
+
+
+/* --------------------------------------------------------------------------
+   Buttons.
+   `.btn` is the shared skeleton; the modifiers only change skin, never size,
+   so a row of mixed buttons always lines up.
+   -------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-block-size: 2.25rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--font-body, system-ui, -apple-system, sans-serif);
+  font-size: var(--fs-sm, 0.9375rem);
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  /* Only colour and transform are transitioned. Both are cheap; animating
+     borders or shadows here would force layout or paint work on every frame. */
+  transition: background-color 140ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+              border-color 140ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+              color 140ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+              transform 140ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.btn:hover {
+  background: var(--panel-hover);
+  border-color: var(--ink-3);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* `aria-disabled` is matched as well as `disabled` because links cannot carry
+   the real attribute, and a disabled-looking link must not react to hover. */
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn--primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+
+.btn--primary:hover {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+  color: var(--accent-ink);
+}
+
+.btn--ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ink-2);
+}
+
+.btn--ghost:hover {
+  border-color: var(--line);
+  background: var(--panel-hover);
+  color: var(--ink);
+}
+
+/* Square button for a lone glyph or icon. Fixed inline size keeps it from
+   collapsing when its only child is a 1-character label. */
+.btn--icon {
+  inline-size: 2.25rem;
+  min-inline-size: 2.25rem;
+  padding: 0;
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-md, 1rem);
+}
+
+
+/* --------------------------------------------------------------------------
+   Chip — a small monospaced tag. Used for topics, languages and active
+   filters. `--on` is the engaged state of a filter chip.
+   -------------------------------------------------------------------------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--ink-3);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-3xs, 0.6875rem);
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 140ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+              border-color 140ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+              color 140ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.chip:hover {
+  border-color: var(--ink-3);
+  color: var(--ink);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.chip--on,
+.chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* There were two more chip rules here, `.chip--removable` and `.chip__x`, for
+   a filter chip with its own dismiss button. Nothing ever built one: filters
+   are cleared from the catalogue controls instead. They have been removed
+   rather than left in place, because a style with no markup behind it reads
+   like a feature that exists and quietly costs the next person a search. */
+
+
+/* --------------------------------------------------------------------------
+   Card — the project card, and the densest component here.
+
+   Hover behaviour is deliberately restricted to `transform` and `opacity`.
+   Those two are the only properties a browser can animate on the compositor
+   without redrawing the element. A `box-shadow` transition on a grid of
+   forty cards would repaint a large blurred area every frame and drop the
+   page below 60fps, so the bloom is a pre-painted pseudo-element whose
+   *opacity* fades in instead.
+   -------------------------------------------------------------------------- */
+
+.card {
+  position: relative;
+  /* `isolation` creates a stacking context so the glow pseudo-element below
+     can use z-index: -1 and land above the card's own background but under
+     the card's text, without escaping and painting over the page. */
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: transform 220ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+              border-color 220ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+/* The bloom. Painted once, invisible until hover, then faded in. */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(120% 90% at 50% 0%, var(--glow), transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--line-strong);
+  /* `will-change` is a standing request for a compositor layer, and a layer
+     costs memory for as long as it exists. Declaring it only during hover
+     means at most one card holds a layer at a time, instead of all of them. */
+  will-change: transform;
+}
+
+.card:focus-within {
+  transform: translateY(-4px);
+  border-color: var(--line-strong);
+}
+
+.card:hover::before,
+.card:focus-within::before {
+  opacity: 1;
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+/* Owner badge. The catalog mixes repositories from the `worxbend` organisation
+   with ones from the `w0rxbend` personal account; the two logins differ by a
+   single character, so the badge carries the visual difference rather than
+   asking a reader to spot an "o" against a zero. */
+.card__owner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.12rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel-2);
+  color: var(--ink-3);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-3xs, 0.6875rem);
+  letter-spacing: 0.08em;
+}
+
+.card__owner--org {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.card__owner--user {
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+}
+
+/* Language dot. `--lang` is set inline by JS from the LANGS map (the same hex
+   values GitHub uses per language), because a per-language colour is data, not
+   theme, and therefore has no business being a theme token. */
+.card__lang {
+  inline-size: 0.55rem;
+  block-size: 0.55rem;
+  border-radius: 50%;
+  background: var(--lang, var(--ink-3));
+  flex: none;
+}
+
+.card__title {
+  margin: 0;
+  font-family: var(--font-display, "Segoe UI Semibold", system-ui, sans-serif);
+  font-size: var(--fs-xl, 1.375rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.card__tagline {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-sm, 0.9375rem);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.card__desc {
+  margin: 0;
+  max-inline-size: 60ch;
+  color: var(--ink-3);
+  font-size: var(--fs-xs, 0.8125rem);
+  line-height: 1.6;
+}
+
+.card__topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+/* The footer sits at the bottom of the card whatever the description length,
+   so a grid of cards has its star counts on one visual line. */
+.card__foot {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-block-start: auto;
+  padding-block-start: 0.7rem;
+  border-block-start: 1px solid var(--line);
+  color: var(--ink-3);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-3xs, 0.6875rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.card__stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* "updated 3 days ago". Tabular numerals again: these stamps sit in a column
+   across the grid and ragged digit widths read as sloppy alignment. */
+.card__updated {
+  margin-inline-start: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+
+/* Featured variant: a hairline of accent along the top edge. It is a static
+   pseudo-element, not an animated border, so it costs nothing on hover. */
+.card--featured {
+  border-color: var(--line-strong);
+}
+
+.card--featured::after {
+  content: "";
+  position: absolute;
+  inset-block-start: -1px;
+  inset-inline: 12%;
+  block-size: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  pointer-events: none;
+}
+
+
+/* --------------------------------------------------------------------------
+   Cluster — the header above a constellation group (Streaming & OBS, Air
+   Quality, and so on). Glyph, name, one-line blurb.
+   -------------------------------------------------------------------------- */
+
+.cluster {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 0.85rem;
+  row-gap: 0.25rem;
+  padding-block-end: 0.75rem;
+  border-block-end: 1px solid var(--line);
+}
+
+.cluster__glyph {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--accent);
+  font-size: var(--fs-lg, 1.125rem);
+  line-height: 1;
+}
+
+.cluster__name {
+  margin: 0;
+  font-family: var(--font-display, "Segoe UI Semibold", system-ui, sans-serif);
+  font-size: var(--fs-2xl, 1.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.cluster__blurb {
+  margin: 0;
+  max-inline-size: 65ch;
+  color: var(--ink-3);
+  font-size: var(--fs-sm, 0.9375rem);
+  line-height: 1.5;
+}
+
+.cluster__count {
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-3xs, 0.6875rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+
+/* --------------------------------------------------------------------------
+   Stat — one big figure with a small label beneath it.
+   -------------------------------------------------------------------------- */
+
+.stat {
+  display: grid;
+  gap: 0.25rem;
+  justify-items: start;
+  /* A grid item defaults to `min-width: auto`, which means it refuses to become narrower than its
+     longest unbreakable word. One stat holds a relative date, so its value can be "yesterday"
+     rather than a short number, and that one word was widening the whole strip past the page. */
+  min-inline-size: 0;
+  container-type: inline-size;
+}
+
+.stat__figure {
+  font-family: var(--font-display, "Segoe UI Semibold", system-ui, sans-serif);
+  /* Capped by the column it sits in, not only by the page. `cqi` is one percent of this stat's
+     own width, so a long word-shaped value scales itself down to fit its column while the short
+     numeric ones stay at the full display size. */
+  font-size: min(var(--fs-4xl, 3rem), 21cqi);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink);
+  /* The counters module rolls these numbers up from zero. Without tabular
+     numerals the figure would visibly change width mid-count. */
+  font-variant-numeric: tabular-nums;
+}
+
+.stat__label {
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-3xs, 0.6875rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+
+/* --------------------------------------------------------------------------
+   Command palette — the ⌘K / Ctrl-K / "/" modal.
+
+   `.palette` is the full-screen layer, `.palette__scrim` is the dimmer, and
+   `.palette__dialog` is the box itself. The dimmer is a separate element so
+   its opacity can be reduced without also fading the dialog, which is what
+   would happen if the dim lived on the parent.
+   -------------------------------------------------------------------------- */
+
+.palette {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10vh 1rem 1rem;
+}
+
+/* The `hidden` attribute is the accessible way to remove the palette from the
+   accessibility tree; this restores its effect, which `display: flex` above
+   would otherwise override. */
+.palette[hidden] {
+  display: none;
+}
+
+.palette__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--ground);
+  opacity: 0.72;
+  backdrop-filter: blur(6px);
+}
+
+.palette__dialog {
+  position: relative;
+  inline-size: min(40rem, 100%);
+  max-block-size: min(70vh, 40rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: 0 24px 60px var(--glow);
+}
+
+.palette__field {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-block-end: 1px solid var(--line);
+}
+
+/* Focus is shown on the field, not on the input inside it.
+
+   `:focus-within` matches an element that contains the focused element, so
+   typing in the input lights the whole row — the prompt glyph, the input and
+   the "esc" keycap — as one control. That is what it looks like to a sighted
+   visitor anyway.
+
+   This rule replaces an `outline: none` that used to sit on .palette__input.
+   The reasoning behind that was sound inside the command palette, where the
+   dialog's own border already says where focus is; the problem is that the
+   catalogue search box on the page reuses the same class and is not inside any
+   dialog. Suppressing the outline left anyone navigating by keyboard with
+   nothing but a blinking text caret to tell them where they had landed.
+
+   The offset is negative so the ring is drawn just inside the field's edge.
+   The field runs the full width of the palette dialog and the dialog clips its
+   contents, so a ring drawn outside would have its ends cut off. */
+.palette__field:focus-within {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+/* Leading glyph — a prompt marker, matching the terminal language of the site. */
+.palette__glyph {
+  color: var(--accent);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-md, 1rem);
+  line-height: 1;
+  flex: none;
+}
+
+.palette__input {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-body, system-ui, -apple-system, sans-serif);
+  font-size: var(--fs-lg, 1.125rem);
+  line-height: 1.4;
+}
+
+.palette__input::placeholder {
+  color: var(--ink-3);
+}
+
+/* Trailing "esc" hint, styled like a keycap. */
+.palette__esc {
+  flex: none;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  background: var(--panel-2);
+  color: var(--ink-3);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-3xs, 0.6875rem);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.palette__list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.35rem;
+  margin: 0;
+  list-style: none;
+  scrollbar-width: thin;
+}
+
+/* Grouped section header inside the results ("Projects", "Themes", "Actions"). */
+.palette__group {
+  padding: 0.7rem 0.65rem 0.3rem;
+  color: var(--ink-3);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-3xs, 0.6875rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.palette__item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  color: var(--ink-2);
+  text-decoration: none;
+  cursor: pointer;
+  scroll-margin: 0.5rem;
+}
+
+/* Keyboard selection is driven by `aria-selected`, not by a class. The
+   attribute is what a screen reader announces, so styling it directly keeps
+   the visual highlight and the announced state from ever drifting apart. */
+.palette__item[aria-selected="true"] {
+  background: var(--panel-hover);
+  color: var(--ink);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.palette__item:hover {
+  background: var(--panel-hover);
+  color: var(--ink);
+}
+
+.palette__item-title {
+  font-size: var(--fs-sm, 0.9375rem);
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.palette__item-meta {
+  margin-inline-start: auto;
+  color: var(--ink-3);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-3xs, 0.6875rem);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.palette__empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--ink-3);
+  font-size: var(--fs-sm, 0.9375rem);
+  line-height: 1.6;
+}
+
+.palette__hint {
+  display: flex;
+  gap: 0.9rem;
+  padding: 0.55rem 1rem;
+  border-block-start: 1px solid var(--line);
+  color: var(--ink-3);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-3xs, 0.6875rem);
+  letter-spacing: 0.08em;
+}
+
+
+/* --------------------------------------------------------------------------
+   Search highlight.
+
+   `mark` is the one element selector in this file, because the search module
+   emits raw <mark> tags and cannot be asked to add a class to each one.
+
+   The tint is mixed from --accent rather than filled with it: a solid accent
+   background under body-coloured text would fail contrast in at least two of
+   the five themes. Mixing to roughly a fifth strength keeps the inherited text
+   colour readable while still reading as "this is the matched part".
+   -------------------------------------------------------------------------- */
+
+mark {
+  padding: 0 0.12em;
+  border-radius: 3px;
+  background: color-mix(in oklab, var(--accent) 22%, transparent);
+  color: inherit;
+  font-weight: 700;
+}
+
+
+/* --------------------------------------------------------------------------
+   Toggle — a switch built on a real checkbox.
+
+   The input stays in the DOM and keeps focus, keyboard operation and the
+   checked state that assistive technology reads; it is only visually replaced.
+   This is the one component that needs sibling selectors, because the track
+   has to react to the input's `:checked` and `:focus-visible` states and CSS
+   has no way to look at a previous element from the input itself.
+   -------------------------------------------------------------------------- */
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+}
+
+/* Not `display: none` and not `visibility: hidden` — either would take the
+   input out of the tab order and off the accessibility tree. Clipping it to a
+   1px box keeps it focusable and operable while invisible. */
+.toggle__input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.toggle__track {
+  position: relative;
+  display: inline-block;
+  inline-size: 2.4rem;
+  block-size: 1.3rem;
+  flex: none;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--panel-2);
+  transition: background-color 160ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+              border-color 160ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.toggle__thumb {
+  position: absolute;
+  inset-block-start: 0.15rem;
+  inset-inline-start: 0.15rem;
+  inline-size: 0.9rem;
+  block-size: 0.9rem;
+  border-radius: 50%;
+  background: var(--ink-3);
+  transition: transform 160ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+              background-color 160ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.toggle__input:checked + .toggle__track {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.toggle__input:checked + .toggle__track .toggle__thumb {
+  transform: translateX(1.1rem);
+  background: var(--accent-ink);
+}
+
+.toggle__input:focus-visible + .toggle__track {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.toggle__input:disabled + .toggle__track {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.toggle__label {
+  color: var(--ink-2);
+  font-size: var(--fs-sm, 0.9375rem);
+}
+
+
+/* --------------------------------------------------------------------------
+   Banner — the consent notice for the local telemetry.
+
+   Deliberately quiet and non-modal: it does not block the page, does not dim
+   anything behind it, and never traps focus. Analytics here never leave the
+   browser, so a full consent wall would overstate what is being asked.
+   -------------------------------------------------------------------------- */
+
+.banner {
+  position: fixed;
+  inset-block-end: 1rem;
+  inset-inline-start: 1rem;
+  z-index: var(--z-banner);
+  inline-size: min(26rem, calc(100vw - 2rem));
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--ink-2);
+  box-shadow: 0 12px 32px var(--glow);
+}
+
+.banner[hidden] {
+  display: none;
+}
+
+.banner__title {
+  margin: 0;
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-3xs, 0.6875rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.banner__body {
+  margin: 0;
+  font-size: var(--fs-xs, 0.8125rem);
+  line-height: 1.6;
+}
+
+.banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+
+/* --------------------------------------------------------------------------
+   Panel — the telemetry inspector. Table of recent events, a per-day bar
+   strip, and the export / clear controls.
+
+   Expected markup, since the selectors here are all single classes and cannot
+   reach into a <table> by tag name: every header cell carries `.panel__th`,
+   every data cell `.panel__td`, and every row `.panel__row`.
+   -------------------------------------------------------------------------- */
+
+.panel {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--ink-2);
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.panel__title {
+  margin: 0;
+  font-family: var(--font-display, "Segoe UI Semibold", system-ui, sans-serif);
+  font-size: var(--fs-lg, 1.125rem);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.panel__actions {
+  display: flex;
+  /* Four buttons in a row do not fit a phone. Without this they push the panel — and with it the
+     whole page — wider than the viewport, which turns the document into a sideways scroller. */
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-inline-start: auto;
+}
+
+/* The event list can be long; it scrolls inside the panel rather than growing
+   the page, and `overscroll-behavior` stops the scroll from chaining to the
+   document once the list bottoms out. */
+.panel__scroll {
+  max-block-size: 18rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  scrollbar-width: thin;
+}
+
+.panel__table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-3xs, 0.6875rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.panel__th {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  padding: 0.45rem 0.6rem;
+  background: var(--panel-2);
+  border-block-end: 1px solid var(--line);
+  color: var(--ink-3);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-align: start;
+}
+
+.panel__row {
+  border-block-end: 1px solid var(--line);
+}
+
+.panel__td {
+  padding: 0.4rem 0.6rem;
+  color: var(--ink-2);
+  vertical-align: top;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Per-day bar strip, drawn with nothing but flexbox and height. A chart
+   library for seven to thirty bars would be more code than the whole
+   telemetry module. JS sets `--v` per bar as a 0–1 ratio of that day's count
+   against the busiest day; the fallback of 0 renders an empty strip rather
+   than a broken one. */
+.panel__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  block-size: 4rem;
+  padding: 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+}
+
+.panel__bar {
+  flex: 1 1 0;
+  min-inline-size: 2px;
+  block-size: calc(var(--v, 0) * 100%);
+  min-block-size: 1px;
+  border-radius: 2px 2px 0 0;
+  background: var(--accent);
+  opacity: 0.75;
+  transition: opacity 140ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.panel__bar:hover {
+  opacity: 1;
+}
+
+.panel__bar--peak {
+  background: var(--accent-2);
+  opacity: 1;
+}
+
+.panel__legend {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink-3);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-3xs, 0.6875rem);
+  letter-spacing: 0.08em;
+}
+
+.panel__empty {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: var(--ink-3);
+  font-size: var(--fs-xs, 0.8125rem);
+  line-height: 1.6;
+}
+
+
+/* --------------------------------------------------------------------------
+   Toast — a transient confirmation ("Events exported", "Telemetry cleared").
+   Enter and exit are a transition rather than an animation so the same element
+   can be reused: adding `.toast--visible` brings it in, removing it takes it
+   out, with no animation restart trickery.
+   -------------------------------------------------------------------------- */
+
+.toast {
+  position: fixed;
+  inset-block-end: 1rem;
+  inset-inline-end: 1rem;
+  z-index: var(--z-toast);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-inline-size: min(24rem, calc(100vw - 2rem));
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--ink);
+  font-size: var(--fs-xs, 0.8125rem);
+  box-shadow: 0 10px 28px var(--glow);
+  opacity: 0;
+  transform: translateY(0.5rem);
+  pointer-events: none;
+  transition: opacity 200ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+              transform 200ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+/* Same job as .palette[hidden] and .banner[hidden] above: restore what the
+   `hidden` attribute is supposed to do, which `display: flex` overrides.
+
+   Fading to opacity 0 hides the toast from the eye and from nobody else. The
+   element keeps its box, so the "Dismiss this message" button inside it stays
+   in the tab order — a permanent invisible stop at the very end of the
+   document, where a keyboard visitor tabs into a control they cannot see and
+   cannot identify. `display: none` takes the whole toast out of the layout,
+   the tab order and the accessibility tree until there is a message to show. */
+.toast[hidden] {
+  display: none;
+}
+
+.toast--visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* The coloured edge carries the meaning, so the message text keeps full
+   contrast against the panel instead of being tinted. */
+.toast--ok {
+  border-inline-start: 3px solid var(--signal-ok);
+}
+
+.toast--warn {
+  border-inline-start: 3px solid var(--signal-warn);
+}
+
+.toast--crit {
+  border-inline-start: 3px solid var(--signal-crit);
+}
+
+.toast__msg {
+  flex: 1 1 auto;
+  line-height: 1.5;
+}
+
+.toast__close {
+  flex: none;
+  padding: 0.1rem 0.3rem;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink-3);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  cursor: pointer;
+}
+
+.toast__close:hover {
+  color: var(--ink);
+}
+
+.toast__close:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+
+/* --------------------------------------------------------------------------
+   Noscript — the plain fallback for visitors with JavaScript turned off.
+   The catalog is rendered at runtime, so without this block those visitors
+   would see an empty page. It is unstyled-looking on purpose: readable text
+   and real links, nothing that depends on script.
+   -------------------------------------------------------------------------- */
+
+.noscript {
+  display: grid;
+  gap: 0.75rem;
+  max-inline-size: 65ch;
+  padding: 1.25rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--ink-2);
+}
+
+.noscript__title {
+  margin: 0;
+  font-family: var(--font-display, "Segoe UI Semibold", system-ui, sans-serif);
+  font-size: var(--fs-xl, 1.375rem);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.noscript__body {
+  margin: 0;
+  font-size: var(--fs-sm, 0.9375rem);
+  line-height: 1.65;
+}
+
+.noscript__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.noscript__link {
+  color: var(--accent);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-xs, 0.8125rem);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.noscript__link:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+
+/* --------------------------------------------------------------------------
+   HUD — a small corner readout for frames per second and the render quality
+   the motion loop has settled on. This is a developer instrument, kept
+   deliberately tiny and low-contrast so it never competes with the page.
+   -------------------------------------------------------------------------- */
+
+/* Bottom-right, not bottom-left. The consent banner is anchored bottom-left and is 26rem wide, so
+   a readout in the opposite corner is the only placement that cannot end up underneath it — and
+   the banner is exactly the moment a visitor is most likely to be looking down here. */
+.hud {
+  position: fixed;
+  inset-block-end: 0.75rem;
+  inset-inline-end: 0.75rem;
+  z-index: var(--z-nav);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink-3);
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: var(--fs-3xs, 0.6875rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.hud[hidden] {
+  display: none;
+}
+
+.hud__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.hud__label {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+/* The number is width-locked so a drop from 60 to 9 fps does not make the
+   whole readout twitch sideways every frame. */
+.hud__value {
+  min-inline-size: 2.5ch;
+  text-align: end;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Quality indicator. The modifier lives on the dot itself rather than on the
+   HUD, so the rule stays a single class as the rest of this file does. */
+.hud__dot {
+  inline-size: 0.4rem;
+  block-size: 0.4rem;
+  border-radius: 50%;
+  background: var(--signal-ok);
+}
+
+.hud__dot--warn {
+  background: var(--signal-warn);
+}
+
+.hud__dot--crit {
+  background: var(--signal-crit);
+}
