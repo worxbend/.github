@@ -204,9 +204,22 @@ function toProject(repo, id) {
   };
 }
 
-/** Sort: stars first, then most recently pushed, then alphabetically. Stable and predictable. */
+/**
+ * Sort: featured first, then stars, then most recently pushed, then alphabetically.
+ *
+ * The featured comparison matters because this function is what orders a single section — the list
+ * behind a filter chip, and the count on a section card. `ui/app.js` has its own identical
+ * comparison for the unfiltered grid, and without this one the two disagreed: a project promoted in
+ * catalog.config.js led the full catalogue but sat wherever its star count put it as soon as a
+ * visitor filtered down to the section it belongs to.
+ */
 function order(a, b) {
-  return b.stars - a.stars || b.updated.localeCompare(a.updated) || a.name.localeCompare(b.name);
+  return (
+    (b.featured ? 1 : 0) - (a.featured ? 1 : 0) ||
+    b.stars - a.stars ||
+    b.updated.localeCompare(a.updated) ||
+    a.name.localeCompare(b.name)
+  );
 }
 
 /**

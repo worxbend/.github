@@ -129,6 +129,7 @@ Neutrals must be hue-biased toward that theme's accent. No pure `#808080`.
 export const OWNERS = {
   worxbend: { login: 'worxbend', kind: 'org',  label: 'worxbend',  url: 'https://github.com/worxbend' },
   w0rxbend: { login: 'w0rxbend', kind: 'user', label: 'w0rxbend',  url: 'https://github.com/w0rxbend' },
+  'oleksandr-balyshyn': { login: 'oleksandr-balyshyn', kind: 'user', label: 'oleksandr-balyshyn', url: 'https://github.com/oleksandr-balyshyn' },
 };
 
 // Clusters are the constellation groupings. `id` is used in URLs and filters.

@@ -170,9 +170,12 @@ export const SECTIONS = [
 /**
  * The short tour: projects that sort to the top of the catalogue and carry a "featured" mark.
  *
- * One per subject, chosen so a first-time visitor sees the range rather than six variations on the
- * same idea. Order does not matter here — featured projects are still sorted among themselves by
- * stars and then by how recently they were pushed.
+ * Chosen so a first-time visitor sees the range of the work rather than six variations on the same
+ * idea — a desktop application, a terminal application, a phone application, camera firmware, a
+ * library and a set of shell scripts. That is a spread of *kinds* of thing, which is why two come
+ * from the streaming section and none from CAD; the rule is "no two alike", not "one per section".
+ * Order does not matter here — featured projects are sorted among themselves by stars and then by
+ * how recently they were pushed.
  */
 export const FEATURED = [
   'worxbend/scenedeck',
