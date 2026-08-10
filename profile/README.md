@@ -229,7 +229,6 @@
 | --- | --- | --- |
 | [w0rxbend/bounce-io](https://github.com/w0rxbend/bounce-io) | A browser game where up to eight pixel-art racers climb procedurally generated floating islands. The server runs the authoritative simulation while each browser predicts movement locally, and seeded chunks mean every player climbs the same route. | TypeScript, Go |
 | [w0rxbend/saltmere](https://github.com/w0rxbend/saltmere) | A learning journal published twice a day by a scheduled task that researches a topic and writes one to three short articles, rotating through distributed systems, Linux tooling, Scala and the JVM, embedded devices, monitoring and computer-aided design. | Jekyll, GitHub Pages |
-| [w0rxbend/halcyon](https://github.com/w0rxbend/halcyon) | A background service (called ghpulse in its own README) that periodically generates content and pushes commits into a private repository to simulate steady contribution activity. Configured entirely through environment variables, with a Docker setup. | Java, Docker |
 
 <h2>👤 The personal account: w0rxbend</h2>
 
