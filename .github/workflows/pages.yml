@@ -1,0 +1,60 @@
+# Publishes the static site in `docs/` to GitHub Pages.
+#
+# The repository's Pages setting is already "GitHub Actions" (build_type: workflow), which means
+# GitHub does not run Jekyll on the repo — it waits for a workflow like this one to hand it a
+# finished folder. That is why there is no Gemfile, no `_config.yml`, and no build step: `docs/`
+# is the site exactly as it will be served.
+#
+# The published URL is https://worxbend.github.io/.github/ — note the `/.github/` sub-path. Every
+# asset reference in the site is relative (`./assets/...`) so the sub-path never has to be
+# hardcoded, and the same folder can be opened straight from disk while working on it.
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/pages.yml'
+  # Lets a maintainer redeploy from the Actions tab without pushing a commit.
+  workflow_dispatch:
+
+# The two permissions Pages deployment needs: read the checkout, and write a Pages deployment.
+# `id-token: write` lets the deploy step prove to Pages that it came from this workflow run.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# If two pushes land close together, let the newer one win rather than queueing a stale deploy.
+# `cancel-in-progress: false` means an in-flight deployment is allowed to finish first, because
+# cancelling midway can leave Pages serving a half-uploaded artifact.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # `workflow_dispatch` lets whoever starts the run pick any branch, tag or commit, and
+    # `actions/checkout` honours that choice — so without this guard a manual run could publish an
+    # unreviewed branch's `docs/` to the live site. Only `main` is ever deployed.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload the docs/ folder as the site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

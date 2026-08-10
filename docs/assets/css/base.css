@@ -1,0 +1,385 @@
+/* ==========================================================================
+   base.css — reset, global typography, and page-wide utilities
+   --------------------------------------------------------------------------
+   Load order matters: tokens.css must come before this file, because every
+   colour here is read from a custom property (a "CSS variable") that only
+   tokens.css defines. This file never contains a hex colour of its own — that
+   is what lets the five themes repaint the whole site by swapping one
+   attribute on <html>.
+
+   The Google Fonts stylesheet is loaded with a <link> in the HTML <head>, not
+   with @import here. An @import would make the browser download this file
+   first, then discover the font request, which delays first paint.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Reset
+   Browsers ship their own default stylesheet, and the defaults disagree with
+   each other. Zeroing them out here means a layout looks the same in Firefox,
+   Chrome and Safari without per-browser patching.
+   -------------------------------------------------------------------------- */
+
+/* border-box means "width includes padding and border". Without it, adding
+   padding to a 300px box makes it wider than 300px, which quietly breaks grid
+   tracks. Inheriting it lets a component opt out on a subtree if it ever
+   needs to. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Layout spacing in this project comes from flex/grid `gap`, never from
+   default element margins, so the defaults are removed rather than
+   overridden one by one later. */
+* {
+  margin: 0;
+}
+
+html {
+  /* Keep the type scale anchored to the visitor's own browser font size:
+     1rem stays whatever they chose, so zoom and accessibility settings work. */
+  font-size: 100%;
+  /* Safari on iOS enlarges text after a rotation unless told not to. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* In-page anchor links glide instead of teleporting. The reduced-motion
+     block at the bottom of this file turns this back off for visitors who
+     asked the operating system for less movement. */
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100svh;
+  font-family: var(--font-body);
+  font-size: var(--fs-md);
+  font-weight: 400;
+  line-height: 1.6;
+  background-color: var(--ground);
+  color: var(--ink);
+  /* Thin strokes on a dark ground look chunky with sub-pixel rendering;
+     greyscale antialiasing keeps the body text from looking bolder than it is. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Replaced elements default to `display: inline`, which leaves a few pixels of
+   "descender" whitespace under every image. Making them blocks removes that
+   gap, and max-inline-size stops an oversized asset from forcing the page to
+   scroll sideways. */
+img,
+picture,
+video,
+canvas,
+svg,
+iframe {
+  display: block;
+  max-inline-size: 100%;
+}
+
+img,
+video {
+  block-size: auto;
+}
+
+/* Form controls do not inherit typography from their parent by default — an
+   <input> would fall back to the browser's own 13px system font. */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  background: none;
+  border: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* A textarea that only grows downward is easier to place in a grid than one a
+   visitor can drag sideways past the container edge. */
+textarea {
+  resize: vertical;
+}
+
+/* Long unbroken strings (a URL, a repository slug) would otherwise push a card
+   wider than its grid track. */
+p,
+li,
+dd,
+figcaption,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+/* Only lists that carry a class are decorative navigation or card grids; an
+   unclassed <ul> inside prose keeps its bullets and indent so written content
+   still reads correctly. */
+ul[class],
+ol[class] {
+  list-style: none;
+  padding-inline-start: 0;
+}
+
+/* --------------------------------------------------------------------------
+   2. Typography defaults
+   -------------------------------------------------------------------------- */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  /* text-wrap: balance spreads a heading evenly across its lines instead of
+     leaving one lonely word on the last line. Browsers without it ignore the
+     declaration and wrap normally, so there is nothing to fall back to. */
+  text-wrap: balance;
+}
+
+/* Headings scale with the viewport but land exactly on the type scale at both
+   ends of the clamp, so a phone and a wide monitor both hit documented sizes. */
+h1 {
+  font-size: clamp(var(--fs-3xl), 5.5vw, var(--fs-5xl));
+}
+
+h2 {
+  font-size: clamp(var(--fs-2xl), 3.6vw, var(--fs-4xl));
+}
+
+h3 {
+  font-size: clamp(var(--fs-xl), 2.2vw, var(--fs-3xl));
+}
+
+h4 {
+  font-size: var(--fs-xl);
+}
+
+h5 {
+  font-size: var(--fs-lg);
+}
+
+h6 {
+  font-size: var(--fs-md);
+}
+
+p {
+  /* Roughly 65 characters per line. Lines much longer than this make the eye
+     lose its place when it jumps back to the left edge. */
+  max-inline-size: 65ch;
+  /* text-wrap: pretty avoids a single-word final line in body copy. */
+  text-wrap: pretty;
+}
+
+strong,
+b {
+  font-weight: 700;
+}
+
+small {
+  font-size: var(--fs-xs);
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 0.18em;
+  transition: color 160ms ease, text-decoration-color 160ms ease;
+}
+
+a:hover {
+  color: var(--accent-2);
+  text-decoration-color: currentColor;
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.9375em;
+  font-variant-ligatures: none;
+}
+
+pre {
+  overflow-x: auto;
+}
+
+hr {
+  border: 0;
+  border-block-start: 1px solid var(--line);
+}
+
+::placeholder {
+  color: var(--ink-3);
+  opacity: 1; /* Firefox dims placeholders further on its own. */
+}
+
+/* Only the background is set. Leaving the text colour alone keeps the
+   selected text at whatever contrast the surrounding component chose, which
+   matters because --selection is a translucent wash rather than a solid fill. */
+::selection {
+  background-color: var(--selection);
+}
+
+/* --------------------------------------------------------------------------
+   3. Focus
+   Keyboard visitors navigate by focus ring. It is the only thing telling them
+   where they are, so it is deliberately loud and never removed outright.
+   -------------------------------------------------------------------------- */
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* :focus-visible fires for keyboard and assistive-technology focus. This rule
+   suppresses the ring only in the mouse-click case, where the browser has
+   already decided the ring is not wanted — so the replacement is the
+   :focus-visible rule directly above, not nothing. */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* --------------------------------------------------------------------------
+   4. Utilities
+   -------------------------------------------------------------------------- */
+
+/* Telemetry readouts, coordinates, topic tags — anything that should read as
+   instrument output rather than prose. */
+.mono {
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
+}
+
+/* Proportional digits have different widths, so a live counter visibly jitters
+   as it rolls. Tabular figures all occupy the same advance width, which holds
+   the number still. */
+.u-tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Hidden from sight, still read aloud by screen readers. `display: none` and
+   `visibility: hidden` would remove it from the accessibility tree too, which
+   defeats the purpose. The 1px clipped box is the technique that survives in
+   every current browser. */
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The first focusable element on the page. It sits off-screen until a keyboard
+   visitor tabs into it, then slides into the top-left corner so they can jump
+   past the navigation straight to the main content. */
+.skip-link {
+  position: fixed;
+  inset-block-start: 0.5rem;
+  inset-inline-start: 0.5rem;
+  /* Above every other layer, including the fixed canvases and the rail. */
+  z-index: var(--z-skip, 1000);
+  padding: 0.65rem 1.1rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink);
+  background-color: var(--panel);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  /* Moved out of view rather than hidden, so it stays focusable. */
+  transform: translateY(calc(-100% - 1rem));
+  transition: transform 140ms ease;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   5. Scrollbar
+   Painted from tokens so it belongs to whichever theme is active instead of
+   punching a bright operating-system-coloured strip down the side.
+   -------------------------------------------------------------------------- */
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) var(--ground-2);
+}
+
+::-webkit-scrollbar {
+  inline-size: 12px;
+  block-size: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--ground-2);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--line-strong);
+  /* A border the colour of the track fakes an inset thumb without needing a
+     second element. */
+  border: 3px solid var(--ground-2);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--accent);
+}
+
+::-webkit-scrollbar-corner {
+  background-color: var(--ground-2);
+}
+
+/* --------------------------------------------------------------------------
+   6. Reduced motion — global safety net
+   The JavaScript motion module already skips ambient animation when the
+   visitor has asked for less movement. This block is the belt-and-braces
+   version for anything purely declarative that the module never sees.
+
+   !important is used here on purpose, and only here: the whole point of a
+   safety net is that no later rule, however specific, can re-enable movement
+   for someone who told their operating system that motion makes them unwell.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    /* Not zero: a duration of exactly 0 stops `animationend` and
+       `transitionend` events from firing at all, and scripts that wait on
+       those events would hang. A near-instant duration still fires them. */
+    animation-duration: 0.01ms !important;
+    animation-delay: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

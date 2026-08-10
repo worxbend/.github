@@ -1,0 +1,417 @@
+/* ==========================================================================
+   motion.css — every @keyframes on the site, plus the small utility classes
+   that attach them.
+
+   Why motion lives in its own file: it is the one thing that has to be
+   switched off wholesale. A visitor who has asked their operating system for
+   reduced motion, or who has flipped the in-page motion toggle, must get a
+   completely still page — and that is far easier to guarantee when every
+   animation is declared in one place with one kill switch at the bottom.
+
+   Three conventions run through this file:
+
+   - Movement is done with `transform` and `opacity` only. Those are the two
+     properties a browser can animate on the compositor without recalculating
+     layout or repainting, which is what keeps a full-screen starfield from
+     costing more than the WebGL scene it stands in for.
+   - Anything that needs a per-element value (a drift distance, a stagger
+     index) reads it from a custom property with a fallback, so the keyframe
+     stays generic and the element supplies the number.
+   - Every animated declaration is written as `var(--motion-kill, <the real
+     value>)`. Normally the variable is unset and the fallback — the real
+     value — applies. The block at the bottom of this file sets it, and the
+     whole page stops at once. That is the kill switch; there is nowhere else
+     to look for it.
+
+   Colours come from tokens.css, the same as everywhere else, and so do the
+   two decisions that are about the palette rather than about a colour:
+   --scanline-opacity (is the CRT sweep painted?) and --ambient-play-state
+   (does motion that nobody triggered run at all?). No rule in this file is
+   allowed to name a theme.
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   Reveal on scroll.
+
+   `[data-reveal]` marks an element as "not shown yet". The motion module
+   watches it with a single IntersectionObserver and adds `is-in` the first
+   time it enters the viewport.
+
+   The stagger is the important part. A list of twenty cards should not all
+   land at once, but scheduling twenty `setTimeout` calls to achieve that is
+   twenty timers competing with the render loop. Instead JS writes an index
+   into `--i` on each element (0, 1, 2, …) and the delay falls out of a
+   calc(). No timers, no JS running during the animation at all.
+   -------------------------------------------------------------------------- */
+
+[data-reveal] {
+  opacity: var(--motion-kill-opacity, 0);
+  transform: var(--motion-kill, translateY(12px));
+  transition: var(
+    --motion-kill,
+    opacity 520ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform 520ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1))
+  );
+  /* Inert once the switch has turned the transition off: a delay on a
+     property that is not transitioning delays nothing. */
+  transition-delay: calc(var(--i, 0) * 45ms);
+}
+
+[data-reveal].is-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+/* --------------------------------------------------------------------------
+   Keyframes.
+   -------------------------------------------------------------------------- */
+
+/* Terminal caret. `step-end` timing plus two hard stops gives the square
+   on/off blink of a real console, not a sine-wave fade. */
+@keyframes caret-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* CRT scanline sweep. Travels from just above the viewport to just below it,
+   so the band is never parked on screen at either end of the cycle. */
+@keyframes scanline {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, calc(100vh + 24vh), 0); }
+}
+
+/* Starfield drift. `--drift-y` must equal the layer's background tile height,
+   because moving by exactly one tile puts the pattern back where it started
+   and the loop cannot be seen. */
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, calc(var(--drift-y, 240px) * -1), 0); }
+}
+
+
+/* --------------------------------------------------------------------------
+   Animation utilities.
+   A thin wrapper: attach the class and the element moves.
+
+   There used to be five more of these (a scroll hint, a marquee, a grid pan,
+   a pulse, a drift). Nothing in index.html or app.js ever carried them, and
+   the custom properties they were tuned with were never set anywhere either,
+   so they have been removed along with their keyframes. If one of them is
+   wanted again, write it back next to the element that needs it rather than
+   in advance — a utility with no user is a promise nobody checked.
+   -------------------------------------------------------------------------- */
+
+/* The hero terminal caret. `opacity` is stated explicitly so the caret is
+   still visible when the switch below cancels the blink: a cancelled
+   animation drops the element back to its authored value, and this is it. */
+.anim-caret {
+  opacity: 1;
+  animation: var(--motion-kill, caret-blink 1.05s step-end infinite);
+}
+
+
+/* --------------------------------------------------------------------------
+   Scanline overlay.
+
+   Present in every theme, painted by one of them. Which one is not this
+   file's decision to make: --scanline-opacity is 1 in the matrix theme and 0
+   in the other four, and the rule below reads it without ever naming a theme.
+
+   That indirection is the whole point. This used to be a
+   `[data-theme="matrix"] .scanline` rule, and the same "matrix means full
+   intensity" decision is also written in app.js, which sets the glyph-rain
+   strength per theme. Two copies of one decision, in two languages, drift the
+   first time a theme is added or renamed — and nothing fails loudly when they
+   do, the page merely stops agreeing with itself. A token cannot drift from
+   the palette, because it is part of the palette.
+
+   Keeping the element in the DOM at all times means switching themes does not
+   have to add or remove markup; it only changes whether this layer is
+   painted, and a layer at opacity 0 is not painted at all.
+   -------------------------------------------------------------------------- */
+
+.scanline {
+  position: fixed;
+  inset: 0;
+  /* Same layer as the readability veil: both are fixed washes that sit over the two canvases and
+     under everything the visitor reads. */
+  z-index: var(--z-veil);
+  overflow: hidden;
+  opacity: var(--scanline-opacity, 0);
+  pointer-events: none;
+}
+
+.scanline::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: -24vh;
+  block-size: 24vh;
+  background: linear-gradient(to bottom, transparent, var(--scanline), transparent);
+  animation: var(--motion-kill, scanline 6.5s linear infinite);
+  /* "Ambient" motion is motion nobody asked for — it runs with no one looking
+     at it. Whether that is welcome is a property of the theme: the solar theme
+     is meant to be read in daylight on a laptop that may be on battery, so it
+     parks every ambient animation by setting this token to `paused`. */
+  animation-play-state: var(--ambient-play-state, running);
+}
+
+
+/* --------------------------------------------------------------------------
+   CSS-only starfield fallback.
+
+   This is what the visitor sees when the WebGL scene cannot mount — an old
+   graphics driver, a blocked CDN, a browser with WebGL disabled. The scene
+   module catches that failure and adds `no-webgl` to <html>; until then this
+   layer stays hidden so it never doubles up with the real scene.
+
+   It has to look intentional rather than like the leftovers of a crash, so it
+   is a genuine three-layer parallax field: a still far layer, a slow mid
+   layer, and a faster near layer with slightly larger, brighter stars. Each
+   drifting layer is one tile taller than the viewport and travels exactly one
+   tile per cycle, which makes the loop seamless.
+   -------------------------------------------------------------------------- */
+
+.starfield-fallback {
+  display: none;
+}
+
+.no-webgl .starfield-fallback {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  display: block;
+  overflow: hidden;
+  background-color: var(--ground);
+  /* Far layer: static. Distant stars barely move under parallax anyway, so
+     leaving this one still costs nothing visually and saves an animation. */
+  background-image:
+    radial-gradient(1px 1px at 16% 12%, var(--scene-star-c), transparent),
+    radial-gradient(1px 1px at 73% 26%, var(--scene-star-c), transparent),
+    radial-gradient(1px 1px at 41% 63%, var(--scene-star-c), transparent),
+    radial-gradient(1px 1px at 88% 78%, var(--scene-star-c), transparent),
+    radial-gradient(1px 1px at 29% 88%, var(--scene-star-c), transparent),
+    radial-gradient(1px 1px at 57% 41%, var(--scene-star-c), transparent);
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}
+
+/* Mid layer. */
+.no-webgl .starfield-fallback::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  block-size: var(--motion-kill-block-size, calc(100% + 240px));
+  --drift-y: 240px;
+  --drift-duration: 120s;
+  background-image:
+    radial-gradient(1.2px 1.2px at 22px 34px, var(--scene-star-b), transparent),
+    radial-gradient(1.2px 1.2px at 148px 88px, var(--scene-star-b), transparent),
+    radial-gradient(1.2px 1.2px at 96px 190px, var(--scene-star-a), transparent),
+    radial-gradient(1.2px 1.2px at 206px 142px, var(--scene-star-b), transparent),
+    radial-gradient(1.2px 1.2px at 62px 122px, var(--scene-star-a), transparent);
+  background-repeat: repeat;
+  background-size: 240px 240px;
+  opacity: 0.75;
+  animation: var(--motion-kill, drift var(--drift-duration) linear infinite);
+  animation-play-state: var(--ambient-play-state, running);
+}
+
+/* Near layer: bigger, brighter, and moving fastest, which is what sells the
+   depth. A soft fog wash sits underneath it so the field has a horizon
+   instead of reading as flat noise. */
+.no-webgl .starfield-fallback::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  block-size: var(--motion-kill-block-size, calc(100% + 340px));
+  --drift-y: 340px;
+  --drift-duration: 70s;
+  background-image:
+    radial-gradient(1.8px 1.8px at 54px 66px, var(--scene-star-a), transparent),
+    radial-gradient(2px 2px at 268px 212px, var(--scene-star-a), transparent),
+    radial-gradient(1.6px 1.6px at 172px 302px, var(--scene-star-b), transparent),
+    radial-gradient(1.6px 1.6px at 312px 96px, var(--scene-star-a), transparent),
+    radial-gradient(60% 40% at 70% 20%, var(--scene-fog), transparent);
+  background-repeat: repeat;
+  background-size: 340px 340px;
+  opacity: 0.9;
+  animation: var(--motion-kill, drift var(--drift-duration) linear infinite);
+  animation-play-state: var(--ambient-play-state, running);
+}
+
+
+/* --------------------------------------------------------------------------
+   Constellation view.
+
+   The view toggle writes `data-view="grid"` or `data-view="constellation"` on
+   the <html> element. In grid view the catalogue is the subject and the sky is
+   wallpaper; in constellation view that swaps over — the WebGL scene becomes
+   the information graphic (one star per repository, lines between repositories
+   that share a topic) and the page around it steps back so the sky can be seen
+   through it.
+
+   "Steps back" is doing exact work here. Nothing is removed: no
+   `display: none`, no `visibility: hidden`, no `inert`. Both would take the
+   text out of the accessibility tree and out of the tab order, which would
+   mean a screen-reader user or anyone driving the page from the keyboard loses
+   half the site by flipping a *visual* toggle. Lowering opacity leaves every
+   heading, link and card exactly where it was, still focusable, still read
+   aloud, still copy-and-pasteable. It is a change of emphasis, not of content.
+
+   The catalogue itself is deliberately left alone — app.js puts it into its
+   compact form instead (see .catalog--compact below), because "find a repo"
+   has to keep working while you are looking at the sky.
+   -------------------------------------------------------------------------- */
+
+/* The veil is the gradient wash that keeps text legible over the moving
+   background. Dimming it is what lets the sky come forward. */
+:root[data-view="constellation"] .veil {
+  opacity: 0.24;
+  transition: var(--motion-kill, opacity var(--dur-slow, 520ms) var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)));
+}
+
+:root[data-view="constellation"] .section:not(#catalog) {
+  opacity: 0.35;
+  transition: var(--motion-kill, opacity var(--dur-slow, 520ms) var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)));
+}
+
+/* Anything a keyboard visitor tabs into comes straight back to full strength.
+   Without this, tabbing through the page in constellation view would move the
+   focus ring into text that is too faint to read — which is the one thing
+   dimming rather than hiding was supposed to avoid. */
+:root[data-view="constellation"] .section:not(#catalog):focus-within {
+  opacity: 1;
+}
+
+
+/* --------------------------------------------------------------------------
+   Compact catalogue.
+
+   The same grid, folded into one dense column of low-profile rows. app.js adds
+   this modifier in constellation view so the catalogue keeps its full contents
+   — every card, every link, every star count, in the same DOM order — while
+   taking a fraction of the height, leaving the sky room to be looked at.
+
+   These rules reach inside a card, which the rest of the project avoids. The
+   alternative would be for the card itself to read a handful of "am I compact"
+   custom properties, which spreads one decision across two files; a modifier
+   that restyles its own children is the smaller of the two costs, and it is
+   confined to this one block.
+   -------------------------------------------------------------------------- */
+
+.catalog--compact {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.35rem;
+}
+
+.catalog--compact .card {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.55rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+  font-size: var(--fs-2xs, 0.75rem);
+}
+
+/* No lift on hover: a row that jumps 4px in a list of forty rows is a list
+   that never sits still. The border and the bloom still respond. */
+.catalog--compact .card:hover {
+  transform: none;
+}
+
+.catalog--compact .card__title {
+  font-size: var(--fs-sm, 0.9375rem);
+}
+
+.catalog--compact .card__tagline {
+  font-size: var(--fs-2xs, 0.75rem);
+}
+
+/* The description is the tallest thing on a card, so it is what goes. It is
+   clipped to a 1px box rather than set to `display: none`, which is the same
+   technique .toggle__input uses in components.css: the text stays in the
+   accessibility tree and is still announced, it simply stops taking up room.
+   `position: absolute` is safe because .card establishes a containing block. */
+.catalog--compact .card__desc {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* In a row the footer is no longer a footer — it is the right-hand end of the
+   line, so it loses the rule above it and the margin that pushed it down. */
+.catalog--compact .card__foot {
+  margin-inline-start: auto;
+  margin-block-start: 0;
+  padding-block-start: 0;
+  border-block-start: 0;
+}
+
+
+/* --------------------------------------------------------------------------
+   The kill switch.
+
+   The last word in this file. There are two independent ways to ask this page
+   to hold still, and CSS cannot express them in one selector:
+
+   - the operating-system setting, which CSS reads with the media query
+     `prefers-reduced-motion: reduce`;
+   - the in-page "Ambient motion" toggle, which app.js records by writing
+     `data-motion="reduced"` on the <html> element.
+
+   The second one is why this section is written the way it is. The toggle used
+   to stop only the two JavaScript canvases, so a visitor who had never touched
+   their operating-system settings could switch ambient motion off and still
+   watch the hero caret blink and — in the matrix theme — a scanline sweep the
+   full height of the screen. Everything declared in CSS carried on regardless,
+   because nothing in CSS was listening to the toggle.
+
+   A media query is a condition on the *page* and an attribute selector is a
+   condition on an *element*; they cannot share a selector list, so the
+   declarations they have in common cannot be written once in front of both.
+   What they can share is a variable. Each condition below sets the same three
+   switches, and every animated rule above reads one of them with its own
+   normal value as the fallback:
+
+     --motion-kill             `none` — used for `animation`, `transform` and
+                               `transition`, all three of which accept it
+     --motion-kill-opacity     `1`, so a reveal lands visible instead of at 0
+     --motion-kill-block-size  `100%`, so the starfield layers stop overhanging
+                               the viewport once nothing slides through them
+
+   Unset, which is the normal case, every fallback applies and the page moves.
+   Set, the page stops in one hop — and an animation added above joins the
+   switch for free by reading the same variable.
+
+   `none` rather than a near-zero duration, because a cancelled animation
+   leaves the element at its authored value, which is where it should sit when
+   still. Reveals become instant with no transform at all: a translate that
+   finishes in 0.01s is still a translate, and vestibular triggers do not care
+   how brief it was.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-kill: none;
+    --motion-kill-opacity: 1;
+    --motion-kill-block-size: 100%;
+  }
+}
+
+:root[data-motion="reduced"] {
+  --motion-kill: none;
+  --motion-kill-opacity: 1;
+  --motion-kill-block-size: 100%;
+}

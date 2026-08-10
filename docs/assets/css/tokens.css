@@ -1,0 +1,622 @@
+/* ============================================================================
+   tokens.css — the single source of truth for every colour in this site.
+
+   Read this first if you have never seen this codebase:
+
+   - A "token" here is a CSS custom property (a variable that starts with `--`).
+     Any other stylesheet uses `var(--ink)`; it never writes a hex value of its
+     own. That is a hard rule for the project: this file is the ONLY place a
+     colour literal is allowed to appear. If you need a new colour, add a token
+     here and use it there.
+
+   - There are five themes. The active one is stamped on the <html> element as
+     `data-theme="foundation"` (or matrix / blueprint / nebula / solar) by a
+     small inline script in <head>, before anything paints, so the page never
+     flashes the wrong palette.
+
+   - Every theme block below defines the SAME set of token names. That is what
+     makes a theme swap safe: no component can end up reading a token that this
+     theme forgot to define. When you add a token, add it to all five blocks
+     and to the fallback at the bottom of this file.
+
+   Why the theme selectors are written `:root[data-theme="…"]` and not the
+   shorter `[data-theme="…"]`: in CSS, a plain attribute selector and `:root`
+   carry exactly the same weight, so the "no theme attribute" fallback at the
+   end of this file would have quietly beaten every theme block that appears
+   above it. Adding `:root` in front of the attribute makes each theme block
+   heavier than the fallback, so the fallback only ever applies when no theme
+   attribute is present at all — which is the whole point of a fallback.
+
+   Contrast: the comment above each theme block records the measured ratios
+   (WCAG 2.1 relative-luminance formula) for the four pairings the project
+   treats as non-negotiable:
+       --ink       on --ground  >= 7:1    (body text)
+       --ink-2     on --ground  >= 4.5:1  (secondary text)
+       --ink-3     on --ground  >= 3:1    (labels, ticks, disabled states)
+       --accent-ink on --accent >= 4.5:1  (text printed on an accent fill)
+   ========================================================================= */
+
+
+/* ---------------------------------------------------------------------------
+   1. Theme-independent tokens.
+
+   Nothing in this block changes when the theme changes: type, rhythm, shape,
+   timing and stacking order are properties of the design system, not of the
+   palette.
+   ------------------------------------------------------------------------ */
+
+:root {
+  /* --- Font stacks -------------------------------------------------------
+     Each stack names the webfont first and then fallbacks with similar
+     metrics, so a font that fails to arrive changes the texture of the page
+     but never its layout.                                                  */
+  --font-display: 'Chakra Petch', 'Segoe UI Semibold', system-ui, sans-serif;
+  --font-body: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, monospace;
+
+  /* --- Type scale --------------------------------------------------------
+     Expressed in `rem`, which is relative to the root font size (16px unless
+     the visitor has changed it in their browser). Using rem rather than px
+     means the whole page scales when someone bumps their default font size.
+     Fluid headings may use clamp(), but both ends of the clamp must be a
+     value from this list so the rhythm stays on the scale.                 */
+  --fs-3xs: 0.6875rem;  /* 11px */
+  --fs-2xs: 0.75rem;    /* 12px */
+  --fs-xs: 0.8125rem;   /* 13px */
+  --fs-sm: 0.9375rem;   /* 15px */
+  --fs-md: 1rem;        /* 16px — body copy */
+  --fs-lg: 1.125rem;    /* 18px */
+  --fs-xl: 1.375rem;    /* 22px */
+  --fs-2xl: 1.75rem;    /* 28px */
+  --fs-3xl: 2.25rem;    /* 36px */
+  --fs-4xl: 3rem;       /* 48px */
+  --fs-5xl: 4.5rem;     /* 72px */
+
+  /* --- Spacing scale -----------------------------------------------------
+     Strictly linear on a 4px base: --sp-N is N x 4px. Keeping it linear (and
+     resisting the temptation to make the top end jump) means anyone can work
+     out a value in their head instead of scrolling back up to check.
+     --sp-section is the one exception: the vertical rhythm between major page
+     sections, which scales with the viewport so a phone does not inherit a
+     desktop's worth of empty space.                                        */
+  --sp-1: 0.25rem;   /* 4px  */
+  --sp-2: 0.5rem;    /* 8px  */
+  --sp-3: 0.75rem;   /* 12px */
+  --sp-4: 1rem;      /* 16px */
+  --sp-5: 1.25rem;   /* 20px */
+  --sp-6: 1.5rem;    /* 24px */
+  --sp-7: 1.75rem;   /* 28px */
+  --sp-8: 2rem;      /* 32px */
+  --sp-9: 2.25rem;   /* 36px */
+  --sp-10: 2.5rem;   /* 40px */
+  --sp-11: 2.75rem;  /* 44px */
+  --sp-12: 3rem;     /* 48px */
+  --sp-13: 3.25rem;  /* 52px */
+  --sp-14: 3.5rem;   /* 56px */
+  --sp-15: 3.75rem;  /* 60px */
+  --sp-16: 4rem;     /* 64px */
+  --sp-section: clamp(4rem, 9vw, 8.5rem);
+
+  /* --- Corner radii ------------------------------------------------------
+     --r-pill is deliberately far larger than any element it is used on; a
+     very large radius on a short element always renders as a capsule.      */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 14px;
+  --r-xl: 22px;
+  --r-pill: 999px;
+
+  /* --- Elevation shadows -------------------------------------------------
+     Three steps: resting, raised, floating. The shadow colour is a very dark
+     blue rather than pure black — a black shadow over a blue-biased ground
+     reads as a grey smudge, while a blue-biased one reads as depth. These
+     live outside the theme blocks on purpose: the same three depths are used
+     in every theme, including the light one, where they land softer simply
+     because the surface underneath is brighter.                            */
+  --shadow-1: 0 1px 2px rgba(2, 4, 10, 0.28);
+  --shadow-2: 0 6px 18px -6px rgba(2, 4, 10, 0.42);
+  --shadow-3: 0 24px 60px -18px rgba(2, 4, 10, 0.55);
+
+  /* --- Motion ------------------------------------------------------------
+     --ease-out is the default: fast start, gentle landing. --ease-spring
+     overshoots slightly past its target before settling, which suits things
+     that "pop" in (a modal, a toggle knob) and suits nothing else.
+     --ease-linear is for continuous, non-arrival motion such as a marquee or
+     a progress sweep, where an eased curve would look like a stutter.       */
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-linear: linear;
+
+  --dur-fast: 140ms;   /* hover, focus, small state flips */
+  --dur: 260ms;        /* the default for anything that moves */
+  --dur-slow: 520ms;   /* entrances, theme cross-fades, panel transitions */
+
+  /* --- Stacking order ----------------------------------------------------
+     Every `z-index` that positions one part of the *page* against another
+     comes from this list, so the layering can be understood by reading these
+     lines instead of grepping for stray numbers. The one deliberate exception
+     is a raw `z-index: 1` on a sticky table header, which stacks only against
+     the rows scrolling under it inside its own panel and has no relationship
+     to anything here. The gaps between the values are intentional:
+     they leave room to insert a layer later without renumbering.           */
+  --z-scene: 0;     /* the WebGL starfield canvas, behind everything */
+  --z-glyphs: 1;    /* the glyph-rain canvas, sitting on top of the scene */
+  --z-veil: 2;      /* the readability scrim between the canvases and the text */
+  --z-content: 3;   /* all normal page content */
+  --z-nav: 40;      /* the sticky header, the rail, and the frame-rate readout */
+  --z-banner: 50;   /* the consent banner, which must clear the header but yield to a dialog */
+  --z-overlay: 60;  /* command palette, dialogs, their backdrop */
+  --z-toast: 80;    /* transient messages, above the dialog that may have caused them */
+  --z-skip: 100;    /* the skip link — nothing may ever cover the way out of the navigation */
+
+  /* --- Theme swatch colours ----------------------------------------------
+     One per theme, each holding that theme's --accent. These are the only
+     colours in this file that do NOT change when the theme changes, and that
+     is the whole point of them.
+
+     The theme picker in the rail paints five buttons at once — one for each
+     theme — and four of those are always previewing a palette that is not
+     currently loaded. A token defined inside a theme block can only ever hold
+     the *current* theme's value, so a picker built on var(--accent) would show
+     five identical dots. Defining the five here, outside every theme block,
+     means each swatch keeps showing the colour of the theme it selects no
+     matter which theme is active.
+
+     If you change a theme's --accent below, change its swatch here to match. */
+  --swatch-foundation: #4C7DFF;
+  --swatch-matrix: #3EF489;
+  --swatch-blueprint: #35C6F4;
+  --swatch-nebula: #FF6FA5;
+  --swatch-solar: #1F4FD0;
+}
+
+
+/* ---------------------------------------------------------------------------
+   2. Themes.
+
+   Token vocabulary, identical in all five blocks:
+
+     Surfaces  --ground --ground-2 --panel --panel-2 --panel-hover
+               --line --line-strong
+     Ink       --ink --ink-2 --ink-3 --ink-inverse
+     Accents   --accent --accent-2 --accent-ink
+     Signal    --signal-ok --signal-warn --signal-crit
+     Effects   --glow --grid-line --scanline --selection --focus-ring
+               --scanline-opacity --ambient-play-state
+     Scene     --scene-star-a --scene-star-b --scene-star-c
+               --scene-fog --scene-glyph --scene-link
+
+   Each block also sets `color-scheme`, which is a real CSS property rather
+   than a token. It tells the browser which way round this theme runs, and it
+   is set explicitly in every block because the theme here is a product choice
+   the visitor made, not a reflection of their operating system setting. The
+   browser paints a certain amount of furniture that no stylesheet can reach —
+   scrollbars, the text caret, the small cancel button inside a search input,
+   the address bar on a phone. Without `color-scheme` that furniture follows
+   the operating system, so someone running a light desktop and reading this
+   site in the matrix theme gets pale scrollbars and an invisible caret against
+   a black page. Declaring it makes the furniture follow the chosen theme.
+
+   --scanline-opacity and --ambient-play-state exist so that motion.css never
+   has to ask which theme is active. They record two decisions that belong to
+   the palette but cannot be expressed as a colour: whether the CRT scanline
+   sweep is painted (1 in matrix, 0 everywhere else) and whether the ambient
+   drift animations run at all (paused in solar, running everywhere else —
+   drifting starfields under white paper read as a rendering fault, and the
+   light theme is the one most likely to be read on battery in daylight).
+
+   The six --scene-* tokens are the only ones with a format requirement: they
+   must stay plain `#rrggbb` strings, because JavaScript reads them with
+   getComputedStyle and hands them straight to WebGL, which cannot parse
+   `rgba()` or a colour keyword.
+
+   Neutrals in every theme are tinted toward that theme's accent hue rather
+   than being true greys. A true grey next to a coloured accent reads as dirty;
+   a grey that leans the same direction as the accent reads as deliberate.
+   ------------------------------------------------------------------------ */
+
+
+/* --- Foundation — the default dark theme ------------------------------------
+   Blue-black deep space, worxbend blue, Ukrainian gold. This one has to feel
+   calm and expensive rather than neon, so the accent appears in small amounts
+   and the greys carry a blue bias all the way down to the near-black ground.
+
+   Measured contrast against --ground #05060B:
+     --ink       #E6ECFA  17.10:1  (needs 7)
+     --ink-2     #A9B6D4   9.96:1  (needs 4.5)
+     --ink-3     #67759A   4.42:1  (needs 3)
+     --accent-ink #050A18 on --accent #4C7DFF  5.35:1  (needs 4.5)
+   Note --accent-ink is near-black, not white: white on this blue measures only
+   about 3.3:1, which fails, so filled accent buttons print dark text.        */
+:root[data-theme='foundation'] {
+  color-scheme: dark;
+
+  --ground: #05060B;
+  --ground-2: #090C15;
+  --panel: rgba(19, 25, 42, 0.72);
+  --panel-2: #131A2A;
+  --panel-hover: #1A2133;
+  --line: rgba(150, 170, 220, 0.14);
+  --line-strong: rgba(160, 180, 230, 0.28);
+
+  --ink: #E6ECFA;
+  --ink-2: #A9B6D4;
+  --ink-3: #67759A;
+  --ink-inverse: #05060B;
+
+  --accent: #4C7DFF;
+  --accent-2: #FFD23F;
+  --accent-ink: #050A18;
+
+  --signal-ok: #35D6A4;
+  --signal-warn: #FFB020;
+  --signal-crit: #FF6B7A;
+
+  --glow: rgba(76, 125, 255, 0.34);
+  --grid-line: rgba(120, 150, 220, 0.10);
+  --scanline: rgba(140, 170, 255, 0.05);
+  --selection: rgba(76, 125, 255, 0.30);
+  --focus-ring: #8FB0FF;
+  --scanline-opacity: 0;
+  --ambient-play-state: running;
+
+  --scene-star-a: #DCE6FF;
+  --scene-star-b: #4C7DFF;
+  --scene-star-c: #FFD23F;
+  --scene-fog: #101A3A;
+  --scene-glyph: #4C7DFF;
+  --scene-link: #2B4A9E;
+}
+
+
+/* --- Matrix -----------------------------------------------------------------
+   True black ground, phosphor green, amber for warnings. The ink is a
+   green-white rather than a white, so even the running text looks like it is
+   coming off a phosphor tube.
+
+   Measured contrast against --ground #000000:
+     --ink       #D6F5DE  17.97:1  (needs 7)
+     --ink-2     #8FCFA2  11.61:1  (needs 4.5)
+     --ink-3     #57906A   5.60:1  (needs 3)
+     --accent-ink #001208 on --accent #3EF489  13.31:1  (needs 4.5)          */
+:root[data-theme='matrix'] {
+  color-scheme: dark;
+
+  --ground: #000000;
+  --ground-2: #030703;
+  --panel: rgba(6, 23, 12, 0.74);
+  --panel-2: #08170D;
+  --panel-hover: #0C2413;
+  --line: rgba(80, 220, 130, 0.16);
+  --line-strong: rgba(90, 240, 145, 0.32);
+
+  --ink: #D6F5DE;
+  --ink-2: #8FCFA2;
+  --ink-3: #57906A;
+  --ink-inverse: #000000;
+
+  --accent: #3EF489;
+  --accent-2: #A8FF60;
+  --accent-ink: #001208;
+
+  --signal-ok: #3EF489;
+  --signal-warn: #FFC233;
+  --signal-crit: #FF5C5C;
+
+  --glow: rgba(62, 244, 137, 0.36);
+  --grid-line: rgba(62, 244, 137, 0.12);
+  --scanline: rgba(62, 244, 137, 0.07);
+  --selection: rgba(62, 244, 137, 0.30);
+  --focus-ring: #8CFFB8;
+  /* The sweep is this theme's signature, so it is the one theme that paints
+     the scanline layer instead of leaving it transparent. */
+  --scanline-opacity: 1;
+  --ambient-play-state: running;
+
+  --scene-star-a: #D6F5DE;
+  --scene-star-b: #3EF489;
+  --scene-star-c: #A8FF60;
+  --scene-fog: #032010;
+  --scene-glyph: #3EF489;
+  --scene-link: #1C7A46;
+}
+
+
+/* --- Blueprint --------------------------------------------------------------
+   A drafting-table theme: deep desaturated indigo paper, cyan ink, near-white
+   hairlines. --line is brighter here than in any other dark theme on purpose,
+   because the grid is meant to be visible structure rather than a hint.
+
+   Measured contrast against --ground #0A1330:
+     --ink       #EAF2FF  16.23:1  (needs 7)
+     --ink-2     #AFC4E8  10.35:1  (needs 4.5)
+     --ink-3     #7085B2   4.95:1  (needs 3)
+     --accent-ink #04101F on --accent #35C6F4  9.59:1  (needs 4.5)           */
+:root[data-theme='blueprint'] {
+  color-scheme: dark;
+
+  --ground: #0A1330;
+  --ground-2: #0E1A3D;
+  --panel: rgba(20, 34, 72, 0.72);
+  --panel-2: #142248;
+  --panel-hover: #1C2F60;
+  --line: rgba(200, 225, 255, 0.18);
+  --line-strong: rgba(225, 240, 255, 0.34);
+
+  --ink: #EAF2FF;
+  --ink-2: #AFC4E8;
+  --ink-3: #7085B2;
+  --ink-inverse: #0A1330;
+
+  --accent: #35C6F4;
+  --accent-2: #CFE4FF;
+  --accent-ink: #04101F;
+
+  --signal-ok: #43D9A3;
+  --signal-warn: #F5B43C;
+  --signal-crit: #FF7A88;
+
+  --glow: rgba(53, 198, 244, 0.32);
+  --grid-line: rgba(190, 220, 255, 0.12);
+  --scanline: rgba(200, 230, 255, 0.05);
+  --selection: rgba(53, 198, 244, 0.30);
+  --focus-ring: #7FD9FF;
+  --scanline-opacity: 0;
+  --ambient-play-state: running;
+
+  --scene-star-a: #EAF2FF;
+  --scene-star-b: #35C6F4;
+  --scene-star-c: #CFE4FF;
+  --scene-fog: #122A5C;
+  --scene-glyph: #35C6F4;
+  --scene-link: #2E6FA8;
+}
+
+
+/* --- Nebula -----------------------------------------------------------------
+   A violet and magenta deep field with a warm rose accent. Softer and warmer
+   than Foundation: the fog colour is lighter and more saturated, which is what
+   produces the visible bloom around the stars in the WebGL scene.
+
+   Measured contrast against --ground #0B0616:
+     --ink       #F2E8FA  16.83:1  (needs 7)
+     --ink-2     #C3ADD8   9.78:1  (needs 4.5)
+     --ink-3     #8574A2   4.77:1  (needs 3)
+     --accent-ink #1A0620 on --accent #FF6FA5  7.40:1  (needs 4.5)           */
+:root[data-theme='nebula'] {
+  color-scheme: dark;
+
+  --ground: #0B0616;
+  --ground-2: #120A22;
+  --panel: rgba(33, 18, 58, 0.72);
+  --panel-2: #211236;
+  --panel-hover: #2E1A52;
+  --line: rgba(220, 185, 255, 0.16);
+  --line-strong: rgba(230, 195, 255, 0.30);
+
+  --ink: #F2E8FA;
+  --ink-2: #C3ADD8;
+  --ink-3: #8574A2;
+  --ink-inverse: #0B0616;
+
+  --accent: #FF6FA5;
+  --accent-2: #A97BFF;
+  --accent-ink: #1A0620;
+
+  --signal-ok: #4BD6B0;
+  --signal-warn: #FFB454;
+  --signal-crit: #FF6B84;
+
+  --glow: rgba(255, 111, 165, 0.32);
+  --grid-line: rgba(200, 160, 255, 0.10);
+  --scanline: rgba(230, 180, 255, 0.05);
+  --selection: rgba(255, 111, 165, 0.28);
+  --focus-ring: #D9A7FF;
+  --scanline-opacity: 0;
+  --ambient-play-state: running;
+
+  --scene-star-a: #F5E9FF;
+  --scene-star-b: #FF6FA5;
+  --scene-star-c: #A97BFF;
+  --scene-fog: #2A0F4A;
+  --scene-glyph: #C77DFF;
+  --scene-link: #6B3AA0;
+}
+
+
+/* --- Solar — the light theme ------------------------------------------------
+   Warm paper rather than white, deep navy ink, a blue accent dark enough to
+   stay legible on paper. This is a designed light theme, not an inversion of
+   the dark one: the ground is #FCF8F2, a warm near-white that keeps the page
+   from glaring under daylight without tipping into the cream tone every other
+   site uses.
+
+   Measured contrast against --ground #FCF8F2:
+     --ink       #14213D  15.10:1  (needs 7)
+     --ink-2     #405677   7.05:1  (needs 4.5)
+     --ink-3     #6E7F9C   3.83:1  (needs 3)
+     --accent-ink #FFFFFF on --accent #1F4FD0  6.80:1  (needs 4.5)
+   Two values were tuned rather than picked:
+     - --accent started at a brighter blue that measured under 4.5:1 as text
+       on paper; #1F4FD0 clears 6.43:1 on --ground and still takes white text.
+     - --accent-2 (the gold) started at #9A6B08, which measured 4.43:1 on
+       --ground — a hair under the 4.5:1 the project holds accents to when
+       they are used as text. Darkening it to #8F6207 brings it to 5.07:1.
+   The signal colours are all darkened versions of their dark-theme siblings
+   for the same reason: a light theme has to earn its contrast downward.     */
+:root[data-theme='solar'] {
+  color-scheme: light;
+
+  --ground: #FCF8F2;
+  --ground-2: #F5EFE5;
+  --panel: rgba(255, 253, 250, 0.78);
+  --panel-2: #FFFFFF;
+  --panel-hover: #F1EBE1;
+  --line: rgba(20, 33, 61, 0.14);
+  --line-strong: rgba(20, 33, 61, 0.30);
+
+  --ink: #14213D;
+  --ink-2: #405677;
+  --ink-3: #6E7F9C;
+  --ink-inverse: #FCF8F2;
+
+  --accent: #1F4FD0;
+  --accent-2: #8F6207;
+  --accent-ink: #FFFFFF;
+
+  --signal-ok: #0F7A55;
+  --signal-warn: #8A5B04;
+  --signal-crit: #B81F35;
+
+  --glow: rgba(31, 79, 208, 0.20);
+  --grid-line: rgba(20, 33, 61, 0.09);
+  --scanline: rgba(20, 33, 61, 0.03);
+  --selection: rgba(31, 79, 208, 0.20);
+  --focus-ring: #1F4FD0;
+  --scanline-opacity: 0;
+  /* The one theme that holds every ambient animation still. See the note at
+     the top of section 2 for why daylight and drifting starfields do not mix. */
+  --ambient-play-state: paused;
+
+  /* The scene layer inverts its logic in daylight: "stars" become darker
+     specks over a pale sky, otherwise the WebGL layer would disappear
+     entirely against the paper.                                            */
+  --scene-star-a: #6E86B8;
+  --scene-star-b: #1F4FD0;
+  --scene-star-c: #8F6207;
+  --scene-fog: #DCE4F2;
+  --scene-glyph: #93A6C8;
+  --scene-link: #A7B6D2;
+}
+
+
+/* ---------------------------------------------------------------------------
+   3. Fallback: no `data-theme` attribute at all.
+
+   If the inline theme script in <head> is blocked, fails, or is removed, the
+   <html> element carries no theme attribute and every token above would be
+   undefined — an unstyled, unreadable page. This block repeats the Foundation
+   values so that never happens. It sits at the end of the file but cannot
+   override the theme blocks, because each of those is written as
+   `:root[data-theme="…"]`, which outweighs a bare `:root`.
+
+   Keep these values byte-identical to the Foundation block above.
+   ------------------------------------------------------------------------ */
+
+:root {
+  color-scheme: dark;
+
+  --ground: #05060B;
+  --ground-2: #090C15;
+  --panel: rgba(19, 25, 42, 0.72);
+  --panel-2: #131A2A;
+  --panel-hover: #1A2133;
+  --line: rgba(150, 170, 220, 0.14);
+  --line-strong: rgba(160, 180, 230, 0.28);
+
+  --ink: #E6ECFA;
+  --ink-2: #A9B6D4;
+  --ink-3: #67759A;
+  --ink-inverse: #05060B;
+
+  --accent: #4C7DFF;
+  --accent-2: #FFD23F;
+  --accent-ink: #050A18;
+
+  --signal-ok: #35D6A4;
+  --signal-warn: #FFB020;
+  --signal-crit: #FF6B7A;
+
+  --glow: rgba(76, 125, 255, 0.34);
+  --grid-line: rgba(120, 150, 220, 0.10);
+  --scanline: rgba(140, 170, 255, 0.05);
+  --selection: rgba(76, 125, 255, 0.30);
+  --focus-ring: #8FB0FF;
+  --scanline-opacity: 0;
+  --ambient-play-state: running;
+
+  --scene-star-a: #DCE6FF;
+  --scene-star-b: #4C7DFF;
+  --scene-star-c: #FFD23F;
+  --scene-fog: #101A3A;
+  --scene-glyph: #4C7DFF;
+  --scene-link: #2B4A9E;
+}
+
+
+/* ---------------------------------------------------------------------------
+   4. Accessibility preference overrides.
+
+   These come last so that, at equal selector weight, they win over the theme
+   blocks above. They only touch the tokens that the preference is actually
+   about; everything else keeps the theme's own value.
+   ------------------------------------------------------------------------ */
+
+/* `prefers-contrast: more` is the operating-system setting some people turn on
+   because low-contrast interface furniture is invisible to them. Borders and
+   the dimmest tier of text are the two things that fail first, so both are
+   strengthened here: --line becomes a border you can see rather than a hint,
+   and --ink-3 is lifted from roughly 4:1 to about 6-8:1 against its ground. */
+@media (prefers-contrast: more) {
+  :root {
+    --line: rgba(180, 200, 245, 0.34);
+    --ink-3: #8B98BA;   /* 7.04:1 on #05060B */
+  }
+
+  :root[data-theme='foundation'] {
+    --line: rgba(180, 200, 245, 0.34);
+    --ink-3: #8B98BA;   /* 7.04:1 on #05060B */
+  }
+
+  :root[data-theme='matrix'] {
+    --line: rgba(110, 240, 160, 0.38);
+    --ink-3: #79B08C;   /* 8.40:1 on #000000 */
+  }
+
+  :root[data-theme='blueprint'] {
+    --line: rgba(225, 240, 255, 0.42);
+    --ink-3: #93A6CE;   /* 7.47:1 on #0A1330 */
+  }
+
+  :root[data-theme='nebula'] {
+    --line: rgba(235, 205, 255, 0.40);
+    --ink-3: #A695C0;   /* 7.30:1 on #0B0616 */
+  }
+
+  :root[data-theme='solar'] {
+    --line: rgba(20, 33, 61, 0.38);
+    --ink-3: #4E5F7C;   /* 6.10:1 on #FCF8F2 */
+  }
+}
+
+/* `prefers-reduced-transparency` is set by people who find see-through panels
+   hard to read — text over a translucent card picks up whatever is drifting
+   behind it, which for this site is a moving starfield. --panel is the only
+   token with alpha that sits directly behind body text, so it is the only one
+   that needs replacing. Each value below is the theme's own translucent panel
+   flattened over its ground, so the layout looks the same, only settled.   */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --panel: #101626;
+  }
+
+  :root[data-theme='foundation'] {
+    --panel: #101626;
+  }
+
+  :root[data-theme='matrix'] {
+    --panel: #06170C;
+  }
+
+  :root[data-theme='blueprint'] {
+    --panel: #131F44;
+  }
+
+  :root[data-theme='nebula'] {
+    --panel: #1D1032;
+  }
+
+  :root[data-theme='solar'] {
+    --panel: #FFFDFA;
+  }
+}

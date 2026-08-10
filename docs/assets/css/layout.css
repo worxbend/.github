@@ -1,0 +1,361 @@
+/* ==========================================================================
+   layout.css — the page skeleton
+   --------------------------------------------------------------------------
+   This file answers one question only: where does each region of the page
+   sit, and how much room does it get. It does not decorate. There are no
+   borders, shadows, backgrounds or type styles here beyond what is needed to
+   position things, and every value that could differ between themes is read
+   from a token defined in tokens.css.
+
+   Two deliberate constraints, because components.css is written separately:
+
+   1. Every selector is a single class (specificity 0,1,0). A component rule
+      written with the same one-class specificity will therefore win by source
+      order as long as components.css is loaded after this file. Nothing here
+      uses !important, so a component can always override a layout decision.
+   2. Sibling spacing is done with flex/grid `gap`, never with margins on the
+      children. A component can then be dropped into any container without
+      carrying spacing baggage that fights the container's own rhythm.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Shell — the outer stacking context
+   -------------------------------------------------------------------------- */
+
+.shell {
+  position: relative;
+  /* `isolation: isolate` creates a stacking context, which keeps the z-index
+     tokens below meaningful relative to each other instead of relative to
+     whatever else ends up on the page. It does NOT make .shell a containing
+     block, so the fixed canvases inside still measure against the viewport.
+     Important: never put `transform`, `filter` or `perspective` on .shell or
+     any ancestor of it — any of those would turn it into a containing block
+     and the fixed layers would start scrolling with the page. */
+  isolation: isolate;
+  min-block-size: 100svh;
+  /* Layout-local measurements. They live here rather than in tokens.css
+     because they describe this skeleton's geometry, not the visual language,
+     and every element that needs them is a descendant of .shell. */
+  --rail-size: 3.75rem;   /* height of the collapsed top bar */
+  --rail-width: 13.5rem;  /* width of the expanded left rail */
+}
+
+/* --------------------------------------------------------------------------
+   2. Fixed background layers
+   Three viewport-sized layers stacked behind the content: the WebGL starfield
+   scene, the glyph rain, and a gradient wash that keeps text legible over
+   both. They are `position: fixed` so they stay put while the page scrolls —
+   the parallax is driven in JavaScript, not by scrolling the element.
+   -------------------------------------------------------------------------- */
+
+.scene,
+.glyphs,
+.veil {
+  position: fixed;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.scene {
+  z-index: var(--z-scene);
+  /* The only interactive background layer. The constellation view raycasts
+     pointer events against it to work out which repository star is under the
+     cursor, so it must receive them. Content sits above it and swallows its
+     own clicks first, so this does not steal interaction from the page. */
+  pointer-events: auto;
+}
+
+.glyphs {
+  z-index: var(--z-glyphs);
+  pointer-events: none;
+}
+
+.veil {
+  z-index: var(--z-veil);
+  pointer-events: none;
+  /* A theme can replace the whole wash by defining --veil-image, or keep this
+     shape and only dial its strength with --veil-opacity. The fallback fades
+     the ground colour in at the top and bottom and lets the middle of the
+     viewport stay clear, so the constellation is visible where the eye is but
+     headings and card copy never sit on raw starfield. */
+  background-image: var(
+    --veil-image,
+    linear-gradient(
+      to bottom,
+      var(--ground) 0%,
+      transparent 24%,
+      transparent 58%,
+      var(--ground) 100%
+    )
+  );
+  opacity: var(--veil-opacity, 0.72);
+}
+
+/* --------------------------------------------------------------------------
+   3. Content column
+   -------------------------------------------------------------------------- */
+
+.content {
+  position: relative;
+  z-index: var(--z-content);
+  display: flex;
+  flex-direction: column;
+  /* Below 1100px the bar is sticky rather than fixed, so it takes up real space in the flow and
+     pushes the first section down by exactly its own height — whatever that turns out to be once
+     the links have wrapped. Reserving a fixed height here instead would be a guess, and a wrong
+     one the moment the bar runs onto a second row on a narrow phone. */
+  padding-block-start: 0;
+}
+
+/* --------------------------------------------------------------------------
+   4. Rail — the instrument rail
+   Below 1100px it is a horizontal bar pinned to the top of the viewport. From
+   1100px there is room for a vertical strip down the left edge, which is the
+   intended reading: a measuring rule alongside the page. Its three children
+   (wordmark, section links, coordinate readout) are pushed apart with
+   space-between rather than margins.
+   -------------------------------------------------------------------------- */
+
+.rail {
+  /* Sticky, not fixed. A fixed bar is out of flow, so the content column has to reserve its
+     height with a hardcoded number — and that number is wrong as soon as the bar wraps onto a
+     second row, which it does on a phone. Sticky keeps the bar pinned while scrolling and still
+     lets it push the content down by its real height. */
+  position: sticky;
+  inset-block-start: 0;
+  /* The rail is page furniture, so it takes the navigation layer from tokens.css rather than
+     computing a one-off value next to the content layer. */
+  z-index: var(--z-nav);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  /* The bar is allowed to run onto a second line. Below roughly 700px the wordmark, the search
+     key and the five theme swatches already fill the width on their own, and without this the
+     section links are squeezed onto a zero-width track: still in the tab order, still scrollable
+     in principle, but drawn entirely outside the strip where nobody can see or touch them. */
+  flex-wrap: wrap;
+  align-content: center;
+  gap: clamp(0.75rem, 3vw, 1.5rem);
+  min-block-size: var(--rail-size);
+  padding-block: 0.5rem;
+  padding-inline: clamp(1rem, 5vw, 3rem);
+}
+
+.rail-mark {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  /* The wordmark must never be squashed to make room for the links. */
+  flex: 0 0 auto;
+}
+
+.rail-nav {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: clamp(0.5rem, 2vw, 1.25rem);
+  /* The links take the leftover room on a wide bar, but they are never squeezed below 12rem —
+     past that point the bar wraps and they get a full-width row of their own to scroll in.
+     A flexible track with `min-inline-size: 0` and nothing else collapses to zero, which hides
+     the links without removing them from the tab order. */
+  flex: 1 1 12rem;
+  /* This floor is what actually forces the wrap. `min-inline-size: 0` would let flexbox shrink
+     the track all the way to nothing to keep the bar on one line, which is the bug this replaces. */
+  min-inline-size: 12rem;
+  overflow-x: auto;
+  /* Hide the horizontal scrollbar on this strip only; the drag/swipe still
+     works and the page-level scrollbar is untouched. */
+  scrollbar-width: none;
+}
+
+.rail-coords {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+
+@media (min-width: 1100px) {
+  .rail {
+    /* Fixed again here, because the wide layout puts the rail beside the content rather than
+       above it: it has to leave the flow so the column can slide under it. `.content` pays for
+       that with `padding-inline-start: var(--rail-width)` further down. */
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+    inline-size: var(--rail-width);
+    block-size: auto;
+    min-block-size: 0;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: clamp(1rem, 2.5vh, 2rem);
+    padding-block: clamp(1.5rem, 3vh, 2.5rem);
+    padding-inline: clamp(1rem, 1.6vw, 1.75rem);
+  }
+
+  .rail-nav {
+    flex-direction: column;
+    align-items: stretch;
+    /* The horizontal floor that forces the wrap on a narrow bar makes no sense in a vertical
+       strip, where the links are already stacked and the strip sets its own width. */
+    flex: 0 1 auto;
+    min-inline-size: 0;
+    gap: 0.35rem;
+    /* Vertical again: if the link list is longer than the viewport it scrolls
+       down inside the strip instead of overflowing off the bottom. */
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .rail-coords {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .content {
+    /* The rail no longer covers the top of the page, but it does occupy the
+       left edge, so the reserved space moves from the block axis to the
+       inline axis. */
+    padding-block-start: 0;
+    padding-inline-start: var(--rail-width);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. Containers and sections
+   -------------------------------------------------------------------------- */
+
+.wrap {
+  inline-size: 100%;
+  max-inline-size: 1240px;
+  /* Centring a fixed-width box is the one job margins keep, because there is
+     no gap-based equivalent. */
+  margin-inline: auto;
+  /* Fluid gutters: 1.25rem of breathing room on a phone, growing to 3rem on a
+     wide screen, with nothing to tune at each breakpoint. */
+  padding-inline: clamp(1.25rem, 5vw, 3rem);
+  /* Makes .wrap a query container so descendants can react to the width of
+     the column they are actually in, which on this page is narrower than the
+     viewport whenever the left rail is expanded. Note this also makes .wrap a
+     containing block for fixed-position descendants, so overlays such as the
+     command palette belong outside .wrap, as a direct child of .shell. */
+  container-type: inline-size;
+  container-name: wrap;
+}
+
+.section {
+  /* Vertical rhythm between major page regions. Padding rather than margin so
+     a component can paint a full-height background on the section without
+     leaving a stripe of bare ground above it, and so adjacent sections do not
+     collapse their spacing into each other. */
+  padding-block: var(--sp-section);
+  /* When a link jumps to #projects, stop the heading from landing underneath
+     the fixed top bar. */
+  scroll-margin-block-start: calc(var(--rail-size) + 1rem);
+}
+
+@media (min-width: 1100px) {
+  .section {
+    /* The rail is down the side now, so nothing overlaps the top of a
+       section and the offset only needs to be breathing room. */
+    scroll-margin-block-start: 2rem;
+  }
+}
+
+.section-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(0.75rem, 2vw, 1.25rem);
+  align-items: end;
+}
+
+/* Once the column is wide enough, the heading block and whatever sits beside
+   it (filters, a view toggle, a count) share one row: title takes the space
+   that is left, the controls take exactly what they need. */
+@container wrap (min-width: 46rem) {
+  .section-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: clamp(1rem, 3vw, 2.5rem);
+  }
+}
+
+/* Container queries are widely supported, but a browser without them would
+   drop the block above entirely and leave the head stacked forever. This
+   viewport-based approximation only applies where the container query is
+   unavailable, so the two can never both take effect. */
+@supports not (container-type: inline-size) {
+  @media (min-width: 62rem) {
+    .section-head {
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: clamp(1rem, 3vw, 2.5rem);
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   6. Grid utilities
+   -------------------------------------------------------------------------- */
+
+/*
+   One grid rule covering both cases. --cols defaults to the keyword
+   `auto-fill`, which tells the browser to fit as many columns as it can at
+   --col-min or wider. Setting --cols to a number on the element instead gives
+   a fixed column count:
+
+     <div class="grid" style="--cols: 3; --col-min: 12rem"> … </div>
+
+   `min(100%, var(--col-min))` is what stops the classic overflow: without it,
+   a 16rem minimum track is still 16rem on a 320px phone with padding, and the
+   grid pushes the page sideways. The min() caps the track at the space
+   actually available.
+*/
+.grid {
+  --cols: auto-fill;
+  --col-min: 16rem;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(min(100%, var(--col-min)), 1fr));
+  gap: var(--sp-gap, clamp(1rem, 2.4vw, 1.75rem));
+}
+
+/* The project catalog. 320px is the narrowest a repository card stays
+   readable at, given the tagline, the language chip row and the star count. */
+.catalog {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: var(--sp-gap, clamp(1rem, 2.4vw, 1.75rem));
+}
+
+/* Each grid cell becomes its own query container, so a card inside it can ask
+   "how wide am I?" with a plain unnamed `@container (min-width: …)` rule in
+   components.css and get the answer without either file agreeing on a name.
+   That is the case container queries genuinely solve here: the same card
+   appears in the wide catalog and in the narrow rail-adjacent column, and its
+   own width — not the viewport's — decides whether the meta row sits beside
+   the title or under it.
+   min-inline-size: 0 is the standard grid-item fix that lets a long,
+   unbreakable string shrink instead of blowing the track out. */
+.catalog > * {
+  container-type: inline-size;
+  min-inline-size: 0;
+}
+
+/* Wide columns get slightly larger minimum cards, so a 1240px catalog lands on
+   three roomy columns rather than four cramped ones. */
+@container wrap (min-width: 64rem) {
+  .catalog {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  }
+}
+
+@supports not (container-type: inline-size) {
+  @media (min-width: 80rem) {
+    .catalog {
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+    }
+  }
+}

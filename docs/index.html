@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- No-flash theme guard. This has to run before any stylesheet is applied, and it has to be
+     inline and synchronous: an external file would be a second network round trip, during which
+     the page would paint in the wrong palette and then visibly repaint. The value is JSON-encoded
+     because core/store.js writes every preference through JSON.stringify. -->
+<script>
+  (function () {
+    var THEMES = ['foundation', 'matrix', 'blueprint', 'nebula', 'solar'];
+    var theme = 'foundation';
+    try {
+      var stored = JSON.parse(window.localStorage.getItem('wb.theme'));
+      if (THEMES.indexOf(stored) !== -1) theme = stored;
+      else if (window.matchMedia('(prefers-color-scheme: light)').matches) theme = 'solar';
+    } catch (error) {
+      /* Private mode, blocked storage, or no matchMedia. The default below still applies. */
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+
+<title>worxbend — the Foundation Observatory</title>
+<meta name="description" content="worxbend builds instruments: OBS Studio controllers, air-quality readers, camera firmware, Linux provisioning and Scala libraries. Browse the whole open-source catalogue as a constellation.">
+<!-- One theme-color tag, and ui/app.js rewrites its content from the resolved `--ground` token
+     after every theme change. A mobile browser paints its address bar with this value, and the
+     theme on this page is a choice the visitor makes here — not a reading of their operating
+     system — so keying two tags to `prefers-color-scheme` would leave the bar showing a palette
+     nobody selected. The value below is the default theme's ground, used for the first paint.
+     `color-scheme` itself is declared per theme in tokens.css, where the palette lives. -->
+<meta name="theme-color" content="#05060B">
+<link rel="canonical" href="https://worxbend.github.io/.github/">
+
+<!-- An SVG icon covers every modern browser at every size. The PNG is the fallback for the few
+     places that still will not take a vector — chiefly an iOS home-screen shortcut. -->
+<link rel="icon" href="./assets/img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./assets/img/apple-touch-icon.png">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="worxbend">
+<meta property="og:title" content="worxbend — the Foundation Observatory">
+<meta property="og:description" content="Every repository is a star. Size is stargazers and recency, hue is language, and the lines join repositories that share a subject.">
+<meta property="og:url" content="https://worxbend.github.io/.github/">
+<meta property="og:image" content="./assets/img/og.png">
+<meta property="og:image:alt" content="A dark constellation map of the worxbend repositories.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="worxbend — the Foundation Observatory">
+<meta name="twitter:description" content="Every repository is a star. Size is stargazers and recency, hue is language, and the lines join repositories that share a subject.">
+<meta name="twitter:image" content="./assets/img/og.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Manrope:wght@400;500;700&amp;display=swap">
+
+<!-- Load order is a dependency order: tokens defines every colour, base resets and sets type,
+     layout places the regions, components decorate them, motion animates them. -->
+<link rel="stylesheet" href="./assets/css/tokens.css">
+<link rel="stylesheet" href="./assets/css/base.css">
+<link rel="stylesheet" href="./assets/css/layout.css">
+<link rel="stylesheet" href="./assets/css/components.css">
+<link rel="stylesheet" href="./assets/css/motion.css">
+
+<!-- The two graphics libraries are the only third-party code on the page. An import map lets the
+     modules write `import * as THREE from 'three'` while the browser fetches them from a content
+     delivery network, with no bundler in between. Both are optional at runtime: if either fetch
+     fails, ui/app.js catches it and the page carries on without that layer. -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
+    "pixi.js": "https://cdn.jsdelivr.net/npm/pixi.js@8.6.6/dist/pixi.min.mjs"
+  }
+}
+</script>
+<script type="module" src="./assets/js/ui/app.js"></script>
+</head>
+
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- `--rail-size` is the height the layout reserves for the top bar on narrow screens. It is set
+     here rather than left at its default because components.css re-declares `.rail` as a column,
+     which stacks the bar's three groups instead of laying them in a row. -->
+<div class="shell" style="--rail-size: 7.5rem">
+
+  <!-- Both canvases are decoration and are hidden from assistive technology. Everything they
+       show — the catalogue, the clusters, the counts — is also present as real text below. -->
+  <canvas class="scene" id="scene" aria-hidden="true"></canvas>
+  <canvas class="glyphs" id="glyphs" aria-hidden="true"></canvas>
+  <div class="veil" aria-hidden="true"></div>
+  <div class="scanline" aria-hidden="true"></div>
+  <div class="starfield-fallback" aria-hidden="true"></div>
+
+  <header class="rail">
+    <div class="rail-mark">
+      <a class="wordmark" href="#hero">
+        <span class="wordmark__tile" aria-hidden="true">&gt;_</span>
+        <span class="wordmark__name">worxbend</span>
+        <span class="wordmark__pill">org</span>
+      </a>
+    </div>
+
+    <nav class="rail-nav" id="rail-nav" aria-label="Sections">
+      <a class="rail__link" href="#hero">Overview</a>
+      <a class="rail__link" href="#clusters">Clusters</a>
+      <a class="rail__link" href="#catalog">Catalogue</a>
+      <a class="rail__link" href="#owners">Accounts</a>
+      <a class="rail__link" href="#instrument">This page</a>
+    </nav>
+
+    <div class="rail-coords">
+      <button class="btn btn--icon" id="open-palette" type="button" aria-label="Open the command palette (Control or Command and K)">
+        <span aria-hidden="true">⌘K</span>
+      </button>
+      <!-- Each swatch shows the colour of the theme it selects. An ordinary token is no use here,
+           because a token only ever holds the theme that is currently active — all five swatches
+           would come out the same colour. So tokens.css defines five extra ones,
+           --swatch-foundation through --swatch-solar, outside any theme block: each is that
+           theme's accent, adjusted where it needed adjusting to stay readable against every
+           ground. Writing the hex values here instead would duplicate tokens.css and drift the
+           first time an accent is retuned for contrast, which has already happened once. -->
+      <div class="rail__themes" id="theme-picker" role="group" aria-label="Colour theme">
+        <button class="rail__swatch" type="button" data-theme-id="foundation" aria-pressed="false" aria-label="Foundation theme" style="--swatch: var(--swatch-foundation)"></button>
+        <button class="rail__swatch" type="button" data-theme-id="matrix" aria-pressed="false" aria-label="Matrix theme" style="--swatch: var(--swatch-matrix)"></button>
+        <button class="rail__swatch" type="button" data-theme-id="blueprint" aria-pressed="false" aria-label="Blueprint theme" style="--swatch: var(--swatch-blueprint)"></button>
+        <button class="rail__swatch" type="button" data-theme-id="nebula" aria-pressed="false" aria-label="Nebula theme" style="--swatch: var(--swatch-nebula)"></button>
+        <button class="rail__swatch" type="button" data-theme-id="solar" aria-pressed="false" aria-label="Solar theme, the light one" style="--swatch: var(--swatch-solar)"></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- `tabindex="-1"` makes this region focusable by script and by a fragment link, without
+       putting it in the tab order. Without it, Safari with VoiceOver follows the skip link by
+       scrolling here but leaves the keyboard back on the link, so the next Tab returns the
+       visitor to the navigation the link exists to skip past. -->
+  <main class="content" id="main" tabindex="-1">
+
+    <noscript>
+      <section class="section">
+        <div class="wrap">
+          <div class="noscript">
+            <h2 class="noscript__title">JavaScript is switched off</h2>
+            <p class="noscript__body">
+              The catalogue on this page is drawn at runtime, so with scripting disabled there is
+              nothing here to draw it. Everything is still on GitHub, and the six subject groups
+              are described further down this page.
+            </p>
+            <ul class="noscript__list">
+              <li><a class="noscript__link" href="#cluster-streaming">Streaming &amp; OBS</a></li>
+              <li><a class="noscript__link" href="#cluster-air">Air Quality</a></li>
+              <li><a class="noscript__link" href="#cluster-iot">IoT &amp; Edge</a></li>
+              <li><a class="noscript__link" href="#cluster-linux">Linux &amp; Provisioning</a></li>
+              <li><a class="noscript__link" href="#cluster-scala">Scala &amp; JVM</a></li>
+              <li><a class="noscript__link" href="#cluster-labs">Labs</a></li>
+            </ul>
+            <ul class="noscript__list">
+              <li><a class="noscript__link" href="https://github.com/worxbend">github.com/worxbend — the organisation</a></li>
+              <li><a class="noscript__link" href="https://github.com/w0rxbend">github.com/w0rxbend — the personal account</a></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </noscript>
+
+    <!-- ================================================================================
+         Hero
+         ================================================================================ -->
+    <section class="section" id="hero" aria-labelledby="hero-title">
+      <div class="wrap">
+        <p class="stat__label">Foundation Observatory · est. 2025</p>
+        <h1 id="hero-title">worxbend</h1>
+        <p>
+          A workshop that builds instruments — terminal dashboards, air-quality readers, camera
+          firmware, streaming controllers and the small libraries underneath them. Every
+          repository below is a star in the sky behind this text.
+        </p>
+
+        <div class="rail__readout" id="readout" data-parallax="0.05">
+          <span class="rail__value"><span>theme</span><span id="readout-theme">foundation</span></span>
+          <span class="rail__value"><span>view</span><span id="readout-view">grid</span></span>
+          <span class="rail__value"><span>nodes</span><span id="readout-nodes">—</span></span>
+          <span class="rail__value"><span>scene</span><span id="readout-scene">booting</span></span>
+          <span class="mono">&gt; observatory --watch<span class="anim-caret" aria-hidden="true">▌</span></span>
+        </div>
+
+        <div class="banner__actions">
+          <a class="btn btn--primary" href="#catalog">Browse the catalogue</a>
+          <button class="btn" type="button" id="hero-search">Search projects</button>
+          <a class="btn btn--ghost" href="https://github.com/worxbend">Open GitHub</a>
+        </div>
+
+        <div class="grid" style="--col-min: 9rem">
+          <div class="stat">
+            <span class="stat__figure u-tabular" data-stat="repos">—</span>
+            <span class="stat__label">Repositories</span>
+          </div>
+          <div class="stat">
+            <span class="stat__figure u-tabular" data-stat="clusters">—</span>
+            <span class="stat__label">Clusters</span>
+          </div>
+          <div class="stat">
+            <span class="stat__figure u-tabular" data-stat="langs">—</span>
+            <span class="stat__label">Languages</span>
+          </div>
+          <div class="stat">
+            <span class="stat__figure u-tabular" data-stat="stars">—</span>
+            <span class="stat__label">Stargazers</span>
+          </div>
+          <div class="stat">
+            <span class="stat__figure" data-stat="updated">—</span>
+            <span class="stat__label">Last push</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================================
+         Clusters
+         ================================================================================ -->
+    <section class="section" id="clusters" aria-labelledby="clusters-title">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="stat__label">Constellations</p>
+            <h2 id="clusters-title">Six things this workshop keeps coming back to</h2>
+            <p>
+              The catalogue is grouped by subject rather than by language or by account. Each
+              group is one constellation in the sky, and each link below filters the catalogue
+              down to it.
+            </p>
+          </div>
+        </div>
+
+        <ul class="grid" style="--col-min: 20rem">
+          <li class="card" id="cluster-streaming">
+            <div class="cluster">
+              <span class="cluster__glyph" aria-hidden="true">◈</span>
+              <h3 class="cluster__name">Streaming &amp; OBS</h3>
+              <p class="cluster__blurb">
+                Controllers, dashboards and browser overlays for OBS Studio, plus chat clients and
+                bots for Twitch and YouTube — everything that runs while a live stream is on air.
+              </p>
+            </div>
+            <p class="card__foot">
+              <span class="cluster__count" data-cluster-count="streaming">—</span>
+              <a class="chip" href="#/c/streaming">Filter catalogue</a>
+            </p>
+          </li>
+
+          <li class="card" id="cluster-air">
+            <div class="cluster">
+              <span class="cluster__glyph" aria-hidden="true">◇</span>
+              <h3 class="cluster__name">Air Quality</h3>
+              <p class="cluster__blurb">
+                Ways of reading an AirGradient air-quality monitor: a desktop window, a phone app,
+                a terminal, a panel icon, an e-paper screen, a wall of LEDs and a metrics stack —
+                all talking to the sensor on the local network rather than to a cloud account.
+              </p>
+            </div>
+            <p class="card__foot">
+              <span class="cluster__count" data-cluster-count="air">—</span>
+              <a class="chip" href="#/c/air">Filter catalogue</a>
+            </p>
+          </li>
+
+          <li class="card" id="cluster-iot">
+            <div class="cluster">
+              <span class="cluster__glyph" aria-hidden="true">◆</span>
+              <h3 class="cluster__name">IoT &amp; Edge</h3>
+              <p class="cluster__blurb">
+                Firmware for small Wi-Fi microcontroller boards — cameras, relays, LED panels —
+                together with the network services on the other end of the wire that receive their
+                frames and send them commands.
+              </p>
+            </div>
+            <p class="card__foot">
+              <span class="cluster__count" data-cluster-count="iot">—</span>
+              <a class="chip" href="#/c/iot">Filter catalogue</a>
+            </p>
+          </li>
+
+          <li class="card" id="cluster-linux">
+            <div class="cluster">
+              <span class="cluster__glyph" aria-hidden="true">▣</span>
+              <h3 class="cluster__name">Linux &amp; Provisioning</h3>
+              <p class="cluster__blurb">
+                Tools that take a fresh Linux machine, or a homelab of them, and bring it to a
+                known state from files kept in version control: packages, dotfiles, fonts,
+                binaries and monitoring.
+              </p>
+            </div>
+            <p class="card__foot">
+              <span class="cluster__count" data-cluster-count="linux">—</span>
+              <a class="chip" href="#/c/linux">Filter catalogue</a>
+            </p>
+          </li>
+
+          <li class="card" id="cluster-scala">
+            <div class="cluster">
+              <span class="cluster__glyph" aria-hidden="true">⬡</span>
+              <h3 class="cluster__name">Scala &amp; JVM</h3>
+              <p class="cluster__blurb">
+                Libraries and services for the Java Virtual Machine, mostly written in Scala 3 —
+                API clients, an authentication server, data pipelines and ports of existing
+                libraries to the Flix language.
+              </p>
+            </div>
+            <p class="card__foot">
+              <span class="cluster__count" data-cluster-count="scala">—</span>
+              <a class="chip" href="#/c/scala">Filter catalogue</a>
+            </p>
+          </li>
+
+          <li class="card" id="cluster-labs">
+            <div class="cluster">
+              <span class="cluster__glyph" aria-hidden="true">⬢</span>
+              <h3 class="cluster__name">Labs</h3>
+              <p class="cluster__blurb">
+                Experiments that exist to answer a question rather than to ship a product: a
+                browser game, an automated writing journal, a webcam filter and other one-off
+                sketches.
+              </p>
+            </div>
+            <p class="card__foot">
+              <span class="cluster__count" data-cluster-count="labs">—</span>
+              <a class="chip" href="#/c/labs">Filter catalogue</a>
+            </p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================================================================================
+         Catalogue
+         ================================================================================ -->
+    <section class="section" id="catalog" aria-labelledby="catalog-title">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="stat__label">Catalogue</p>
+            <h2 id="catalog-title">Every repository, searchable</h2>
+          </div>
+          <div class="panel__actions" role="group" aria-label="Catalogue view">
+            <button class="btn btn--ghost" type="button" id="view-grid" aria-pressed="true">Grid</button>
+            <button class="btn btn--ghost" type="button" id="view-constellation" aria-pressed="false">Constellation</button>
+          </div>
+        </div>
+
+        <div class="palette__field">
+          <span class="palette__glyph" aria-hidden="true">⌕</span>
+          <label class="sr-only" for="catalog-search">Search the catalogue</label>
+          <input class="palette__input" id="catalog-search" type="search" autocomplete="off"
+                 spellcheck="false" placeholder="Search by name, topic or language — try lang:rust">
+          <button class="palette__esc" type="button" id="catalog-clear" hidden>clear</button>
+        </div>
+
+        <ul class="card__topics" id="filter-chips" aria-label="Filter by cluster">
+          <li><button class="chip" type="button" data-filter="" aria-pressed="true">All</button></li>
+          <li><button class="chip" type="button" data-filter="streaming" aria-pressed="false">streaming</button></li>
+          <li><button class="chip" type="button" data-filter="air" aria-pressed="false">air</button></li>
+          <li><button class="chip" type="button" data-filter="iot" aria-pressed="false">iot</button></li>
+          <li><button class="chip" type="button" data-filter="linux" aria-pressed="false">linux</button></li>
+          <li><button class="chip" type="button" data-filter="scala" aria-pressed="false">scala</button></li>
+          <li><button class="chip" type="button" data-filter="labs" aria-pressed="false">labs</button></li>
+        </ul>
+
+        <!-- The polite live region. Screen readers announce a change here without interrupting
+             whatever is already being read, which is what "polite" means. -->
+        <p class="cluster__count" id="catalog-count" role="status" aria-live="polite">Loading the catalogue…</p>
+
+        <!-- Populated by ui/app.js. It is never hidden: in constellation view it gains
+             .catalog--compact and becomes one dense column beside the sky, so every card stays
+             visible, readable and reachable by keyboard whichever view is showing. -->
+        <div class="catalog" id="catalog-grid"></div>
+
+        <div id="star-detail" hidden></div>
+      </div>
+    </section>
+
+    <!-- ================================================================================
+         Accounts
+         ================================================================================ -->
+    <section class="section" id="owners" aria-labelledby="owners-title">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="stat__label">Where the code lives</p>
+            <h2 id="owners-title">Two GitHub accounts, one body of work</h2>
+            <p>
+              Repositories are split across an organisation and the personal account behind it.
+              The two logins differ by a single character — an "o" against a zero — so every card
+              in the catalogue carries a badge saying which one it came from.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid" style="--col-min: 22rem">
+          <article class="card">
+            <div class="card__head">
+              <span class="card__owner card__owner--org">worxbend</span>
+              <span class="chip">organisation</span>
+            </div>
+            <h3 class="card__title">The organisation</h3>
+            <p class="card__tagline">Tools meant for other people to install and use.</p>
+            <p class="card__desc">
+              Anything with releases, packages or documentation sits here: the OBS Studio
+              controllers, the AirGradient clients, the workstation bootstrappers and the Scala
+              libraries published for other projects to depend on. This repository — the one
+              serving the page you are reading — is the organisation's profile repository, which
+              is why it is called <span class="mono">.github</span>.
+            </p>
+            <p class="card__foot">
+              <span class="card__stars" data-owner-count="worxbend">—</span>
+              <a class="chip" href="https://github.com/worxbend">github.com/worxbend</a>
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="card__head">
+              <span class="card__owner card__owner--user">w0rxbend</span>
+              <span class="chip">personal</span>
+            </div>
+            <h3 class="card__title">The personal account</h3>
+            <p class="card__tagline">Work in progress, firmware and experiments.</p>
+            <p class="card__desc">
+              Projects that are still moving, or that are too specific to one desk to be worth
+              packaging: microcontroller firmware, the homelab infrastructure files, the Flix
+              ports, the browser game and the daily learning journal. Several of them graduate to
+              the organisation once they are worth installing.
+            </p>
+            <p class="card__foot">
+              <span class="card__stars" data-owner-count="w0rxbend">—</span>
+              <a class="chip" href="https://github.com/w0rxbend">github.com/w0rxbend</a>
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="card__head">
+              <span class="card__owner card__owner--user">oleksandr-balyshyn</span>
+              <span class="chip">personal</span>
+            </div>
+            <h3 class="card__title">The named account</h3>
+            <p class="card__tagline">The same maker under a full name.</p>
+            <p class="card__desc">
+              A quieter third account carrying a small number of newer pieces — a terminal
+              interface library, a desktop controller for a standing desk, and setup scripts. It
+              is included here because it is the same person and the same body of work; splitting
+              it off would only hide things.
+            </p>
+            <p class="card__foot">
+              <span class="card__stars" data-owner-count="oleksandr-balyshyn">—</span>
+              <a class="chip" href="https://github.com/oleksandr-balyshyn">github.com/oleksandr-balyshyn</a>
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================================
+         This page
+         ================================================================================ -->
+    <section class="section" id="instrument" aria-labelledby="instrument-title">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="stat__label">Instrumentation</p>
+            <h2 id="instrument-title">What this page is actually doing</h2>
+          </div>
+        </div>
+
+        <p>
+          <strong>The list comes from GitHub, live, with no account and no key.</strong> When this
+          page opens it calls GitHub's public API from your browser — one request per account, no
+          sign-in, nothing secret — and asks for every public repository on
+          <span class="mono">worxbend</span>, <span class="mono">w0rxbend</span> and
+          <span class="mono">oleksandr-balyshyn</span>. Anything pushed to in the last
+          <span class="mono" data-active-months>6</span> months appears below; forks, archived
+          repositories and anything with no commits since then are left out. The answer is kept in
+          this browser for six hours so a reload costs nothing, and the page shows a copy committed
+          alongside the code while it waits — which is why the catalogue is on screen immediately
+          rather than after a spinner. The only thing written by hand is the plain-language
+          description on some cards; every number, language and date is GitHub's.
+        </p>
+        <p class="mono panel__legend" id="catalog-provenance" data-source="seed">Loading…</p>
+        <p>
+          <strong>The sky is a real graph, not wallpaper.</strong> Every repository in the
+          catalogue is one point in the WebGL scene behind this text. How large it is comes from
+          its stargazers and how recently it was pushed; its colour is GitHub's own colour for its
+          main language; the lines join repositories that sit in the same cluster. Positions come
+          from a seeded generator, so the sky is identical on every visit — a diagram you can
+          learn, rather than a screensaver. If the graphics library cannot load, or the browser has
+          no WebGL, the page adds a plain drifting starfield instead and everything else carries on.
+        </p>
+        <p>
+          <strong>The theme lives in your browser.</strong> Picking one of the five swatches in the
+          bar writes <span class="mono">wb.theme</span> to
+          <span class="mono">localStorage</span> — a small key-value store the browser keeps on your
+          own machine. Nothing is sent anywhere, and a second tab follows along because both tabs
+          watch the same key. There is no account and no server: this whole site is static files on
+          GitHub Pages.
+        </p>
+        <p>
+          <strong>Visit analytics never leave this browser.</strong> If you allow it, this page
+          records what it does — a page view, a theme change, a project opened — into IndexedDB, a
+          database inside your own browser profile. There is no endpoint, no request and no third
+          party; searches record how many characters you typed and how many results came back, never
+          the text itself. The panel below is the whole of it: read it, download it as a JSON file,
+          or delete it. Recording is off until you say otherwise.
+        </p>
+
+        <div class="grid" style="--col-min: 14rem">
+          <label class="toggle">
+            <input class="toggle__input" type="checkbox" id="toggle-motion" checked>
+            <span class="toggle__track" aria-hidden="true"><span class="toggle__thumb"></span></span>
+            <span class="toggle__label">Ambient motion</span>
+          </label>
+          <label class="toggle">
+            <input class="toggle__input" type="checkbox" id="toggle-density">
+            <span class="toggle__track" aria-hidden="true"><span class="toggle__thumb"></span></span>
+            <span class="toggle__label">Compact layout</span>
+          </label>
+        </div>
+
+        <div class="panel" id="inspector" aria-labelledby="inspector-title">
+          <div class="panel__head">
+            <h3 class="panel__title" id="inspector-title">Your own visit log</h3>
+            <div class="panel__actions">
+              <button class="btn btn--ghost" type="button" id="telemetry-consent" aria-pressed="false">Recording: off</button>
+              <button class="btn btn--ghost" type="button" id="telemetry-refresh">Refresh</button>
+              <button class="btn btn--ghost" type="button" id="telemetry-export">Export JSON</button>
+              <button class="btn btn--ghost" type="button" id="telemetry-clear">Delete all</button>
+            </div>
+          </div>
+
+          <p class="panel__legend">
+            <span id="telemetry-summary">Nothing recorded yet.</span>
+            <span id="telemetry-storage" class="mono"></span>
+          </p>
+
+          <div class="panel__bars" id="telemetry-bars" role="img" aria-label="Events recorded per day over the last thirty days"></div>
+          <p class="panel__legend">
+            <span id="telemetry-day-first">—</span>
+            <span id="telemetry-day-last">today</span>
+          </p>
+
+          <div class="panel__scroll">
+            <table class="panel__table">
+              <caption class="sr-only">The most recent events recorded in this browser</caption>
+              <thead>
+                <tr>
+                  <th class="panel__th" scope="col">Time</th>
+                  <th class="panel__th" scope="col">Event</th>
+                  <th class="panel__th" scope="col">Detail</th>
+                </tr>
+              </thead>
+              <tbody id="telemetry-rows"></tbody>
+            </table>
+          </div>
+
+          <p class="panel__empty" id="telemetry-empty">
+            Nothing has been recorded. Turn recording on above and the events will appear here.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="section">
+      <div class="wrap">
+        <p class="stat__label">worxbend · Foundation Observatory</p>
+        <p>
+          Static files, no build step, no bundler and no tracking. Source for this page lives in
+          the <span class="mono">.github</span> repository under
+          <span class="mono">docs/</span>.
+        </p>
+        <ul class="card__topics">
+          <li><a class="chip" href="https://github.com/worxbend">worxbend</a></li>
+          <li><a class="chip" href="https://github.com/w0rxbend">w0rxbend</a></li>
+          <li><a class="chip" href="https://github.com/worxbend/.github">this repository</a></li>
+        </ul>
+      </div>
+    </footer>
+  </main>
+
+  <!-- ==================================================================================
+       Command palette. It is a direct child of .shell rather than of a .wrap, because
+       .wrap is a container-query container and would become the containing block for a
+       fixed-position descendant.
+       ================================================================================== -->
+  <div class="palette" id="palette" hidden>
+    <div class="palette__scrim" id="palette-scrim"></div>
+    <div class="palette__dialog" role="dialog" aria-modal="true" aria-labelledby="palette-label">
+      <h2 class="sr-only" id="palette-label">Command palette</h2>
+      <div class="palette__field">
+        <span class="palette__glyph" aria-hidden="true">&gt;</span>
+        <!-- `aria-expanded` starts false and is rewritten by ui/app.js on every keystroke: it
+             means "there is a list of results open below this field", which is not true of an
+             empty palette and not true of a search that matched nothing. -->
+        <input class="palette__input" id="palette-input" type="text" role="combobox"
+               aria-expanded="false" aria-controls="palette-list" aria-autocomplete="list"
+               autocomplete="off" spellcheck="false"
+               placeholder="Jump to a project, a theme or a section">
+        <span class="palette__esc" aria-hidden="true">esc</span>
+      </div>
+      <ul class="palette__list" id="palette-list" role="listbox" aria-label="Palette results"></ul>
+      <!-- How many results there are, in words, for anyone who cannot see the list. The keyboard
+           stays in the text field while the palette is open — that is what a combobox is — so a
+           screen reader never enters the list and never reads it out. This region is announced
+           whenever ui/app.js changes its text, without interrupting whatever is being spoken. -->
+      <p class="sr-only" id="palette-status" role="status" aria-live="polite"></p>
+      <p class="palette__hint">
+        <span>↑↓ move</span>
+        <span>↵ open</span>
+        <span>esc close</span>
+      </p>
+    </div>
+  </div>
+
+  <aside class="banner" id="consent-banner" hidden aria-labelledby="consent-title">
+    <p class="banner__title" id="consent-title">Local analytics</p>
+    <p class="banner__body" id="consent-body">
+      This page can record what you do on it — into a database inside this browser. Nothing is
+      ever sent anywhere, and you can read, download or delete it from the panel at the bottom of
+      the page.
+    </p>
+    <div class="banner__actions">
+      <button class="btn btn--primary" type="button" id="consent-allow">Record locally</button>
+      <button class="btn btn--ghost" type="button" id="consent-deny">No thanks</button>
+    </div>
+  </aside>
+
+  <!-- `hidden` is the resting state. The toast is invisible between messages either way, but
+       without the attribute it is still an element in the page and in the accessibility tree,
+       with a dismiss button that a screen reader can reach and nothing to dismiss. ui/app.js
+       clears the attribute a frame before the fade-in and sets it again after the fade-out. -->
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+    <span class="toast__msg" id="toast-msg"></span>
+    <button class="toast__close" type="button" id="toast-close" aria-label="Dismiss this message">×</button>
+  </div>
+
+  <div class="hud" id="hud" hidden aria-hidden="true">
+    <span class="hud__item">
+      <span class="hud__label">fps</span>
+      <span class="hud__value" id="hud-fps">—</span>
+    </span>
+    <span class="hud__item">
+      <span class="hud__label" id="hud-quality">high</span>
+      <span class="hud__dot" id="hud-dot"></span>
+    </span>
+  </div>
+
+</div>
+</body>
+</html>
