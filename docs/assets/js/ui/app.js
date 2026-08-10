@@ -25,7 +25,11 @@
  *      a one-shot callback with `motion.add()` instead of starting a second loop.
  */
 
-import { OWNERS, CLUSTERS, LANGS, PROJECTS, byCluster, stats } from '../data/projects.js';
+import {
+  OWNERS, CLUSTERS, LANGS, PROJECTS, byCluster, stats,
+  loadCatalog, onCatalogChange, catalogMeta, ACTIVE_MONTHS,
+  langColor as colorForLang,
+} from '../data/projects.js';
 import { store, KEYS } from '../core/store.js';
 import { motion, reveal, parallax, counters } from '../core/motion.js';
 import { telemetry, EVENT_NAMES } from '../core/telemetry.js';
@@ -88,13 +92,24 @@ const CLUSTER_BY_ID = new Map(CLUSTERS.map((cluster) => [cluster.id, cluster]));
  * The catalogue's resting order: featured first, then most stars, then most recently pushed, then
  * alphabetically. Computed once, because it never changes.
  */
-const DEFAULT_ORDER = PROJECTS.slice().sort(
-  (a, b) =>
+function sortDefault(a, b) {
+  return (
     (b.featured ? 1 : 0) - (a.featured ? 1 : 0) ||
     b.stars - a.stars ||
     b.updated.localeCompare(a.updated) ||
-    a.name.localeCompare(b.name),
-);
+    a.name.localeCompare(b.name)
+  );
+}
+
+/**
+ * The catalogue's resting order, recomputed whenever the catalogue itself changes.
+ *
+ * This used to be a `const` sorted once at module load, which was correct while the repository
+ * list was a checked-in file. It is now fetched from GitHub while the page is already on screen,
+ * so a fixed snapshot would leave the grid showing the seed's order — and, worse, would not
+ * contain any repository created since the seed was captured.
+ */
+let DEFAULT_ORDER = PROJECTS.slice().sort(sortDefault);
 
 /* ============================================================================================ *
  * Module state
@@ -473,7 +488,7 @@ function buildCard(project, idPrefix = 'card') {
     url: `https://github.com/${project.owner}`,
   };
   const cluster = CLUSTER_BY_ID.get(project.cluster);
-  const langColor = LANGS[project.lang];
+  const langColor = colorForLang(project.lang);
 
   const titleLink = h('a', {
     href: project.url,
@@ -491,7 +506,9 @@ function buildCard(project, idPrefix = 'card') {
       h(
         'li',
         null,
-        h('button', { className: 'chip', type: 'button', dataset: { topic } }, topic),
+        // `title` carries the full topic, because the chip's CSS truncates a long one with an
+        // ellipsis on a narrow screen rather than letting it widen the page.
+        h('button', { className: 'chip', type: 'button', title: topic, dataset: { topic } }, topic),
       ),
     ),
   );
@@ -1321,7 +1338,7 @@ function constellationNodes() {
       cluster: project.cluster,
       lang: project.lang,
       weight: project.stars + recency * 2,
-      color: LANGS[project.lang] || null,
+      color: colorForLang(project.lang),
     };
   });
 }
@@ -1378,6 +1395,43 @@ async function mountEffects() {
   }
 }
 
+/**
+ * Rebuild the sky after the catalogue changes.
+ *
+ * The constellation layout is seeded from the node list, so a repository that arrived after mount
+ * has no position and cannot simply be pushed in. Tearing the scene down and building it again is
+ * both simpler and correct, and it is rare — at most once per page view, and only when the live
+ * catalogue actually differs from the seed.
+ *
+ * `remounting` guards against a second refresh landing while the first is still awaiting the
+ * dynamic import, which would otherwise leave two scenes drawing to one canvas.
+ */
+let remounting = false;
+async function remountCosmos() {
+  if (remounting || !cosmos) return;
+  remounting = true;
+  try {
+    const module = await import('../fx/cosmos.js');
+    const previous = cosmos;
+    cosmos = null;
+    previous.dispose();
+    cosmos = await module.mountCosmos(els.scene, {
+      palette: readScenePalette(),
+      quality: motion.quality,
+      nodes: constellationNodes(),
+      seed: 'worxbend',
+    });
+  } catch (error) {
+    // The sky is decoration over an information graphic that also exists as a list. Losing it is
+    // survivable; taking the catalogue down with it is not.
+    console.error('[app] could not rebuild the constellation', error);
+    cosmos = null;
+    document.documentElement.classList.add('no-webgl');
+  } finally {
+    remounting = false;
+  }
+}
+
 /* ============================================================================================ *
  * Wiring
  * ============================================================================================ */
@@ -1396,6 +1450,7 @@ function cacheElements() {
   els.readoutView = byId('readout-view');
   els.readoutNodes = byId('readout-nodes');
   els.readoutScene = byId('readout-scene');
+  els.provenance = byId('catalog-provenance');
 
   els.content = byId('main');
   els.catalogSection = byId('catalog');
@@ -1453,7 +1508,17 @@ function cacheElements() {
 }
 
 /** Fill in every figure that is derived from the catalogue rather than written by hand. */
-function fillFigures() {
+/**
+ * Write the headline figures.
+ *
+ * `animate` is true exactly once, during start-up, when `counters()` has not run yet and the
+ * numbers should roll up from zero as they scroll into view. Every later call — when the live
+ * catalogue lands and the totals move — writes the new value straight in. Re-arming the roll-up
+ * would be wrong twice over: `counters()` marks an element done and skips it afterwards, so the
+ * figure would stay frozen at the zero this function had just written; and even if it did replay,
+ * numbers spinning back to zero on a page the visitor is already reading looks like a fault.
+ */
+function fillFigures({ animate = false } = {}) {
   const totals = stats();
 
   const figures = {
@@ -1465,10 +1530,15 @@ function fillFigures() {
   for (const key of Object.keys(figures)) {
     const el = document.querySelector(`[data-stat="${key}"]`);
     if (!el) continue;
-    // `counters()` rolls the number up from zero when the figure scrolls into view, and writes the
-    // final value straight away when the visitor has asked for reduced motion.
-    el.setAttribute('data-count-to', String(figures[key]));
-    el.textContent = '0';
+    const value = String(figures[key]);
+    if (animate) {
+      el.setAttribute('data-count-to', value);
+      el.textContent = '0';
+    } else {
+      el.setAttribute('data-count-to', value);
+      el.setAttribute('data-count-done', '');
+      el.textContent = formatCount(figures[key]);
+    }
   }
   const updatedEl = document.querySelector('[data-stat="updated"]');
   if (updatedEl) updatedEl.textContent = formatRelative(totals.latestUpdate);
@@ -1485,6 +1555,72 @@ function fillFigures() {
   }
 
   if (els.readoutNodes) els.readoutNodes.textContent = String(totals.repos);
+}
+
+/**
+ * Fold a freshly fetched catalogue into a page that is already on screen.
+ *
+ * The page paints from the committed seed on the first frame, then GitHub answers a moment later
+ * with the current list. That answer can add repositories, remove them, and move every star count
+ * and push date, so everything derived from the catalogue has to be rebuilt — but without
+ * throwing away what the visitor is doing. Their search text, their cluster filter, their scroll
+ * position and their focus all survive, because the update goes through the same `applyQuery()`
+ * path a keystroke does.
+ */
+function wireCatalogRefresh() {
+  unsubscribes.push(onCatalogChange((projects, meta) => {
+    // Cards are memoised by project id. A repository that has gone (archived, made private, or
+    // simply not pushed to for six months) must not keep a cached node, or it would reappear the
+    // next time the grid is rebuilt.
+    const live = new Set(projects.map((project) => project.id));
+    for (const id of [...cardCache.keys()]) if (!live.has(id)) cardCache.delete(id);
+    for (const id of [...starCardCache.keys()]) if (!live.has(id)) starCardCache.delete(id);
+
+    DEFAULT_ORDER = projects.slice().sort(sortDefault);
+    index = buildIndex(projects);
+    fillFigures();
+    renderProvenance(meta);
+    applyQuery();
+
+    // The sky is a picture of the catalogue, so a changed catalogue means a changed sky. Remount
+    // rather than patch: the layout is seeded from the node list, and rebuilding it is the only
+    // way a new repository gets a position instead of being appended off to one side.
+    if (cosmos && state.view === 'constellation') void remountCosmos();
+
+    telemetry.track(EVENT_NAMES.CATALOG_REFRESH, {
+      source: meta.source,
+      repos: projects.length,
+      failed: Boolean(meta.error),
+    });
+  }));
+}
+
+/**
+ * Say where the catalogue came from and how old it is.
+ *
+ * A page that quietly shows month-old numbers is worse than one that admits it, so the instrument
+ * panel always states which of the four sources answered: a live call, a cached answer still
+ * inside its six-hour window, a revalidated one GitHub confirmed unchanged, a stale cache kept
+ * because the network failed, or the copy committed alongside the code.
+ */
+function renderProvenance(meta = catalogMeta) {
+  if (!els.provenance) return;
+  const when = meta.fetchedAt ? formatRelative(new Date(meta.fetchedAt).toISOString()) : null;
+  const text = {
+    // Nothing has been asked for yet: the seed is on screen and the request is in flight.
+    pending: () => 'Checking GitHub for the current list…',
+    network: () => `Live from the GitHub API, fetched ${when}.`,
+    revalidated: () => `Live from the GitHub API — unchanged since ${when}.`,
+    cache: () => `From this browser's saved copy, fetched ${when}.`,
+    'stale-cache': () =>
+      `GitHub could not be reached, so this is the saved copy from ${when}.`,
+    seed: () =>
+      'GitHub could not be reached, so this is the copy committed with the page. It may be out of date.',
+  }[meta.source];
+  els.provenance.textContent =
+    `${text ? text() : 'Loading…'} Showing every public repository pushed to in the last ` +
+    `${ACTIVE_MONTHS} months.`;
+  els.provenance.dataset.source = meta.source;
 }
 
 function wireCatalog() {
@@ -1726,9 +1862,14 @@ function boot() {
   applyDensity(store.get(KEYS.density, 'comfortable'), { persist: false });
   applyMotionPreference(!motion.reduced, { persist: false });
 
-  fillFigures();
+  fillFigures({ animate: true });
+  renderProvenance();
+  for (const el of document.querySelectorAll('[data-active-months]')) {
+    el.textContent = String(ACTIVE_MONTHS);
+  }
 
   index = buildIndex(PROJECTS);
+  wireCatalogRefresh();
   wireCatalog();
   wirePalette();
   wireThemeAndToggles();
@@ -1756,6 +1897,9 @@ function boot() {
 
   void wireTelemetry();
   void mountEffects();
+  // Last, and deliberately not awaited: the page is already complete and interactive from the
+  // seed, so asking GitHub for the current list is an upgrade rather than a prerequisite.
+  void loadCatalog();
 }
 
 /**

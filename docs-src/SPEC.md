@@ -103,8 +103,11 @@ Neutrals must be hue-biased toward that theme's accent. No pure `#808080`.
 
 ## 3. Data model
 
-`docs/assets/js/data/projects.js` exports the catalog. It is hand-maintained, generated from real
-`gh repo list` output — every field must be true. `default export` shape:
+> **Superseded.** The catalogue was hand-maintained when this brief was written. It is now fetched
+> live, in the visitor's browser, with no credentials. The shape below still describes a project
+> entry, but it is produced rather than typed. See **3a** for how it is actually assembled.
+
+`docs/assets/js/data/projects.js` exports the catalog. Shape of one entry:
 
 ```js
 export const OWNERS = {
@@ -150,6 +153,39 @@ abbreviations on first use inside that description (e.g. "OBS Studio", "TCP (a r
 socket)"). Never use "simply", "just", "obviously", "trivially". No emoji inside `desc`.
 
 ---
+
+## 3a. How the catalogue is actually assembled
+
+Four files, with one rule behind the split: **facts regenerate themselves, judgement does not get
+overwritten.**
+
+| File | Written by | Holds |
+| --- | --- | --- |
+| `core/github.js` | hand | The fetch. Three anonymous calls to GitHub's public REST API — one per account — with an ETag revalidation, a six-hour `localStorage` cache, and a fallback chain. |
+| `data/seed.js` | `scripts/refresh-seed.py` | A committed snapshot, used for the first paint and as the last fallback. Never the source of truth. |
+| `data/overrides.js` | hand | The editorial layer: `EXCLUDE`, `COPY` (plain-language descriptions, cluster pins, `featured`), `CLUSTER_RULES`, `PREFER_OWNER`, `KEEP_BOTH`. |
+| `data/projects.js` | hand | The merge. Filters, de-duplicates, assigns ids, layers the copy on, sorts, and publishes `PROJECTS`, `loadCatalog()` and `onCatalogChange()`. |
+
+Rules that follow from this and must not be broken:
+
+- **No credentials, ever.** A token in a static page is readable by anyone who opens the network
+  tab, so there is nothing to protect and nothing to add. Everything shown is public.
+- **The rate limit is the design constraint.** Anonymous callers get 60 requests an hour per IP.
+  One request per account, a six-hour cache, and `If-None-Match` revalidation (a `304` is free)
+  keep a normal visitor at two or three requests a day. Never add a per-repository call — that is
+  one request each and would exhaust the budget on the first visit. This is why the catalogue
+  shows only the primary language: the full breakdown needs its own request per repository.
+- **`PROJECTS` is refilled in place, never reassigned**, so `import { PROJECTS }` stays live.
+- **Never render an empty catalogue.** The chain is fresh cache → network → stale cache → seed, and
+  an empty response is treated as a failure rather than as "there are no repositories".
+- **Say which source answered.** `catalogMeta.source` drives a line in the instrument section. A
+  page quietly showing month-old numbers is worse than one that admits it.
+- **Membership is automatic**: every public, non-fork, non-archived repository on the accounts in
+  `ACCOUNTS`, pushed to within `ACTIVE_MONTHS`, minus `EXCLUDE`. Adding a repository to the site
+  means pushing a commit to it, nothing else.
+- **Anything derived from the catalogue must rebuild when it changes** — the search index, the
+  default order, the card cache, the headline figures, and the constellation. `ui/app.js` does
+  this through `onCatalogChange`; a new derived value has to be added there too.
 
 ## 4. Module contracts
 

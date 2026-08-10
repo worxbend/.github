@@ -437,6 +437,25 @@
               <a class="chip" href="https://github.com/w0rxbend">github.com/w0rxbend</a>
             </p>
           </article>
+
+          <article class="card">
+            <div class="card__head">
+              <span class="card__owner card__owner--user">oleksandr-balyshyn</span>
+              <span class="chip">personal</span>
+            </div>
+            <h3 class="card__title">The named account</h3>
+            <p class="card__tagline">The same maker under a full name.</p>
+            <p class="card__desc">
+              A quieter third account carrying a small number of newer pieces — a terminal
+              interface library, a desktop controller for a standing desk, and setup scripts. It
+              is included here because it is the same person and the same body of work; splitting
+              it off would only hide things.
+            </p>
+            <p class="card__foot">
+              <span class="card__stars" data-owner-count="oleksandr-balyshyn">—</span>
+              <a class="chip" href="https://github.com/oleksandr-balyshyn">github.com/oleksandr-balyshyn</a>
+            </p>
+          </article>
         </div>
       </div>
     </section>
@@ -453,6 +472,20 @@
           </div>
         </div>
 
+        <p>
+          <strong>The list comes from GitHub, live, with no account and no key.</strong> When this
+          page opens it calls GitHub's public API from your browser — one request per account, no
+          sign-in, nothing secret — and asks for every public repository on
+          <span class="mono">worxbend</span>, <span class="mono">w0rxbend</span> and
+          <span class="mono">oleksandr-balyshyn</span>. Anything pushed to in the last
+          <span class="mono" data-active-months>6</span> months appears below; forks, archived
+          repositories and anything with no commits since then are left out. The answer is kept in
+          this browser for six hours so a reload costs nothing, and the page shows a copy committed
+          alongside the code while it waits — which is why the catalogue is on screen immediately
+          rather than after a spinner. The only thing written by hand is the plain-language
+          description on some cards; every number, language and date is GitHub's.
+        </p>
+        <p class="mono panel__legend" id="catalog-provenance" data-source="seed">Loading…</p>
         <p>
           <strong>The sky is a real graph, not wallpaper.</strong> Every repository in the
           catalogue is one point in the WebGL scene behind this text. How large it is comes from

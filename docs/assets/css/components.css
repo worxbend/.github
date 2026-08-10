@@ -336,7 +336,16 @@
   letter-spacing: 0.06em;
   line-height: 1.6;
   text-decoration: none;
+  /* Topic names come from GitHub and can be long single words such as
+     `air-quality-monitor`. `nowrap` keeps a chip on one line, which is what a pill should do, but
+     on a 320px screen one long topic would otherwise push the card — and the whole page — wider
+     than the viewport. Capping the width and letting the text ellipsis out keeps the shape and
+     keeps the document from scrolling sideways; the full topic is still in the title attribute
+     and is still what search matches on. */
   white-space: nowrap;
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
   transition: background-color 140ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
               border-color 140ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
@@ -625,6 +634,10 @@
 
 .stat {
   display: grid;
+  /* Figure on top taking the slack, label pinned to the bottom. One of these figures is a phrase
+     rather than a number — the relative date of the newest push — so it can run to two lines,
+     and without this the labels in that row would sit at different heights. */
+  grid-template-rows: 1fr auto;
   gap: 0.25rem;
   justify-items: start;
   /* A grid item defaults to `min-width: auto`, which means it refuses to become narrower than its

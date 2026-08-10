@@ -137,6 +137,8 @@ export const EVENT_NAMES = Object.freeze({
   TELEMETRY_EXPORT: 'telemetry_export',
   TELEMETRY_CLEAR: 'telemetry_clear',
   PERF_QUALITY: 'perf_quality',
+  /** Fired once the live repository list has been folded in, with where it came from. */
+  CATALOG_REFRESH: 'catalog_refresh',
 });
 
 /** The same vocabulary as a plain array, for building UI filter menus. */

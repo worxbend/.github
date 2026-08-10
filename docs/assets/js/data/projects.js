@@ -1,27 +1,44 @@
 /**
  * The catalogue every other module reads.
  *
- * This file is hand-maintained from real `gh repo list` output for the two accounts below, and
- * it is the only place repository facts live. Nothing here is fetched at runtime: the GitHub API
- * needs a token for anything useful, rate-limits anonymous callers, and would make the page fail
- * offline — so the data is checked in, and the page stays a static file that always renders.
+ * Nothing in here is a hand-written list of repositories any more. The facts arrive from GitHub's
+ * public API, fetched in the visitor's own browser with no credentials (core/github.js), and this
+ * module is where those facts meet the editorial decisions in overrides.js: which subject a
+ * repository belongs to, how to describe it in plain language, which few to feature.
  *
- * Two accounts appear because the work is split between an organisation (`worxbend`) and the
- * personal account behind it (`w0rxbend`). To a visitor they are one body of work, so the UI
- * shows them together and uses `owner` only as a label and a search filter.
+ * The split matters. Anything GitHub can tell us — stars, primary language, topics, the last time
+ * somebody pushed — regenerates by itself and can never go stale. Anything requiring judgement is
+ * written by a person and is never overwritten. A repository nobody has written about still
+ * appears; it simply falls back to its own GitHub description.
+ *
+ * What is shown: every public, non-fork, non-archived repository on the three accounts that has
+ * been pushed to in the last six months, minus anything in the EXCLUDE list.
+ *
+ * How loading works
+ * -----------------
+ * `PROJECTS` is populated synchronously from the committed seed, so the page has a full
+ * catalogue to paint on the very first frame with no spinner and no layout shift. `loadCatalog()`
+ * then asks GitHub for the current list and, if it differs, updates `PROJECTS` in place and
+ * notifies subscribers. The array identity never changes, so a module that imported it once keeps
+ * seeing the current contents.
  */
 
-/** The two GitHub accounts the catalogue is drawn from. Keyed by login so a project can name one. */
-export const OWNERS = {
-  worxbend: { login: 'worxbend', kind: 'org', label: 'worxbend', url: 'https://github.com/worxbend' },
-  w0rxbend: { login: 'w0rxbend', kind: 'user', label: 'w0rxbend', url: 'https://github.com/w0rxbend' },
-};
+import { SEED } from './seed.js';
+import { COPY, EXCLUDE, KEEP_BOTH, PREFER_OWNER, CLUSTER_RULES } from './overrides.js';
+import { ACCOUNTS, fetchCatalog, isActive, ACTIVE_MONTHS, clearCache } from '../core/github.js';
+
+export { ACTIVE_MONTHS, clearCache };
 
 /**
- * The constellation groupings. `id` appears in URLs (`#/c/iot`) and in search filters
- * (`cluster:iot`), so these ids are part of the public surface and should not be renamed lightly.
- * `glyph` is a single character the UI draws next to the cluster name.
+ * The accounts the catalogue is drawn from, keyed by login so a project can name one.
+ *
+ * Derived from the single list in core/github.js rather than written out again, so adding an
+ * account is a one-line change in one file.
  */
+export const OWNERS = Object.fromEntries(
+  ACCOUNTS.map((a) => [a.login, { login: a.login, kind: a.kind, label: a.label, url: a.url }]),
+);
+
 export const CLUSTERS = [
   {
     id: 'streaming',
@@ -78,6 +95,10 @@ export const CLUSTERS = [
  * picked to clear 3:1 contrast — the threshold for a non-text graphic — against all five theme
  * grounds at once: about 3.5:1 on solar's warm paper (`#FCF8F2`) and between 4.9:1 and 5.6:1 on
  * the four dark grounds.
+ *
+ * This list only needs to cover the languages that have actually turned up. Because the catalogue
+ * is now fetched live, a repository in a language nobody has seen before can appear at any time;
+ * `langColor()` below hands those the same neutral rather than an undefined value.
  */
 export const LANGS = {
   C: '#555555',
@@ -101,876 +122,241 @@ export const LANGS = {
   Vue: '#41b883',
 };
 
-/**
- * The repositories, grouped by cluster in the order CLUSTERS lists them, and inside each cluster
- * by stars then by how recently they were updated — the same order `byCluster()` returns, so the
- * file reads the way the page does.
- *
- * `featured` is capped at six across the whole catalogue. The six are chosen to show the range of
- * the work (a desktop streaming controller, a phone air-quality client, camera firmware, a Linux
- * bootstrap, a Scala library and a terminal chat client) rather than to rank by popularity.
- */
-export const PROJECTS = [
-  // --- Streaming & OBS ---------------------------------------------------------------------
-  {
-    id: 'scenedeck',
-    name: 'scenedeck',
-    owner: 'worxbend',
-    cluster: 'streaming',
-    lang: 'Rust',
-    langs: ['Rust', 'Fluent', 'CSS', 'JavaScript', 'HTML'],
-    stars: 2,
-    updated: '2026-08-09',
-    url: 'https://github.com/worxbend/scenedeck',
-    home: 'https://snapcraft.io/scenedeck',
-    tagline: 'Desktop OBS Studio controller for Linux',
-    desc: 'A desktop application for Linux that controls OBS Studio (the open-source live-streaming and recording program) from a normal window — switching scenes, toggling sources and starting or stopping the stream. It is written in Rust with GTK4 and libadwaita, the toolkit behind modern GNOME applications, and talks to OBS over the obs-websocket protocol.',
-    topics: ['obs', 'obs-control', 'obs-studio', 'obs-websocket'],
-    featured: true,
-  },
-  {
-    id: 'twitch-voxer',
-    name: 'twitch-voxer',
-    owner: 'w0rxbend',
-    cluster: 'streaming',
-    lang: 'Python',
-    langs: ['Python', 'HTML'],
-    stars: 2,
-    updated: '2026-08-09',
-    url: 'https://github.com/w0rxbend/twitch-voxer',
-    tagline: 'Text-to-speech bot that reads Twitch chat aloud',
-    desc: 'A self-hosted bot that turns each Twitch chat message into synthesised speech and pushes the audio over a WebSocket (a two-way browser connection) to a browser source in OBS Studio, the open-source live-streaming and recording program. It detects Ukrainian or English, gives every chatter a voice that stays the same across sessions, expands abbreviations, skips known bots, and posts scheduled messages to chat.',
-    topics: ['twitch', 'text-to-speech', 'obs', 'chatbot'],
-    featured: false,
-  },
-  {
-    id: 'obsctl',
-    name: 'obsctl',
-    owner: 'worxbend',
-    cluster: 'streaming',
-    lang: 'Crystal',
-    langs: ['Crystal'],
-    stars: 2,
-    updated: '2026-08-07',
-    url: 'https://github.com/worxbend/obsctl',
-    home: 'https://worxbend.github.io/obsctl/',
-    tagline: 'Terminal OBS Studio controller in Crystal',
-    desc: 'A command-line tool plus a terminal dashboard for driving OBS Studio (the open-source live-streaming and recording program) through obs-websocket 5.x, so scenes, audio and profiles can be changed or scripted without touching the mouse. It is written in Crystal, and a small background daemon keeps the connection to OBS warm between commands.',
-    topics: ['obs', 'obs-websocket', 'cli', 'crystal'],
-    featured: false,
-  },
-  {
-    id: 'twi',
-    name: 'twi',
-    owner: 'worxbend',
-    cluster: 'streaming',
-    lang: 'Go',
-    langs: ['Go'],
-    stars: 1,
-    updated: '2026-08-08',
-    url: 'https://github.com/worxbend/twi',
-    home: 'https://worxbend.github.io/twi/',
-    tagline: 'Terminal Twitch chat client in Go',
-    desc: 'A keyboard-first Twitch chat client that runs in a terminal window instead of a browser. Written in Go, it reads and sends messages across several channels over IRC (the long-standing chat protocol Twitch still speaks), ships 13 colour themes, and keeps OAuth login tokens out of its log output.',
-    topics: ['twitch', 'twitch-chat', 'cli-tool', 'tui', 'bubbletea', 'charmbracelet', 'chat-client', 'go', 'golang', 'irc', 'terminal', 'terminal-ui', 'twitch-api', 'twitch-irc'],
-    featured: true,
-  },
-  {
-    id: 'streaming-tools-site',
-    name: 'streaming-tools-site',
-    owner: 'worxbend',
-    cluster: 'streaming',
-    lang: 'JavaScript',
-    langs: ['JavaScript', 'CSS', 'HTML'],
-    stars: 1,
-    updated: '2026-08-08',
-    url: 'https://github.com/worxbend/streaming-tools-site',
-    home: 'https://obs.worxbend.com',
-    tagline: 'Interactive map of the worxbend streaming tools',
-    desc: 'A static website — plain HTML, CSS and JavaScript with no build step or framework — that draws an interactive map of how the worxbend streaming tools fit together: which of them reach OBS Studio over the obs-websocket protocol, and which talk to Twitch and YouTube directly. Its one third-party dependency, the PixiJS graphics library, is loaded lazily at runtime.',
-    topics: ['obs', 'streaming', 'static-site', 'pixijs'],
-    featured: false,
-  },
-  {
-    id: 'obs-stats',
-    name: 'obs-stats',
-    owner: 'worxbend',
-    cluster: 'streaming',
-    lang: 'Rust',
-    langs: ['Rust'],
-    stars: 1,
-    updated: '2026-08-04',
-    url: 'https://github.com/worxbend/obs-stats',
-    home: 'https://worxbend.github.io/obs-stats/',
-    tagline: 'Terminal dashboard for OBS Studio health',
-    desc: 'A full-screen dashboard drawn inside a terminal window, in the style of the system monitor btop, showing a running OBS Studio’s processor use, frame pacing, encoder health, outputs, scenes and audio as they change. Written in Rust, it reads everything through obs-websocket 5.x, the remote-control protocol OBS exposes.',
-    topics: ['dashboard', 'monitoring', 'obs', 'obs-studio', 'obs-websocket', 'ratatui', 'rust', 'streaming', 'terminal', 'tui'],
-    featured: false,
-  },
-  {
-    id: 'obsctl-rs',
-    name: 'obsctl-rs',
-    owner: 'worxbend',
-    cluster: 'streaming',
-    lang: 'Rust',
-    langs: ['Rust'],
-    stars: 0,
-    updated: '2026-08-09',
-    url: 'https://github.com/worxbend/obsctl-rs',
-    tagline: 'Terminal OBS Studio controller in Rust',
-    desc: 'A program that drives a local copy of OBS Studio (the open-source live-streaming and recording program) from the keyboard, over obs-websocket 5.x, the protocol OBS exposes for remote control. It is written in Rust and its full-screen text interface (a TUI) is built with Ratatui.',
-    topics: ['obs', 'obs-cli', 'obs-client', 'obs-control', 'obs-studio', 'ratatui', 'ratatui-rs', 'rust', 'tui'],
-    featured: false,
-  },
-  {
-    id: 'multistream-manager',
-    name: 'multistream-manager',
-    owner: 'worxbend',
-    cluster: 'streaming',
-    lang: 'Rust',
-    langs: ['Rust', 'HTML'],
-    stars: 0,
-    updated: '2026-08-09',
-    url: 'https://github.com/worxbend/multistream-manager',
-    tagline: 'Terminal setup for Twitch and YouTube streams',
-    desc: 'A full-screen terminal interface that prepares a Twitch stream and a YouTube broadcast from one form — title, category and ingest keys — so a single Start Streaming press in OBS Studio goes live on both services at once. It is written in Rust and shows live status and viewer counts for each side.',
-    topics: ['obs', 'rust', 'streaming', 'tui', 'twitch', 'youtube'],
-    featured: false,
-  },
-  {
-    id: 'obs-effects',
-    name: 'obs-effects',
-    owner: 'w0rxbend',
-    cluster: 'streaming',
-    lang: 'TypeScript',
-    langs: ['TypeScript', 'HTML'],
-    stars: 0,
-    updated: '2026-08-09',
-    url: 'https://github.com/w0rxbend/obs-effects',
-    home: 'https://obs-effects.worxbend.com',
-    tagline: 'Animated browser-source overlays for OBS Studio',
-    desc: 'A collection of animated overlay screens — webcam borders, backgrounds and full-scene effects — drawn on the graphics card with PixiJS 8, a WebGL rendering library. Each screen is a separate web page with a transparent background that you add to OBS Studio (the open-source live-streaming and recording program) as a browser source.',
-    topics: ['obs', 'obs-background', 'obs-effects', 'obs-overlay', 'obs-overlays'],
-    featured: false,
-  },
-  {
-    id: 'yc',
-    name: 'yc',
-    owner: 'worxbend',
-    cluster: 'streaming',
-    lang: 'Go',
-    langs: ['Go'],
-    stars: 0,
-    updated: '2026-08-08',
-    url: 'https://github.com/worxbend/yc',
-    home: 'https://worxbend.github.io/yc/',
-    tagline: 'Terminal YouTube live chat client in Go',
-    desc: 'A keyboard-driven program that shows a YouTube live chat inside a terminal window rather than a browser tab. Written in Go, it displays how much of the YouTube Data API’s daily request allowance (its quota) has been spent, and includes 58 colour themes.',
-    topics: ['youtube', 'live-chat', 'tui', 'go'],
-    featured: false,
-  },
-  {
-    id: 'chat-brawl',
-    name: 'chat-brawl',
-    owner: 'w0rxbend',
-    cluster: 'streaming',
-    lang: 'TypeScript',
-    langs: ['TypeScript', 'JavaScript'],
-    stars: 0,
-    updated: '2026-07-05',
-    url: 'https://github.com/w0rxbend/chat-brawl',
-    tagline: 'Chat-driven brawler arena overlay for OBS Studio',
-    desc: 'A browser overlay for OBS Studio (the open-source live-streaming program) in which every Twitch viewer who types in chat automatically joins an on-screen fighting arena as a small character. Chat commands cover attacking, fleeing, character classes, teams, duels and betting, and the whole simulation is drawn in the browser with PixiJS.',
-    topics: ['twitch', 'obs', 'overlay', 'pixijs'],
-    featured: false,
-  },
-  {
-    id: 'twitch-vizer',
-    name: 'twitch-vizer',
-    owner: 'w0rxbend',
-    cluster: 'streaming',
-    lang: 'TypeScript',
-    langs: ['TypeScript', 'Python'],
-    stars: 0,
-    updated: '2026-06-21',
-    url: 'https://github.com/w0rxbend/twitch-vizer',
-    tagline: 'Chat and event overlays for OBS Studio',
-    desc: 'A self-hosted overlay system with two halves: a Python backend that subscribes to Twitch EventSub (Twitch’s push feed of chat and channel events) and rebroadcasts it over WebSocket, and TypeScript browser scenes rendered with PixiJS. The scenes display chat messages with emotes and emoji plus follows, subscriptions, gift subs, cheers and raids inside OBS Studio, the open-source live-streaming program.',
-    topics: ['twitch', 'obs', 'overlay', 'eventsub'],
-    featured: false,
-  },
-  {
-    id: 'twitch-musicplayer',
-    name: 'twitch-musicplayer',
-    owner: 'w0rxbend',
-    cluster: 'streaming',
-    lang: 'TypeScript',
-    langs: ['TypeScript', 'Go', 'CSS'],
-    stars: 0,
-    updated: '2026-06-07',
-    url: 'https://github.com/w0rxbend/twitch-musicplayer',
-    tagline: 'Music player and visualiser for live streams',
-    desc: 'A two-part project for playing background music on a live stream: a Go backend that indexes MP3 files, serves them over HTTP and coordinates playback over WebSockets (a two-way browser connection), and a browser front end that plays the audio and draws a visualiser with PixiJS and WebGL. Playback history is kept in SQLite, a small database that lives in a single file.',
-    topics: ['twitch', 'music-player', 'visualizer', 'websocket'],
-    featured: false,
-  },
+/** A neutral for a language nobody has picked a colour for yet. Keyed off nothing, on purpose. */
+const LANG_FALLBACK = '#7d8590';
 
-  // --- Air Quality -------------------------------------------------------------------------
-  {
-    id: 'tv-dashboard',
-    name: 'tv-dashboard',
-    owner: 'worxbend',
-    cluster: 'air',
-    lang: 'TypeScript',
-    langs: ['TypeScript', 'JavaScript', 'CSS', 'Python'],
-    stars: 1,
-    updated: '2026-06-21',
-    url: 'https://github.com/worxbend/tv-dashboard',
-    tagline: 'Full-screen home dashboard for a 1080p television',
-    desc: 'An always-on dashboard laid out to fill a 1920x1080 television: air-quality figures from an AirGradient sensor, outdoor weather and forecast, indoor climate, the day’s agenda and system status, arranged in seven cards. The screen is built with SolidJS and fed by a small Hono web service that gathers the data from Open-Meteo and local sources.',
-    topics: ['dashboard', 'solidjs', 'airgradient', 'weather'],
-    featured: false,
-  },
-  {
-    id: 'airgradient-cli',
-    name: 'airgradient-cli',
-    owner: 'worxbend',
-    cluster: 'air',
-    lang: 'Rust',
-    langs: ['Rust', 'HTML'],
-    stars: 0,
-    updated: '2026-08-02',
-    url: 'https://github.com/worxbend/airgradient-cli',
-    tagline: 'Command-line reader for an AirGradient sensor',
-    desc: 'A small Rust command-line companion for an AirGradient indoor air-quality device. By default it reuses the configuration file written by the desktop application, fetches the current measurements once and prints them compactly in the terminal.',
-    topics: ['airgradient', 'cli', 'rust', 'tui', 'tui-app'],
-    featured: false,
-  },
-  {
-    id: 'airgradient-papr',
-    name: 'airgradient-papr',
-    owner: 'worxbend',
-    cluster: 'air',
-    lang: 'C',
-    langs: ['C', 'C++'],
-    stars: 0,
-    updated: '2026-07-26',
-    url: 'https://github.com/worxbend/airgradient-papr',
-    tagline: 'E-paper air-quality display for AirGradient ONE',
-    desc: 'Firmware for a LILYGO T5-4.7 board with an electronic-paper screen (the same low-power display technology used in e-readers) that turns it into a portable readout for an AirGradient ONE indoor air-quality sensor, alongside weather, forecast and currency figures. Readings are fetched over the local network, so no cloud account or phone app is involved.',
-    topics: ['airgradient', 'esp32', 'e-paper', 'lvgl'],
-    featured: false,
-  },
-  {
-    id: 'airgradient-android',
-    name: 'airgradient-android',
-    owner: 'worxbend',
-    cluster: 'air',
-    lang: 'Kotlin',
-    langs: ['Kotlin'],
-    stars: 0,
-    updated: '2026-07-15',
-    url: 'https://github.com/worxbend/airgradient-android',
-    tagline: 'Android app for a local AirGradient sensor',
-    desc: 'A native Android application written in Kotlin with Jetpack Compose (Google’s current toolkit for building Android screens) that reads measurements straight from an AirGradient air-quality device on the same network, with no cloud service in between. It shows a dashboard, remembers settings on the phone, and can raise notifications when readings pass a chosen severity.',
-    topics: ['airgradient', 'air-quality', 'air-quality-sensor', 'air-quality-monitor', 'kotlin-android', 'jetpack-compose'],
-    featured: true,
-  },
-  {
-    id: 'airgradient-desktop',
-    name: 'airgradient-desktop',
-    owner: 'worxbend',
-    cluster: 'air',
-    lang: 'Rust',
-    langs: ['Rust'],
-    stars: 0,
-    updated: '2026-07-15',
-    url: 'https://github.com/worxbend/airgradient-desktop',
-    tagline: 'GTK4 desktop dashboard for AirGradient readings',
-    desc: 'A Linux desktop window that shows live readings from an AirGradient indoor air-quality monitor found on the local network. It is written in Rust using GTK4 and libadwaita, the user-interface toolkit behind modern GNOME applications.',
-    topics: ['air-gradient', 'air-quality', 'air-quality-monitor', 'airgradient', 'dashboard', 'gtk4', 'libadwaita', 'rust'],
-    featured: false,
-  },
-  {
-    id: 'airgradient-gnome-extension',
-    name: 'airgradient-gnome-extension',
-    owner: 'worxbend',
-    cluster: 'air',
-    lang: 'JavaScript',
-    langs: ['JavaScript'],
-    stars: 0,
-    updated: '2026-07-15',
-    url: 'https://github.com/worxbend/airgradient-gnome-extension',
-    tagline: 'GNOME panel indicator for AirGradient readings',
-    desc: 'An extension for GNOME Shell (the desktop environment shipped by Fedora and Ubuntu) that places a single icon in the top bar, coloured by the current air quality. Clicking it opens a compact popup with gauges for carbon dioxide, particles and the other AirGradient readings, using the same configuration file as airgradient-desktop.',
-    topics: ['gnome-extensions', 'airgradient', 'air-quality-monitor', 'air-gradient'],
-    featured: false,
-  },
-  {
-    id: 'neoncore',
-    name: 'neoncore',
-    owner: 'w0rxbend',
-    cluster: 'air',
-    lang: 'C++',
-    langs: ['C++', 'Python'],
-    stars: 0,
-    updated: '2026-06-27',
-    url: 'https://github.com/w0rxbend/neoncore',
-    tagline: 'ESP32 LED indicator for AirGradient air quality',
-    desc: 'Firmware for an ESP32 microcontroller driving a 4x4 panel of WS2812B addressable LEDs, used as a remote display for an AirGradient ONE air-quality monitor. A scraper reads the monitor’s local network interface and pushes a status over Wi-Fi TCP, and the panel shows one of thirteen colour-and-animation states so the reading can be read across the room without a legend.',
-    topics: ['esp32', 'airgradient', 'air-quality', 'ws2812b'],
-    featured: false,
-  },
-  {
-    id: 'airgradient-observability',
-    name: 'airgradient-observability',
-    owner: 'worxbend',
-    cluster: 'air',
-    lang: 'TypeScript',
-    langs: ['TypeScript', 'CSS', 'Go'],
-    stars: 0,
-    updated: '2026-06-21',
-    url: 'https://github.com/worxbend/airgradient-observability',
-    tagline: 'Self-hosted metrics stack for an AirGradient ONE',
-    desc: 'A self-hosted monitoring setup for an AirGradient ONE air-quality sensor. A collector on the home network reads the sensor’s Prometheus metrics endpoint, forwards the samples to VictoriaMetrics (a database for time-stamped measurements) on a cloud virtual machine, and serves them through Grafana dashboards and a small Go web interface.',
-    topics: ['airgradient', 'prometheus', 'grafana', 'victoriametrics'],
-    featured: false,
-  },
+/** The colour for a language dot, always returning something paintable. */
+export function langColor(name) {
+  return (name && LANGS[name]) || LANG_FALLBACK;
+}
 
-  // --- IoT & Edge --------------------------------------------------------------------------
-  {
-    id: 'spycam',
-    name: 'spycam',
-    owner: 'w0rxbend',
-    cluster: 'iot',
-    lang: 'C++',
-    langs: ['C++', 'Just'],
-    stars: 0,
-    updated: '2026-08-09',
-    url: 'https://github.com/w0rxbend/spycam',
-    tagline: 'ESP32-CAM firmware feeding the instachron server',
-    desc: 'Firmware for the ESP32-CAM, a small Wi-Fi microcontroller board with a camera attached, that captures JPEG images and pushes the newest one over a long-lived raw TCP connection (a plain network socket with no HTTP or text framing). It is the client half of a camera link whose server is instachron, and it drops stale frames and reconnects with backoff whenever the network or the server goes away.',
-    topics: ['esp32-cam', 'firmware', 'tcp-client', 'platformio'],
-    featured: true,
-  },
-  {
-    id: 'echo',
-    name: 'echo',
-    owner: 'w0rxbend',
-    cluster: 'iot',
-    lang: 'Go',
-    langs: ['Go'],
-    stars: 0,
-    updated: '2026-07-08',
-    url: 'https://github.com/w0rxbend/echo',
-    tagline: 'HTTP proxy turning webhook events into LED art',
-    desc: 'A Go service that sits between webhook sources — home automation, monitoring stacks, automation tools — and an ESP8266-driven 8x8 LED matrix. You post a JSON event, configured rules decide which animation plays, and echo pushes it to one or more panels over TCP with automatic reconnection, while exposing Prometheus metrics and an interactive Swagger API page.',
-    topics: ['go', 'led-matrix', 'esp8266', 'webhook'],
-    featured: false,
-  },
-  {
-    id: 'echoctl',
-    name: 'echoctl',
-    owner: 'w0rxbend',
-    cluster: 'iot',
-    lang: 'Scala',
-    langs: ['Scala'],
-    stars: 0,
-    updated: '2026-07-05',
-    url: 'https://github.com/w0rxbend/echoctl',
-    tagline: 'Command-line client for the echo LED proxy',
-    desc: 'A command-line tool written in Scala 3 for driving echo, the LED matrix proxy. It deliberately talks only to echo’s HTTP API — health checks, device lists, animations, firmware presets, brightness and colour, the idle background and the playback queue — and never to the panel’s raw firmware protocol.',
-    topics: ['scala', 'cli', 'led-matrix', 'echo'],
-    featured: false,
-  },
-  {
-    id: 'led-matrix-controller',
-    name: 'led-matrix-controller',
-    owner: 'w0rxbend',
-    cluster: 'iot',
-    lang: 'C++',
-    langs: ['C++', 'Python'],
-    stars: 0,
-    updated: '2026-06-23',
-    url: 'https://github.com/w0rxbend/led-matrix-controller',
-    tagline: 'ESP8266 firmware for a WS2812B 8x8 LED matrix',
-    desc: 'Firmware for an ESP8266 NodeMCU, a small Wi-Fi microcontroller board, that drives an 8x8 panel of WS2812B addressable LEDs. It runs a TCP server (a plain network socket, port 7777) accepting compact binary commands to set single pixels, fill the panel, change brightness or push a whole frame, and it falls back to its own Wi-Fi access point when no credentials are configured.',
-    topics: ['esp8266', 'esp8266-arduino', 'esp8266-projects', 'led', 'tcp-server', 'ws2812b-led', 'ws2812b-8x8'],
-    featured: false,
-  },
-  {
-    id: 'frostfire',
-    name: 'frostfire',
-    owner: 'worxbend',
-    cluster: 'iot',
-    lang: 'C++',
-    langs: ['C++'],
-    stars: 0,
-    updated: '2026-06-15',
-    url: 'https://github.com/worxbend/frostfire',
-    tagline: 'ESP32 firmware for pressing a PC power button',
-    desc: 'Firmware for an ESP32 microcontroller board that briefly closes a relay wired across a computer’s power-button header, so the machine can be switched on or off remotely. Every command is a fixed-length pulse, the relay returns to off after each pulse and at boot, and any state-changing request needs a token — it is written for a trusted home network only.',
-    topics: ['esp32', 'firmware', 'relay', 'platformio'],
-    featured: false,
-  },
-  {
-    id: 'frostfire-backend',
-    name: 'frostfire-backend',
-    owner: 'worxbend',
-    cluster: 'iot',
-    lang: 'Python',
-    langs: ['Python'],
-    stars: 0,
-    updated: '2026-06-15',
-    url: 'https://github.com/worxbend/frostfire-backend',
-    tagline: 'HTTP service for the Frostfire relay board',
-    desc: 'An asynchronous Python service built with FastAPI that puts a guarded web interface in front of the Frostfire ESP32 relay, which presses a computer’s power button. The code is split into API, application, domain and infrastructure layers, and a safety policy checks every request before it reaches the hardware.',
-    topics: ['fastapi', 'esp32', 'python', 'home-automation'],
-    featured: false,
-  },
-  {
-    id: 'instachron',
-    name: 'instachron',
-    owner: 'w0rxbend',
-    cluster: 'iot',
-    lang: 'Go',
-    langs: ['Go', 'Vue', 'HTML'],
-    stars: 0,
-    updated: '2026-05-29',
-    url: 'https://github.com/w0rxbend/instachron',
-    tagline: 'TCP frame server for the spycam ESP32 cameras',
-    desc: 'A Go service that listens on a raw TCP socket (a plain network connection with no HTTP, JSON or text framing on top) and receives JPEG camera frames pushed by the spycam and spycam-s3 firmware. It is the server half of that camera link: once frames arrive it republishes them through an HTTP interface, restreaming proxies, optional detection and upscaling, and a timelapse recorder.',
-    topics: ['go', 'esp32-cam', 'tcp-server', 'jpeg-streaming'],
-    featured: false,
-  },
-  {
-    id: 'spycam-s3',
-    name: 'spycam-s3',
-    owner: 'w0rxbend',
-    cluster: 'iot',
-    lang: 'C++',
-    langs: ['C++', 'Just'],
-    stars: 0,
-    updated: '2026-05-26',
-    url: 'https://github.com/w0rxbend/spycam-s3',
-    tagline: 'ESP32-S3-CAM firmware feeding instachron',
-    desc: 'The same camera client as spycam rebuilt for ESP32-S3 camera boards, a newer generation of the Wi-Fi microcontroller, with a pin map for the GOOUUU OV2640 layout. It adds a camera identifier to every frame header so several boards can feed the instachron TCP frame server at once, which is the receiving half of the camera link.',
-    topics: ['esp32-s3', 'esp32-cam', 'firmware', 'tcp-client'],
-    featured: false,
-  },
-
-  // --- Linux & Provisioning ----------------------------------------------------------------
-  {
-    id: 'system-bootstrap',
-    name: 'system-bootstrap',
-    owner: 'w0rxbend',
-    cluster: 'linux',
-    lang: 'Shell',
-    langs: ['Shell', 'Lua', 'CSS'],
-    stars: 4,
-    updated: '2026-08-09',
-    url: 'https://github.com/w0rxbend/system-bootstrap',
-    tagline: 'Dotfiles and workstation bootstrap for Linux',
-    desc: 'A multi-distribution bootstrap for a Linux development machine, covering Fedora, Arch Linux and openSUSE. Shell scripts install packages and standalone binaries, link configuration files with Dotbot, add Nerd Fonts, and set up terminals, Neovim and desktop environments such as GNOME, COSMIC and Sway.',
-    topics: ['dotfiles', 'linux', 'fedora', 'arch-linux'],
-    featured: true,
-  },
-  {
-    id: 'fluxion',
-    name: 'fluxion',
-    owner: 'worxbend',
-    cluster: 'linux',
-    lang: 'Java',
-    langs: ['Java'],
-    stars: 2,
-    updated: '2026-07-31',
-    url: 'https://github.com/worxbend/fluxion',
-    home: 'https://worxbend.github.io/fluxion/',
-    tagline: 'YAML-driven workstation bootstrapper in Java',
-    desc: 'A Java tool that sets up a Linux workstation from one declarative YAML file: system packages, Flatpak applications and the remotes they come from, scripts, dotfiles, shell tooling, Nerd Fonts and prebuilt binaries. It records what it has already installed, so running it again skips finished work instead of redoing it.',
-    topics: ['linux', 'provisioning', 'dotfiles', 'yaml'],
-    featured: false,
-  },
-  {
-    id: 'zephyr',
-    name: 'Zephyr',
-    owner: 'w0rxbend',
-    cluster: 'linux',
-    lang: 'Kotlin',
-    langs: ['Kotlin'],
-    stars: 1,
-    updated: '2026-07-30',
-    url: 'https://github.com/w0rxbend/Zephyr',
-    tagline: 'Desktop manager for the SDKMAN toolchain installer',
-    desc: 'A desktop application built with Kotlin Multiplatform and Compose Desktop that wraps SDKMAN, the command-line tool for installing and switching between Java Development Kits and other software development kits. Its main purpose is to gather local-only versions — builds still on disk but no longer listed upstream — from every candidate into one screen so they can be cleaned up safely; Linux releases are published as AppImage, Snap and Flatpak.',
-    topics: ['sdkman', 'kotlin', 'compose-desktop', 'jdk'],
-    featured: false,
-  },
-  {
-    id: 'infrastruct',
-    name: 'infrastruct',
-    owner: 'w0rxbend',
-    cluster: 'linux',
-    lang: 'Python',
-    langs: ['Python', 'Shell'],
-    stars: 1,
-    updated: '2026-07-02',
-    url: 'https://github.com/w0rxbend/infrastruct',
-    tagline: 'Infrastructure-as-code for an ARM homelab',
-    desc: 'The single source of truth for a self-hosted homelab of Raspberry Pi, Rock64 and similar ARM machines, where the whole setup is described in files kept in Git rather than configured by hand. It covers host inventory, Ansible automation for users, SSH, packages and firewall, K3s (a lightweight Kubernetes distribution) managed with Flux CD, Docker Compose and Docker Swarm stacks, and a policy for encrypted secrets.',
-    topics: ['ansible', 'k3s', 'homelab', 'infrastructure-as-code'],
-    featured: false,
-  },
-  {
-    id: 'ops-dashboard',
-    name: 'ops-dashboard',
-    owner: 'w0rxbend',
-    cluster: 'linux',
-    lang: 'TypeScript',
-    langs: ['TypeScript', 'CSS'],
-    stars: 1,
-    updated: '2026-05-28',
-    url: 'https://github.com/w0rxbend/ops-dashboard',
-    tagline: 'Monitoring dashboard and metrics stack for a homelab',
-    desc: 'A workspace for keeping an eye on a self-hosted homelab, with a browser dashboard built in SolidJS, a small TypeScript backend, and a Docker Compose stack of monitoring services. The stack runs exporters that publish host and container metrics, VictoriaMetrics for storing them, Grafana for charts, and the Gatus uptime checker.',
-    topics: ['homelab', 'monitoring', 'dashboard', 'solidjs'],
-    featured: false,
-  },
-  {
-    id: 'fluxion-cr',
-    name: 'fluxion.cr',
-    owner: 'worxbend',
-    cluster: 'linux',
-    lang: 'Crystal',
-    langs: ['Crystal'],
-    stars: 0,
-    updated: '2026-08-08',
-    url: 'https://github.com/worxbend/fluxion.cr',
-    home: 'https://worxbend.github.io/fluxion.cr/',
-    tagline: 'YAML-driven workstation bootstrapper in Crystal',
-    desc: 'A tool written in the Crystal language that turns a fresh Linux machine into a configured one from a single YAML file, with a preview of the planned changes before anything is applied. It can be driven either as a plain command or through a full-screen terminal interface.',
-    topics: ['bootstrap', 'cli', 'crystal', 'dotfiles', 'linux', 'provisioning', 'tui', 'workstation'],
-    featured: false,
-  },
-  {
-    id: 'nerd-fonts-installer',
-    name: 'nerd-fonts-installer',
-    owner: 'worxbend',
-    cluster: 'linux',
-    lang: 'Go',
-    langs: ['Go', 'Python'],
-    stars: 0,
-    updated: '2026-08-01',
-    url: 'https://github.com/worxbend/nerd-fonts-installer',
-    home: 'https://worxbend.github.io/nerd-fonts-installer/',
-    tagline: 'Config-driven installer for Nerd Fonts',
-    desc: 'A Go command-line tool that installs Nerd Fonts — programming typefaces patched to include extra icon symbols — on Linux and macOS from a single configuration file, so every machine ends up with the same set. Downloads are verified against published checksums, and an interactive terminal picker helps choose families.',
-    topics: ['fonts-management', 'nerd-fonts', 'bubbletea', 'charmbracelet', 'cli', 'command-line-tool', 'developer-tools', 'dotfiles', 'font-installer', 'fontconfig', 'fonts', 'go', 'golang', 'linux', 'macos', 'ricing', 'terminal', 'tui', 'yaml-configuration'],
-    featured: false,
-  },
-  {
-    id: 'binstaller',
-    name: 'binstaller',
-    owner: 'worxbend',
-    cluster: 'linux',
-    lang: 'Scala',
-    langs: ['Scala', 'HTML'],
-    stars: 0,
-    updated: '2026-08-01',
-    url: 'https://github.com/worxbend/binstaller',
-    home: 'https://worxbend.github.io/binstaller/',
-    tagline: 'Reproducible installer for prebuilt binaries',
-    desc: 'A command-line tool that puts the same set of prebuilt program binaries on every machine from one YAML profile, checking each download against its SHA-256 fingerprint and writing a lock file so later runs install the same versions. It is written in Scala 3 and compiled ahead of time into a native executable with GraalVM, and it can print a dry-run plan before changing anything.',
-    topics: ['binary-installer', 'cli', 'command-line-tool', 'developer-tools', 'devtools', 'dotfiles', 'graalvm', 'installer', 'mill', 'native-image', 'reproducible-builds', 'scala', 'scala3', 'supply-chain-security', 'yaml'],
-    featured: false,
-  },
-  {
-    id: 'dotbot-go',
-    name: 'dotbot-go',
-    owner: 'worxbend',
-    cluster: 'linux',
-    lang: 'Go',
-    langs: ['Go'],
-    stars: 0,
-    updated: '2026-07-15',
-    url: 'https://github.com/worxbend/dotbot-go',
-    tagline: 'Go port of the Dotbot dotfile manager',
-    desc: 'A rewrite in Go of Dotbot, a tool that installs personal configuration files — dotfiles — from a declarative configuration. It creates and cleans up symbolic links, makes the directories they need and runs the shell commands listed in the config.',
-    topics: ['dotfiles', 'dotfiles-manager', 'dotfiles-installer', 'dotfiles-automation'],
-    featured: false,
-  },
-  {
-    id: 'dotbot-scala',
-    name: 'dotbot-scala',
-    owner: 'worxbend',
-    cluster: 'linux',
-    lang: 'Scala',
-    langs: ['Scala'],
-    stars: 0,
-    updated: '2026-07-15',
-    url: 'https://github.com/worxbend/dotbot-scala',
-    tagline: 'Scala 3 port of the Dotbot dotfile manager',
-    desc: 'A rewrite in Scala 3 of Dotbot, a tool that installs personal configuration files — dotfiles — from a declarative configuration. It is compiled with GraalVM into a standalone native program, so running it does not require a Java installation on the target machine.',
-    topics: ['dotfiles', 'dotfiles-linux', 'dotfiles-manager', 'dotfiles-automation', 'dotfiles-installer'],
-    featured: false,
-  },
-
-  // --- Scala & JVM -------------------------------------------------------------------------
-  {
-    id: 'worxbend',
-    name: 'worxbend',
-    owner: 'worxbend',
-    cluster: 'scala',
-    lang: 'Scala',
-    langs: ['Scala'],
-    stars: 2,
-    updated: '2026-08-08',
-    url: 'https://github.com/worxbend/worxbend',
-    tagline: 'Monorepo of Scala tools, libraries and notes',
-    desc: 'One repository holding many small Scala and JVM projects: personal command-line tools, reusable libraries, Docker Compose recipes for self-hosted services and technical notes, all built with the Mill build tool. It is a learning workspace rather than a finished product.',
-    topics: ['scala'],
-    featured: false,
-  },
-  {
-    id: 'data-engineering',
-    name: 'data-engineering',
-    owner: 'w0rxbend',
-    cluster: 'scala',
-    lang: 'Scala',
-    langs: ['Scala', 'Java', 'Python'],
-    stars: 2,
-    updated: '2025-09-27',
-    url: 'https://github.com/w0rxbend/data-engineering',
-    tagline: 'Kafka, Kafka Connect and Flink experiments',
-    desc: 'A sandbox of small data-engineering projects built around Apache Kafka (a distributed log of events), Kafka Connect and Apache Flink (a stream-processing engine), including a custom partitioner for the Kafka Connect S3 sink. A Docker Compose environment brings up Kafka, a schema registry, MinIO object storage and related tooling so the pieces can be tried locally.',
-    topics: ['kafka', 'kafka-connect', 'flink', 'scala'],
-    featured: false,
-  },
-  {
-    id: 'scalacv',
-    name: 'scalacv',
-    owner: 'w0rxbend',
-    cluster: 'scala',
-    lang: 'Scala',
-    langs: ['Scala', 'TypeScript', 'Shell'],
-    stars: 1,
-    updated: '2026-08-09',
-    url: 'https://github.com/w0rxbend/scalacv',
-    home: 'https://w0rxbend.github.io/scalacv',
-    tagline: 'Scala 3 binding for the OpenCV vision library',
-    desc: 'A Scala 3 binding for OpenCV 4.13, the open-source computer-vision library for working with images and video. It gives you a typed, resource-safe image pipeline on top of the complete Java bindings, so native memory is released exactly once, and it adds layers for detection, pose estimation, camera calibration and 2D drawing.',
-    topics: ['scala', 'scala3', 'opencv', 'computer-vision'],
-    featured: true,
-  },
-  {
-    id: 'compression-flix',
-    name: 'compression-flix',
-    owner: 'w0rxbend',
-    cluster: 'scala',
-    lang: 'Flix',
-    langs: ['Flix', 'Scala'],
-    stars: 1,
-    updated: '2026-08-09',
-    url: 'https://github.com/w0rxbend/compression-flix',
-    tagline: 'Flix port of the Lichess compression library',
-    desc: 'A port of lichess.org’s compression library — the code that packs chess clock times and moves into a compact storage format — from Scala to Flix, a functional programming language that runs on the Java Virtual Machine. The port produces byte-for-byte identical output to the original, because a single differing bit would invalidate every game already stored on disk, and it ships Scala facades so existing callers can use it.',
-    topics: ['flix', 'scala', 'chess', 'lichess'],
-    featured: false,
-  },
-  {
-    id: 'gitea-scala-client',
-    name: 'gitea-scala-client',
-    owner: 'worxbend',
-    cluster: 'scala',
-    lang: 'Scala',
-    langs: ['Scala'],
-    stars: 0,
-    updated: '2026-08-09',
-    url: 'https://github.com/worxbend/gitea-scala-client',
-    home: 'https://worxbend.github.io/gitea-scala-client/',
-    tagline: 'Scala 3 client for the Gitea hosting API',
-    desc: 'A Scala 3 library for talking to Gitea, a lightweight Git hosting service people run on their own servers, through its web API. It is built on ZIO 2 (a toolkit for asynchronous Scala programs), the sttp HTTP client and zio-json, and its typed endpoints were checked against Gitea’s 1.26.2 OpenAPI contract.',
-    topics: ['api-client', 'functional-programming', 'gitea', 'gitea-api', 'http-client', 'json', 'mill', 'rest-client', 'scala', 'scala3', 'sttp', 'zio'],
-    featured: false,
-  },
-  {
-    id: 'codeberg4s',
-    name: 'codeberg4s',
-    owner: 'worxbend',
-    cluster: 'scala',
-    lang: 'Scala',
-    langs: ['Scala'],
-    stars: 0,
-    updated: '2026-08-09',
-    url: 'https://github.com/worxbend/codeberg4s',
-    tagline: 'Scala 3 client for the Codeberg and Forgejo API',
-    desc: 'A Scala 3 library for calling version 1 of the REST API — the web interface other programs talk to over HTTP — of Codeberg and any Forgejo or Gitea-compatible Git host. It hands back plain Scala Future values rather than pulling an effect system into your project, offers both exception-based and Either-based error handling, and returns paged results that cannot silently truncate. It is pre-release and not yet published to Maven Central.',
-    topics: ['scala', 'scala3', 'codeberg', 'forgejo', 'api-client'],
-    featured: false,
-  },
-  {
-    id: 'scalachess-flix',
-    name: 'scalachess-flix',
-    owner: 'w0rxbend',
-    cluster: 'scala',
-    lang: 'Flix',
-    langs: ['Flix'],
-    stars: 0,
-    updated: '2026-08-09',
-    url: 'https://github.com/w0rxbend/scalachess-flix',
-    tagline: 'Flix port of the scalachess rules library',
-    desc: 'An experimental rewrite of lichess.org’s scalachess chess-rules library in Flix, a functional programming language on the Java Virtual Machine. It covers 96 percent of the original hand-written core — move generation, FEN and PGN notation, clocks, ratings, opening data and ten chess variants — checked against the same published move-count fixtures the Scala test-kit uses, but the README is explicit that it is not a drop-in replacement.',
-    topics: ['flix', 'chess', 'scalachess', 'lichess'],
-    featured: false,
-  },
-  {
-    id: 'playground',
-    name: 'playground',
-    owner: 'worxbend',
-    cluster: 'scala',
-    lang: 'Scala',
-    langs: ['Scala'],
-    stars: 0,
-    updated: '2026-08-07',
-    url: 'https://github.com/worxbend/playground',
-    tagline: 'Scala 3 event pipeline for smart-home telemetry',
-    desc: 'Three Scala 3 services that accept CloudEvents (a standard envelope format for describing events) over HTTP, stream them through Apache Kafka, store them unchanged in PostgreSQL and serve a server-rendered page for searching and watching the event log. Each service deliberately uses a different web framework, so the repository doubles as a side-by-side comparison.',
-    topics: ['scala', 'playframework', 'nodejs', 'micronautfw', 'spring', 'vertx'],
-    featured: false,
-  },
-  {
-    id: 'shield',
-    name: 'shield',
-    owner: 'w0rxbend',
-    cluster: 'scala',
-    lang: 'Scala',
-    langs: ['Scala', 'Shell'],
-    stars: 0,
-    updated: '2026-07-24',
-    url: 'https://github.com/w0rxbend/shield',
-    tagline: 'Self-hosted authentication server in Scala 3',
-    desc: 'An independent, self-hostable authentication server written in Scala 3 on the ZIO effect library, with an HTTP interface deliberately compatible with SuperTokens’ Core-Driver Interface so existing SuperTokens client libraries can talk to it. Its own README calls it an early foundation: email-and-password sign-up and sign-in, email verification, third-party sign-in and sessions with signed access tokens work end to end over in-memory or SQLite storage.',
-    topics: ['scala', 'zio', 'authentication', 'oauth'],
-    featured: false,
-  },
-
-  // --- Labs -------------------------------------------------------------------------------
-  {
-    id: 'halcyon',
-    name: 'halcyon',
-    owner: 'w0rxbend',
-    cluster: 'labs',
-    lang: 'Java',
-    langs: ['Java'],
-    stars: 0,
-    updated: '2026-08-09',
-    url: 'https://github.com/w0rxbend/halcyon',
-    tagline: 'Java daemon that commits synthetic activity',
-    desc: 'A Java background service, called ghpulse in its own README, that periodically generates content and pushes commits into a private GitHub repository to simulate steady contribution activity. Everything is configured through environment variables, it ships with a Docker setup, and it is a port of an earlier TypeScript implementation.',
-    topics: ['java', 'github', 'automation', 'daemon'],
-    featured: false,
-  },
-  {
-    id: 'saltmere',
-    name: 'saltmere',
-    owner: 'w0rxbend',
-    cluster: 'labs',
-    lang: 'CSS',
-    langs: ['CSS', 'HTML'],
-    stars: 0,
-    updated: '2026-08-07',
-    url: 'https://github.com/w0rxbend/saltmere',
-    tagline: 'Automated daily learning journal built with Jekyll',
-    desc: 'A personal learning journal published twice a day by a scheduled automated task that researches a topic and writes one to three short, practical articles. The site is a static build made with Jekyll and served by GitHub Pages, with rotating tracks for distributed systems, Linux tooling, Scala and the Java Virtual Machine, embedded devices, monitoring, and computer-aided design.',
-    topics: ['jekyll', 'github-pages', 'learning-journal', 'static-site'],
-    featured: false,
-  },
-  {
-    id: 'codefolio',
-    name: 'codefolio',
-    owner: 'w0rxbend',
-    cluster: 'labs',
-    lang: 'Rust',
-    langs: ['Rust'],
-    stars: 0,
-    updated: '2026-07-24',
-    url: 'https://github.com/w0rxbend/codefolio',
-    tagline: 'GTK4 desktop viewer for a GitHub profile',
-    desc: 'A native Linux desktop application, named Codeflio in its README, written in Rust with GTK4 and Relm4 (a toolkit and framework for building desktop windows). It shows your GitHub profile, contribution activity, repositories, organisations and aggregate development statistics, signs in through GitHub device authorization, and caches data locally so views open without waiting on the network.',
-    topics: ['rust', 'gtk4', 'github', 'linux-desktop'],
-    featured: false,
-  },
-  {
-    id: 'bounce-io',
-    name: 'bounce-io',
-    owner: 'w0rxbend',
-    cluster: 'labs',
-    lang: 'TypeScript',
-    langs: ['TypeScript', 'Go', 'Python'],
-    stars: 0,
-    updated: '2026-07-17',
-    url: 'https://github.com/w0rxbend/bounce-io',
-    tagline: 'Multiplayer browser platformer on floating ruins',
-    desc: 'A multiplayer browser game where up to eight pixel-art racers climb procedurally generated floating islands and the first to the top wins. The server runs the authoritative simulation while each browser predicts movement locally, and levels are built from seeded chunks so every player climbs the same route with the same choice of safe, fast or relic-carrying lanes.',
-    topics: ['game', 'multiplayer', 'platformer', 'typescript'],
-    featured: false,
-  },
-  {
-    id: 'anime-cam',
-    name: 'anime-cam',
-    owner: 'w0rxbend',
-    cluster: 'labs',
-    lang: 'Python',
-    langs: ['Python'],
-    stars: 0,
-    updated: '2026-06-04',
-    url: 'https://github.com/w0rxbend/anime-cam',
-    tagline: 'Webcam filter that repaints you in anime style',
-    desc: 'A small Python program that reads your webcam and repaints every frame in the style of the AnimeGANv3 Shinkai model, running it with ONNX Runtime and OpenVINO (toolkits for executing trained neural networks efficiently on ordinary processors). Display and model inference run on separate threads, so the window stays smooth even while the model is still working on a frame.',
-    topics: ['python', 'webcam', 'onnx', 'style-transfer'],
-    featured: false,
-  },
-];
-
-/**
- * Every project in one cluster, strongest first.
- *
- * "Strongest" is stars descending, and where two projects have the same number of stars the more
- * recently updated one wins — most of the catalogue sits at zero stars, so recency is what
- * actually orders the grid. ISO dates ("2026-08-09") sort correctly as plain strings, which is
- * why `updated` is stored in that format and no Date object is created here.
- *
- * @param {string} id - a cluster id, e.g. 'iot'
- * @returns {Array<object>} a new array; the module's own PROJECTS order is never mutated
- */
-export function byCluster(id) {
-  return PROJECTS
-    .filter((p) => p.cluster === id)
-    .sort((a, b) => (b.stars - a.stars) || b.updated.localeCompare(a.updated));
+/** Lower-cased haystack used by the cluster rules, built once per repository. */
+function haystack(repo) {
+  return {
+    name: repo.name.toLowerCase(),
+    topics: repo.topics.map((t) => t.toLowerCase()),
+    lang: repo.lang || '',
+  };
 }
 
 /**
- * The headline figures for the hero counters, derived from PROJECTS so they can never drift out
- * of date the way hand-written numbers would.
+ * Decide which cluster a repository belongs to.
  *
- * @returns {{ repos:number, langs:number, clusters:number, stars:number, latestUpdate:string }}
- *   `langs` counts distinct *primary* languages — the `lang` field, one per project, not the
- *   wider `langs` stack — and `clusters` counts distinct cluster ids actually used by a project.
- *   `stars` is the sum of stargazers, and `latestUpdate` is the most recent ISO date in the
- *   catalogue.
+ * An explicit `cluster` in overrides.js always wins. Otherwise the rules are tried in order and
+ * the first match takes it; a repository matching nothing lands in `labs`, which is the honest
+ * answer for a sketch nobody has written about.
  */
+function clusterFor(repo, override) {
+  if (override?.cluster) return override.cluster;
+  const hay = haystack(repo);
+  for (const rule of CLUSTER_RULES) {
+    if (rule.topics?.some((t) => hay.topics.includes(t))) return rule.cluster;
+    if (rule.names?.some((n) => hay.name.includes(n))) return rule.cluster;
+    if (rule.langs?.includes(hay.lang)) return rule.cluster;
+  }
+  return 'labs';
+}
+
+/**
+ * A URL-safe id for the location hash and the card's DOM id.
+ *
+ * Built from the name alone where that is unique, because `#/p/scenedeck` reads better than
+ * `#/p/worxbend-scenedeck`. Collisions are resolved by the caller, which knows about all of them.
+ */
+function slug(text) {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+/** First sentence of a GitHub description, trimmed to something that fits a card's subtitle. */
+function taglineFromDescription(description) {
+  if (!description) return '';
+  const firstSentence = description.split(/(?<=[.!?])\s/)[0].trim().replace(/\.$/, '');
+  return firstSentence.length <= 60 ? firstSentence : `${firstSentence.slice(0, 57).trimEnd()}…`;
+}
+
+/**
+ * Turn one fetched repository into a catalogue entry, layering any hand-written copy on top.
+ *
+ * The fallbacks matter as much as the overrides: a repository with no description at all still
+ * has to produce a readable card rather than an empty one, and saying so plainly is better than
+ * inventing a summary.
+ */
+function toProject(repo, id) {
+  const key = `${repo.owner}/${repo.name}`;
+  const override = COPY[key];
+  const described = Boolean(override?.desc || repo.description);
+  return {
+    id,
+    name: repo.name,
+    owner: repo.owner,
+    cluster: clusterFor(repo, override),
+    lang: repo.lang || 'Other',
+    langs: repo.lang ? [repo.lang] : [],
+    stars: repo.stars,
+    updated: repo.updated,
+    url: repo.url,
+    home: repo.home || undefined,
+    tagline: override?.tagline || taglineFromDescription(repo.description) || 'No description yet',
+    desc: override?.desc || repo.description ||
+      'This repository has no description on GitHub yet. Open it to see what is inside.',
+    topics: repo.topics,
+    featured: override?.featured === true,
+    /** True when a person wrote this entry, so the UI can tell a summary from a placeholder. */
+    curated: Boolean(override?.desc),
+    described,
+  };
+}
+
+/**
+ * Drop the copies left behind when a project moved between accounts.
+ *
+ * The same repository name on two accounts is almost always one project and one leftover, and
+ * showing both makes the catalogue look padded. The winner is decided by PREFER_OWNER, and a name
+ * listed in KEEP_BOTH opts out of the whole thing.
+ */
+function dedupe(repos) {
+  const byName = new Map();
+  for (const repo of repos) {
+    const key = repo.name.toLowerCase();
+    if (KEEP_BOTH.has(repo.name) || KEEP_BOTH.has(key)) {
+      byName.set(`${repo.owner}/${key}`, repo);
+      continue;
+    }
+    const held = byName.get(key);
+    if (!held) {
+      byName.set(key, repo);
+      continue;
+    }
+    const rank = (r) => {
+      const index = PREFER_OWNER.indexOf(r.owner);
+      return index === -1 ? PREFER_OWNER.length : index;
+    };
+    if (rank(repo) < rank(held)) byName.set(key, repo);
+  }
+  return [...byName.values()];
+}
+
+/** Sort: stars first, then most recently pushed, then alphabetically. Stable and predictable. */
+function order(a, b) {
+  return b.stars - a.stars || b.updated.localeCompare(a.updated) || a.name.localeCompare(b.name);
+}
+
+/**
+ * The whole pipeline: filter, de-duplicate, assign ids, layer the copy on, sort.
+ *
+ * Exported so it can be exercised directly without a network call — hand it a seed-shaped array
+ * and it returns exactly what the page would render.
+ */
+export function buildProjects(repos, now = Date.now()) {
+  const eligible = dedupe(
+    repos.filter(
+      (repo) =>
+        !repo.isFork &&
+        !repo.isArchived &&
+        isActive(repo, now) &&
+        !EXCLUDE.has(`${repo.owner}/${repo.name}`),
+    ),
+  );
+
+  // Assign ids only once the final set is known, so a name that is unique after de-duplication
+  // gets the short id and only genuine collisions carry an owner prefix.
+  const counts = new Map();
+  for (const repo of eligible) {
+    const key = slug(repo.name);
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+
+  return eligible
+    .map((repo) => {
+      const base = slug(repo.name);
+      const id = counts.get(base) > 1 ? `${slug(repo.owner)}-${base}` : base;
+      return toProject(repo, id);
+    })
+    .sort(order);
+}
+
+/**
+ * The live catalogue.
+ *
+ * A module-level array that is refilled in place rather than replaced, so every module that did
+ * `import { PROJECTS }` keeps seeing the current contents without re-importing anything.
+ */
+export const PROJECTS = buildProjects(SEED);
+
+/** Where the current contents came from, and when. The page shows this in the instrument panel. */
+export const catalogMeta = {
+  source: 'pending',
+  fetchedAt: null,
+  error: null,
+  accounts: [],
+  activeMonths: ACTIVE_MONTHS,
+};
+
+const listeners = new Set();
+
+/** Be told when the catalogue changes. Returns a function that stops the subscription. */
+export function onCatalogChange(fn) {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+
+function replace(projects) {
+  PROJECTS.length = 0;
+  PROJECTS.push(...projects);
+}
+
+/**
+ * Ask GitHub for the current list and fold it in.
+ *
+ * Safe to call more than once — a second call inside the cache window costs no network at all.
+ * It never throws: a failure leaves the seed-built catalogue in place and is reported through
+ * `catalogMeta.error` so the page can say what happened rather than looking broken.
+ */
+export async function loadCatalog({ force = false } = {}) {
+  const result = await fetchCatalog({ seed: SEED, force });
+  const next = buildProjects(result.repos);
+
+  catalogMeta.source = result.source;
+  catalogMeta.fetchedAt = result.fetchedAt;
+  catalogMeta.error = result.error || null;
+  catalogMeta.accounts = result.accounts || [];
+
+  // An empty answer is treated as a failure rather than as "there are no repositories", because
+  // wiping a full catalogue is far worse than showing a slightly old one.
+  if (next.length > 0) replace(next);
+
+  for (const fn of listeners) {
+    try {
+      fn(PROJECTS, catalogMeta);
+    } catch (error) {
+      console.error('[projects] a catalogue subscriber threw', error);
+    }
+  }
+  return { projects: PROJECTS, meta: catalogMeta };
+}
+
+/** Projects in one cluster, most starred first. */
+export function byCluster(id) {
+  return PROJECTS.filter((p) => p.cluster === id).sort(order);
+}
+
+/** Headline figures for the hero strip, computed from whatever the catalogue currently holds. */
 export function stats() {
   const langs = new Set();
   const clusters = new Set();
   let stars = 0;
   let latestUpdate = '';
-
   for (const p of PROJECTS) {
-    langs.add(p.lang);
+    if (p.lang && p.lang !== 'Other') langs.add(p.lang);
     clusters.add(p.cluster);
     stars += p.stars;
     if (p.updated > latestUpdate) latestUpdate = p.updated;
   }
-
-  return { repos: PROJECTS.length, langs: langs.size, clusters: clusters.size, stars, latestUpdate };
+  return {
+    repos: PROJECTS.length,
+    langs: langs.size,
+    clusters: clusters.size,
+    stars,
+    latestUpdate,
+  };
 }
