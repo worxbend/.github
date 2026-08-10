@@ -270,10 +270,14 @@ export async function fetchCatalog({ seed = [], force = false } = {}) {
     // Every account answered "not modified": the cached copy is still current, so re-stamp it
     // rather than treating it as expired and asking again on the next page view.
     if (reached.length === ACCOUNTS.length && unchangedAccounts === ACCOUNTS.length && cached) {
-      const entry = { ...cached, fetchedAt: now, etags };
+      // Every account answered, so whatever was incomplete about this cache no longer is. Spreading
+      // `cached` unchanged would carry a stale `partial: true` forward, and the shortened lifetime
+      // that flag buys would then make the page revalidate every five minutes for good — long
+      // after GitHub confirmed all three accounts were current.
+      const entry = { ...cached, fetchedAt: now, etags, accounts: reached, partial: false };
       writeCache(entry);
       return { repos: cached.repos, source: 'revalidated', fetchedAt: now, error: null,
-               accounts: cached.accounts || reached };
+               accounts: reached, partial: false };
     }
 
     // A partial answer is still better than none, but it must not overwrite a complete cache with
