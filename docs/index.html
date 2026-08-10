@@ -44,12 +44,16 @@
 <meta property="og:title" content="worxbend — the Foundation Observatory">
 <meta property="og:description" content="Every repository is a star. Size is stargazers and recency, hue is language, and the lines join repositories that share a subject.">
 <meta property="og:url" content="https://worxbend.github.io/.github/">
-<meta property="og:image" content="./assets/img/og.png">
+<!-- Absolute, not relative. Every other URL on this page is relative so the site works from
+     any path, but a social-preview crawler is not a browser resolving a document: Slack,
+     Discord, Twitter/X and LinkedIn read these tags out of the HTML and fetch what they find,
+     and a relative value gives them nothing to resolve against. -->
+<meta property="og:image" content="https://worxbend.github.io/.github/assets/img/og.png">
 <meta property="og:image:alt" content="A dark constellation map of the worxbend repositories.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="worxbend — the Foundation Observatory">
 <meta name="twitter:description" content="Every repository is a star. Size is stargazers and recency, hue is language, and the lines join repositories that share a subject.">
-<meta name="twitter:image" content="./assets/img/og.png">
+<meta name="twitter:image" content="https://worxbend.github.io/.github/assets/img/og.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
