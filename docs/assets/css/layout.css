@@ -168,6 +168,12 @@
   /* Hide the horizontal scrollbar on this strip only; the drag/swipe still
      works and the page-level scrollbar is untouched. */
   scrollbar-width: none;
+  /* With the scrollbar hidden, a link cut off by the right edge looks like a
+     link that has been clipped by a bug. Fading the last few percent of the
+     strip is the usual signal that there is more to scroll to, and it costs
+     nothing: a browser that does not understand `mask-image` simply draws the
+     strip as it did before. */
+  mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent 100%);
 }
 
 .rail-coords {
@@ -205,6 +211,9 @@
     flex: 0 1 auto;
     min-inline-size: 0;
     gap: 0.35rem;
+    /* The strip is vertical here, so there is nothing running off the right
+       edge to hint at — and leaving the fade on would dim the last link. */
+    mask-image: none;
     /* Vertical again: if the link list is longer than the viewport it scrolls
        down inside the strip instead of overflowing off the bottom. */
     overflow-x: hidden;
@@ -231,6 +240,18 @@
    -------------------------------------------------------------------------- */
 
 .wrap {
+  /* A column that spaces its own children. Everything on this page lives
+     inside a .wrap, and the reset at the top of base.css removes every default
+     margin, so without this a heading, the paragraph under it and the grid
+     under that would all sit flush against each other. Doing it with `gap`
+     rather than margins keeps the rule this file opens with — a component
+     never carries spacing baggage of its own — and means the space between two
+     regions is stated once, here, instead of once per component pair.
+     `gap` also ignores children the browser is not drawing, so a panel with
+     the `hidden` attribute leaves no empty band behind. */
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-stack);
   inline-size: 100%;
   max-inline-size: 1240px;
   /* Centring a fixed-width box is the one job margins keep, because there is
@@ -298,7 +319,31 @@
 }
 
 /* --------------------------------------------------------------------------
-   6. Grid utilities
+   6. Stack — a column with one gap between its children
+
+   `.wrap` already stacks whole regions apart. `.stack` is the same idea for a
+   group inside one: three lines that belong to each other and should read as
+   one block rather than as three separate things.
+
+       <div class="stack stack--tight">   kicker, heading, standfirst
+       <div class="stack stack--tight">   search field, filter chips, count
+
+   Without the modifier it uses the section rhythm, so a stack can also be used
+   to group things that need normal separation but sit inside another element.
+   -------------------------------------------------------------------------- */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap, var(--sp-stack));
+}
+
+.stack--tight {
+  --stack-gap: var(--sp-stack-tight);
+}
+
+/* --------------------------------------------------------------------------
+   7. Grid utilities
    -------------------------------------------------------------------------- */
 
 /*

@@ -173,6 +173,46 @@
   line-height: 1.5;
 }
 
+/* The hero copy of the readout, which is a different object from the rail's copy despite sharing
+   the class. In the rail it is a tall, narrow column in a 13.5rem strip, and stacking four
+   label/value pairs down it is the only thing that fits. Dropped into the hero it kept that shape
+   and became a large, mostly empty terminal window under the title — five short rows of text in a
+   box wide enough for sixty characters a row.
+
+   Here it is laid out as what it actually is: one instrument bar. The pairs run along it, the
+   prompt sits at the far end, and the whole thing is held to the same measure as the sentence
+   above so the hero reads as one column rather than as text with a panel bolted under it. */
+.readout--hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 1.1rem;
+  row-gap: 0.4rem;
+  max-inline-size: 42rem;
+  padding: 0.55rem 0.85rem;
+  font-size: var(--fs-2xs, 0.75rem);
+}
+
+/* In the rail a pair is pushed to opposite edges of the strip, which is what makes it readable as
+   a column of measurements. In a bar that would strand the label and the value at either end of
+   the row, so they sit together as one token instead. */
+.readout--hero .rail__value {
+  justify-content: flex-start;
+  gap: 0.4rem;
+}
+
+/* The label half of each pair, dimmed so the value it belongs to is what the eye lands on. */
+.readout--hero .rail__value > span:first-child {
+  color: var(--ink-3);
+}
+
+/* The command prompt is the one part that is not a measurement, so it goes to the far end of the
+   bar — and falls onto its own line, still at the end, once the bar has to wrap. */
+.readout--hero > .mono {
+  margin-inline-start: auto;
+  color: var(--accent);
+}
+
 .rail__value {
   display: flex;
   justify-content: space-between;
@@ -294,8 +334,12 @@
   color: var(--accent-ink);
 }
 
+/* The quiet button. It used to have no border at all, which in a row beside a filled button and an
+   outlined one made it read as a stray line of text rather than as the third thing you can click —
+   the same problem the Grid / Constellation pair had above the catalogue. It keeps the lighter
+   hairline and the transparent fill, so it is still visibly the least prominent of the three. */
 .btn--ghost {
-  border-color: transparent;
+  border-color: var(--line);
   background: transparent;
   color: var(--ink-2);
 }
@@ -524,6 +568,13 @@
   list-style: none;
 }
 
+/* The catalogue's filter row uses the same flexible wrap as a card's topic tags, but its children
+   are buttons with real padding and a hit area, so they need more air between them than the small
+   static tags do. */
+.chips--filter {
+  gap: 0.5rem;
+}
+
 /* The footer sits at the bottom of the card whatever the description length,
    so a grid of cards has its star counts on one visual line. */
 .card__foot {
@@ -579,15 +630,19 @@
 .cluster {
   display: grid;
   grid-template-columns: auto 1fr;
-  align-items: center;
+  /* Top-aligned, not centred. The glyph is a marker for the heading beside it, and centring it
+     against a two-line name plus a five-line blurb parked it halfway down the card with nothing
+     next to it — reading as a stray icon rather than as part of the title. */
+  align-items: start;
   column-gap: 0.85rem;
-  row-gap: 0.25rem;
-  padding-block-end: 0.75rem;
-  border-block-end: 1px solid var(--line);
+  row-gap: 0.4rem;
 }
 
 .cluster__glyph {
   grid-row: span 2;
+  /* The glyph box is shorter than the heading line it sits beside, so a nudge downwards puts its
+     centre on the middle of the first line of the name instead of on the line's cap height. */
+  margin-block-start: 0.1rem;
   display: grid;
   place-items: center;
   inline-size: 2.5rem;
@@ -640,6 +695,10 @@
   grid-template-rows: 1fr auto;
   gap: 0.25rem;
   justify-items: start;
+  /* A hairline over each figure turns five loose numbers into one instrument strip, and gives the
+     row a visible top edge to sit against instead of floating under the buttons above it. */
+  padding-block-start: 0.7rem;
+  border-block-start: 1px solid var(--line);
   /* A grid item defaults to `min-width: auto`, which means it refuses to become narrower than its
      longest unbreakable word. One stat holds a relative date, so its value can be "yesterday"
      rather than a short number, and that one word was widening the whole strip past the page. */
@@ -659,6 +718,15 @@
   /* The counters module rolls these numbers up from zero. Without tabular
      numerals the figure would visibly change width mid-count. */
   font-variant-numeric: tabular-nums;
+}
+
+/* One of the five figures is a phrase — "21 hours ago" — rather than a number. At the full display
+   size it wrapped onto two lines, which stretched the whole row's first track and left every other
+   figure floating a line and a half above its own label. Sizing the text one step down keeps it on
+   one line at every column width, so the row reads as five aligned pairs. */
+.stat__figure[data-stat="updated"] {
+  font-size: min(var(--fs-2xl, 1.75rem), 13cqi);
+  line-height: 1.15;
 }
 
 .stat__label {
@@ -723,6 +791,22 @@
   gap: 0.6rem;
   padding: 0.85rem 1rem;
   border-block-end: 1px solid var(--line);
+}
+
+/* The catalogue's copy of the search field, which sits on the page rather than inside the palette
+   dialog. A single hairline under a full-width row reads as a rule, not as something you can type
+   in, so on the page the field is drawn as a proper box: all four edges, the same panel surface
+   and corner radius as a card, and a width that keeps it from running the entire column. */
+.palette__field--inline {
+  max-inline-size: 46rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.palette__field--inline .palette__input {
+  font-size: var(--fs-md, 1rem);
 }
 
 /* Focus is shown on the field, not on the input inside it.
@@ -989,7 +1073,12 @@ mark {
   padding: 0.9rem 1rem;
   border: 1px solid var(--line-strong);
   border-radius: 12px;
-  background: var(--panel);
+  /* Opaque, unlike a card. `--panel` is deliberately translucent so the starfield shows faintly
+     through the catalogue, which works for a surface that scrolls with the page. This notice
+     floats over whatever happens to be underneath it, and at 72 percent opacity the paragraphs
+     behind it showed straight through its own text. Painting the panel tint over the theme's
+     ground keeps the colour and removes the transparency, with no second token to maintain. */
+  background: linear-gradient(var(--panel), var(--panel)) var(--ground);
   color: var(--ink-2);
   box-shadow: 0 12px 32px var(--glow);
 }
@@ -1061,6 +1150,14 @@ mark {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-inline-start: auto;
+}
+
+/* Inside a section heading the auto margin has to go. There it is a grid cell, not a flex item:
+   on a wide column the grid already puts it in its own right-hand track, and on a phone the head
+   collapses to one column, where an auto margin shoves the two view buttons against the right edge
+   while every other thing in the section starts at the left. */
+.section-head > .panel__actions {
+  margin-inline-start: 0;
 }
 
 /* The event list can be long; it scrolls inside the panel rather than growing
@@ -1147,6 +1244,11 @@ mark {
 .panel__legend {
   display: flex;
   justify-content: space-between;
+  /* base.css caps a paragraph at 65 characters, which is the right measure for body copy. This is
+     11px monospace instrument text, where 65 characters is a little over a third of the column, so
+     the catalogue's provenance line was breaking into three short ones under a full-width heading.
+     A wider ceiling still stops it from running the whole way across a 1240px column. */
+  max-inline-size: 100ch;
   color: var(--ink-3);
   font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
   font-size: var(--fs-3xs, 0.6875rem);

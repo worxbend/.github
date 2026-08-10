@@ -96,6 +96,16 @@
   --sp-15: 3.75rem;  /* 60px */
   --sp-16: 4rem;     /* 64px */
   --sp-section: clamp(4rem, 9vw, 8.5rem);
+  /* The rhythm *inside* a section: the space between a heading block and the
+     grid under it, between one paragraph and the next, and so on. It is a
+     second exception to the linear scale for the same reason as the one
+     above — a phone wants less of it than a wide monitor. Sections stack
+     their children with this through `.wrap`, so a page region only has to
+     say what it contains, never how far apart to hold it. */
+  --sp-stack: clamp(1.25rem, 1.8vw, 1.75rem);
+  /* The tight companion, for parts of one idea: a kicker, its heading and the
+     sentence under it, or a search field and the filter chips it belongs to. */
+  --sp-stack-tight: var(--sp-2);
 
   /* --- Corner radii ------------------------------------------------------
      --r-pill is deliberately far larger than any element it is used on; a

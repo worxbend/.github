@@ -27,7 +27,7 @@
 
 import {
   OWNERS, CLUSTERS, LANGS, PROJECTS, byCluster, stats,
-  loadCatalog, onCatalogChange, catalogMeta, ACTIVE_MONTHS,
+  loadCatalog, onCatalogChange, catalogMeta,
   langColor as colorForLang,
 } from '../data/projects.js';
 import { store, KEYS } from '../core/store.js';
@@ -1436,6 +1436,62 @@ async function remountCosmos() {
  * Wiring
  * ============================================================================================ */
 
+/**
+ * Draw the section cards and the catalogue's filter chips from the configuration.
+ *
+ * Both used to be written out by hand in index.html, which meant adding a subject to
+ * data/catalog.config.js was only two thirds of the job: the card and the chip had to be copied
+ * into the markup as well, and the two drifted the first time a blurb was reworded. They are built
+ * here instead, from the same array the catalogue itself is grouped by, so the configuration is
+ * the only place a section is described.
+ *
+ * The markup left in index.html is the no-JavaScript fallback. It is replaced wholesale the
+ * moment this runs, so a visitor with scripting on never sees it, and a visitor with scripting off
+ * still gets a readable list rather than an empty page.
+ */
+function renderSections() {
+  const grid = byId('cluster-grid');
+  if (grid) {
+    setChildren(grid, CLUSTERS.map((cluster) => h('li', { class: 'card', id: `cluster-${cluster.id}` }, [
+      h('div', { class: 'cluster' }, [
+        h('span', { class: 'cluster__glyph', 'aria-hidden': 'true' }, cluster.glyph),
+        h('h3', { class: 'cluster__name' }, cluster.name),
+        h('p', { class: 'cluster__blurb' }, cluster.blurb),
+      ]),
+      h('p', { class: 'card__foot' }, [
+        h('span', { class: 'cluster__count', dataset: { clusterCount: cluster.id } }, '—'),
+        h('a', { class: 'chip', href: `#/c/${cluster.id}` }, 'Filter catalogue'),
+      ]),
+    ])));
+  }
+
+  // The heading counts the sections rather than repeating a number that would be wrong the first
+  // time one is added. Spelled out, because "Six things" reads better in a heading than "6 things".
+  const WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+                 'Ten', 'Eleven', 'Twelve'];
+  const heading = byId('clusters-title');
+  if (heading) {
+    const count = WORDS[CLUSTERS.length] || String(CLUSTERS.length);
+    heading.textContent = `${count} things this workshop keeps coming back to`;
+  }
+
+  const chips = byId('filter-chips');
+  if (chips) {
+    const chip = (filter, label, pressed) => h('li', null, [
+      h('button', {
+        class: 'chip',
+        type: 'button',
+        'aria-pressed': String(pressed),
+        dataset: { filter },
+      }, label),
+    ]);
+    setChildren(chips, [
+      chip('', 'All', true),
+      ...CLUSTERS.map((cluster) => chip(cluster.id, cluster.id, false)),
+    ]);
+  }
+}
+
 function cacheElements() {
   els.shell = document.querySelector('.shell');
   els.scene = byId('scene');
@@ -1617,9 +1673,13 @@ function renderProvenance(meta = catalogMeta) {
     seed: () =>
       'GitHub could not be reached, so this is the copy committed with the page. It may be out of date.',
   }[meta.source];
+  const missing = meta.missing?.length
+    ? ` ${meta.missing.length} of the ${meta.selected} configured repositories did not come back ` +
+      'from GitHub and are not shown.'
+    : '';
   els.provenance.textContent =
-    `${text ? text() : 'Loading…'} Showing every public repository pushed to in the last ` +
-    `${ACTIVE_MONTHS} months.`;
+    `${text ? text() : 'Loading…'} Showing the ${PROJECTS.length} projects named in the site's ` +
+    `catalogue configuration.${missing}`;
   els.provenance.dataset.source = meta.source;
 }
 
@@ -1851,6 +1911,9 @@ function boot() {
   // the element from the start rather than arriving after the catalogue has been built.
   document.documentElement.setAttribute('data-motion', motion.reduced ? 'reduced' : 'full');
 
+  // The section cards and the filter chips come from data/catalog.config.js, so they are built
+  // before the element cache is taken — `cacheElements` collects the chips it finds in the page.
+  renderSections();
   cacheElements();
 
   // The inline script in <head> has already stamped the theme so nothing flashed; this reads it
@@ -1864,8 +1927,8 @@ function boot() {
 
   fillFigures({ animate: true });
   renderProvenance();
-  for (const el of document.querySelectorAll('[data-active-months]')) {
-    el.textContent = String(ACTIVE_MONTHS);
+  for (const el of document.querySelectorAll('[data-selected-count]')) {
+    el.textContent = String(catalogMeta.selected);
   }
 
   index = buildIndex(PROJECTS);
