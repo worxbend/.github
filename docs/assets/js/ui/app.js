@@ -1394,13 +1394,13 @@ async function mountEffects() {
     glyphs = null;
   }
 
-  // The hero's own layer: the nebula band under the standfirst. Independent of the sky — a
-  // machine that cannot draw the constellation can still usually draw fourteen sprites — and if
-  // it fails, the container's CSS gradient is what the visitor sees, so nothing is added here.
+  // The hero's own layer: the morphing particle cloud under the standfirst. Independent of the
+  // sky — it is a second, smaller three.js scene with its own renderer — and if it fails, the
+  // container's CSS gradient is what the visitor sees, so nothing is added here.
   let mounted = null;
   try {
-    const module = await import('../fx/nebula.js');
-    mounted = await module.mountNebula(els.heroNebula, { palette: paletteColors });
+    const module = await import('../fx/singularity.js');
+    mounted = await module.mountSingularity(els.heroNebula, { palette: paletteColors });
   } catch {
     mounted = null;
   }

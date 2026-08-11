@@ -158,10 +158,11 @@
 /* --------------------------------------------------------------------------
    Hero nebula — the band of animated cloud under the hero's standfirst.
 
-   The real cloud is painted by fx/nebula.js into the canvas. The band is a
-   window into space: its ground is the --hero-fx-ground token, which every
-   theme keeps dark — including the light one — because the cloud inside glows
-   additively, and additive light needs darkness to glow against.
+   The real effect is painted by fx/singularity.js into the canvas: a cloud
+   of particles that keeps melting between forms. The band is a window into
+   space: its ground is the --hero-fx-ground token, which every theme keeps
+   dark — including the light one — because the particles glow additively,
+   and additive light needs darkness to glow against.
 
    The static gradient underneath is the fallback for a visitor whose browser
    blocked the graphics library or has WebGL switched off: they get a quiet
@@ -182,7 +183,7 @@
     var(--hero-fx-ground);
 }
 
-/* Once fx/nebula.js reports a successful mount, ui/app.js adds this modifier and the fallback
+/* Once fx/singularity.js reports a successful mount, ui/app.js adds this modifier and the fallback
    gradient stands down. Left on, the two washes add up: the static gradient lights the corners
    the animated cloud deliberately leaves dark, and the wisp loses its shape against it. */
 .hero-fx--live {
