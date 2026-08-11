@@ -134,6 +134,8 @@ const state = {
 let cosmos = null;
 let glyphs = null;
 let nebula = null;
+/** Set by dispose(), read by mountEffects(): a mount that finishes after teardown must not land. */
+let effectsDisposed = false;
 
 /** The search index, built once from the catalogue. */
 let index = null;
@@ -1395,15 +1397,30 @@ async function mountEffects() {
   // The hero's own layer: the nebula band under the standfirst. Independent of the sky — a
   // machine that cannot draw the constellation can still usually draw fourteen sprites — and if
   // it fails, the container's CSS gradient is what the visitor sees, so nothing is added here.
+  let mounted = null;
   try {
     const module = await import('../fx/nebula.js');
-    nebula = await module.mountNebula(els.heroNebula, { palette: paletteColors });
+    mounted = await module.mountNebula(els.heroNebula, { palette: paletteColors });
   } catch {
-    nebula = null;
+    mounted = null;
   }
-  // With the canvas painting, the container's static fallback gradient stands down — left on,
-  // the two washes add together and the cloud loses its shape against the lit corners.
-  if (nebula) els.heroNebula.parentElement?.classList.add('hero-fx--live');
+  // `mountEffects()` is not awaited by its caller, so `dispose()` can have run while the imports
+  // above were still in flight. A handle assigned after teardown would keep a frame callback and
+  // a resize listener alive with no owner left to release them, so a late arrival is disposed on
+  // the spot instead of installed.
+  if (effectsDisposed) {
+    mounted?.dispose();
+    return;
+  }
+  nebula = mounted;
+  if (nebula) {
+    // With the canvas painting, the container's static fallback gradient stands down — left on,
+    // the two washes add together and the cloud loses its shape against the lit corners.
+    els.heroNebula.parentElement?.classList.add('hero-fx--live');
+    // The palette was read before two awaited mounts; a theme switched during that window found
+    // `nebula` still null and had nothing to re-tint, so the current tokens are re-read here.
+    nebula.setPalette(readScenePalette());
+  }
 }
 
 /**
@@ -2030,9 +2047,11 @@ export function dispose() {
   // to be asked to release them rather than having them removed from out here.
   void telemetry.dispose();
 
+  effectsDisposed = true;
   cosmos?.dispose();
   nebula?.dispose();
   nebula = null;
+  els.heroNebula?.parentElement?.classList.remove('hero-fx--live');
   cosmos = null;
   glyphs?.dispose();
   glyphs = null;
