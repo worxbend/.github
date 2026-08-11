@@ -1413,14 +1413,9 @@ async function mountEffects() {
     return;
   }
   nebula = mounted;
-  if (nebula) {
-    // With the canvas painting, the container's static fallback gradient stands down — left on,
-    // the two washes add together and the cloud loses its shape against the lit corners.
-    els.heroNebula.parentElement?.classList.add('hero-fx--live');
-    // The palette was read before two awaited mounts; a theme switched during that window found
-    // `nebula` still null and had nothing to re-tint, so the current tokens are re-read here.
-    nebula.setPalette(readScenePalette());
-  }
+  // The palette was read before two awaited mounts; a theme switched during that window found
+  // `nebula` still null and had nothing to re-tint, so the current tokens are re-read here.
+  if (nebula) nebula.setPalette(readScenePalette());
 }
 
 /**
@@ -2051,7 +2046,6 @@ export function dispose() {
   cosmos?.dispose();
   nebula?.dispose();
   nebula = null;
-  els.heroNebula?.parentElement?.classList.remove('hero-fx--live');
   cosmos = null;
   glyphs?.dispose();
   glyphs = null;

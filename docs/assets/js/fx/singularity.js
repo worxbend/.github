@@ -315,10 +315,23 @@ export async function mountSingularity(canvas, { palette } = {}) {
     height = Math.max(1, Math.round(rect.height));
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
-    // The band is much wider than tall, so the limiting direction is vertical: widen the view
-    // a little as the band flattens, so the cloud's top and bottom are never cropped.
     camera.fov = 34 + Math.min(16, (width / height) * 2.2);
     camera.updateProjectionMatrix();
+    // The layer covers the whole hero, and on a wide screen the hero's text owns the left half.
+    // Pushing the cloud toward the empty right keeps it off the heading; on a narrow screen the
+    // text runs the full width anyway, so the cloud sits centred behind it instead.
+    const wide = width / height > 1.5;
+    points.position.x = wide ? 0.68 : 0;
+    field.position.x = wide ? 0.3 : 0;
+    // The layer is far taller than the old band, and the cloud's size tracks the canvas height,
+    // so unscaled it swallowed the statistics row. Held to a fraction of the stage, it reads as
+    // an object *in* the hero rather than a weather system over it.
+    points.scale.setScalar(wide ? 0.62 : 0.42);
+    points.position.y = wide ? 0.08 : 0.52;
+    // On a narrow screen the text runs the full width, so the cloud cannot move aside — it moves
+    // up behind the heading and drops to half strength instead, glow rather than obstruction.
+    material.opacity = wide ? 0.95 : 0.45;
+    fieldMaterial.opacity = wide ? 0.35 : 0.2;
   }
   layout();
 
