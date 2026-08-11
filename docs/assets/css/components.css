@@ -155,71 +155,47 @@
   background: var(--accent);
 }
 
-/* Live coordinate / telemetry readout. Tabular numerals keep the digits from
-   shifting sideways as the values tick, which would otherwise look like a
-   glitch rather than a measurement. */
-.rail__readout {
-  display: grid;
-  gap: 0.2rem;
-  padding: 0.6rem 0.7rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
-  color: var(--ink-3);
-  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
-  font-size: var(--fs-3xs, 0.6875rem);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.08em;
-  line-height: 1.5;
-}
+/* --------------------------------------------------------------------------
+   Hero nebula — the band of animated cloud under the hero's standfirst.
 
-/* The hero copy of the readout, which is a different object from the rail's copy despite sharing
-   the class. In the rail it is a tall, narrow column in a 13.5rem strip, and stacking four
-   label/value pairs down it is the only thing that fits. Dropped into the hero it kept that shape
-   and became a large, mostly empty terminal window under the title — five short rows of text in a
-   box wide enough for sixty characters a row.
+   The real cloud is painted by fx/nebula.js into the canvas. The band is a
+   window into space: its ground is the --hero-fx-ground token, which every
+   theme keeps dark — including the light one — because the cloud inside glows
+   additively, and additive light needs darkness to glow against.
 
-   Here it is laid out as what it actually is: one instrument bar. The pairs run along it, the
-   prompt sits at the far end, and the whole thing is held to the same measure as the sentence
-   above so the hero reads as one column rather than as text with a panel bolted under it. */
-.readout--hero {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  column-gap: 1.1rem;
-  row-gap: 0.4rem;
+   The static gradient underneath is the fallback for a visitor whose browser
+   blocked the graphics library or has WebGL switched off: they get a quiet
+   wash of the same scene colours in the same place, not an empty box.
+   -------------------------------------------------------------------------- */
+
+.hero-fx {
+  position: relative;
   max-inline-size: 42rem;
-  padding: 0.55rem 0.85rem;
-  font-size: var(--fs-2xs, 0.75rem);
+  block-size: clamp(7rem, 16vw, 10rem);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 140% at 18% 30%, color-mix(in srgb, var(--scene-link) 38%, transparent), transparent 55%),
+    radial-gradient(110% 150% at 78% 65%, color-mix(in srgb, var(--scene-star-b) 22%, transparent), transparent 60%),
+    radial-gradient(160% 120% at 50% 100%, color-mix(in srgb, var(--scene-fog) 45%, transparent), transparent 70%),
+    var(--hero-fx-ground);
 }
 
-/* In the rail a pair is pushed to opposite edges of the strip, which is what makes it readable as
-   a column of measurements. In a bar that would strand the label and the value at either end of
-   the row, so they sit together as one token instead. */
-.readout--hero .rail__value {
-  justify-content: flex-start;
-  gap: 0.4rem;
+/* Once fx/nebula.js reports a successful mount, ui/app.js adds this modifier and the fallback
+   gradient stands down. Left on, the two washes add up: the static gradient lights the corners
+   the animated cloud deliberately leaves dark, and the wisp loses its shape against it. */
+.hero-fx--live {
+  background: var(--hero-fx-ground);
 }
 
-/* The label half of each pair, dimmed so the value it belongs to is what the eye lands on. */
-.readout--hero .rail__value > span:first-child {
-  color: var(--ink-3);
+.hero-fx__canvas {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
 }
 
-/* The command prompt is the one part that is not a measurement, so it goes to the far end of the
-   bar — and falls onto its own line, still at the end, once the bar has to wrap. */
-.readout--hero > .mono {
-  margin-inline-start: auto;
-  color: var(--accent);
-}
-
-.rail__value {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  color: var(--ink-2);
-  font-variant-numeric: tabular-nums;
-}
 
 .rail__themes {
   display: flex;
