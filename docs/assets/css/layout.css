@@ -280,6 +280,13 @@
   scroll-margin-block-start: calc(var(--rail-size) + 1rem);
 }
 
+/* The hero is the one section with a full-bleed effect layer floating over it
+   (.hero-fx, components.css), and an absolutely positioned layer needs its
+   nearest positioned ancestor to be the thing it should cover. */
+.section--hero {
+  position: relative;
+}
+
 @media (min-width: 1100px) {
   .section {
     /* The rail is down the side now, so nothing overlaps the top of a

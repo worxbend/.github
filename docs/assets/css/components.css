@@ -156,38 +156,27 @@
 }
 
 /* --------------------------------------------------------------------------
-   Hero nebula — the band of animated cloud under the hero's standfirst.
+   Hero singularity — the morphing particle cloud floating over the hero.
 
-   The real effect is painted by fx/singularity.js into the canvas: a cloud
-   of particles that keeps melting between forms. The band is a window into
-   space: its ground is the --hero-fx-ground token, which every theme keeps
-   dark — including the light one — because the particles glow additively,
-   and additive light needs darkness to glow against.
+   Not a panel. The layer covers the whole hero section with a fully
+   transparent ground and no border, so the particles hang in the page's own
+   sky, over the heading and the buttons. Two things make that safe:
 
-   The static gradient underneath is the fallback for a visitor whose browser
-   blocked the graphics library or has WebGL switched off: they get a quiet
-   wash of the same scene colours in the same place, not an empty box.
+   - pointer-events: none, so every control under it still takes the click;
+   - the particles are additive light over a dark page, so where there are
+     none the layer is invisible, and where they cross text they read as
+     glow, not as a slab.
+
+   The section behind it (.section--hero, layout.css) is the positioning
+   context. If fx/singularity.js cannot mount, the canvas simply stays empty
+   — an invisible layer costs nothing and needs no fallback of its own.
    -------------------------------------------------------------------------- */
 
 .hero-fx {
-  position: relative;
-  max-inline-size: 42rem;
-  block-size: clamp(7rem, 16vw, 10rem);
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background:
-    radial-gradient(120% 140% at 18% 30%, color-mix(in srgb, var(--scene-link) 38%, transparent), transparent 55%),
-    radial-gradient(110% 150% at 78% 65%, color-mix(in srgb, var(--scene-star-b) 22%, transparent), transparent 60%),
-    radial-gradient(160% 120% at 50% 100%, color-mix(in srgb, var(--scene-fog) 45%, transparent), transparent 70%),
-    var(--hero-fx-ground);
-}
-
-/* Once fx/singularity.js reports a successful mount, ui/app.js adds this modifier and the fallback
-   gradient stands down. Left on, the two washes add up: the static gradient lights the corners
-   the animated cloud deliberately leaves dark, and the wisp loses its shape against it. */
-.hero-fx--live {
-  background: var(--hero-fx-ground);
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .hero-fx__canvas {
