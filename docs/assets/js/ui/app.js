@@ -133,6 +133,9 @@ const state = {
 /** Handles returned by the two effects layers, or null when they are not running. */
 let cosmos = null;
 let glyphs = null;
+let nebula = null;
+/** Set by dispose(), read by mountEffects(): a mount that finishes after teardown must not land. */
+let effectsDisposed = false;
 
 /** The search index, built once from the catalogue. */
 let index = null;
@@ -333,7 +336,6 @@ function applyTheme(id, { persist = true } = {}) {
   for (const button of els.themeButtons) {
     button.setAttribute('aria-pressed', String(button.dataset.themeId === next));
   }
-  if (els.readoutTheme) els.readoutTheme.textContent = next;
 
   // The `theme-color` meta tag is what a mobile browser paints its address bar and its task
   // switcher card with. It is rewritten here from the resolved `--ground` token — the theme's own
@@ -351,6 +353,7 @@ function applyTheme(id, { persist = true } = {}) {
     glyphs.setPalette(palette);
     glyphs.setIntensity(glyphIntensityFor(next));
   }
+  if (nebula) nebula.setPalette(palette);
 
   if (persist) store.set(KEYS.theme, next);
   if (previous !== null) telemetry.track(EVENT_NAMES.THEME_CHANGE, { from: previous, to: next });
@@ -404,7 +407,6 @@ function applyView(id, { persist = true } = {}) {
   for (const wrap of els.sectionWraps) wrap.style.pointerEvents = passThrough ? 'auto' : '';
 
   if (next === 'constellation') renderStarDetail(state.selected);
-  if (els.readoutView) els.readoutView.textContent = next;
 
   if (persist) store.set(KEYS.view, next);
   if (previous !== null) telemetry.track(EVENT_NAMES.VIEW_CHANGE, { from: previous, to: next });
@@ -1373,9 +1375,7 @@ async function mountEffects() {
 
   if (!cosmos) {
     document.documentElement.classList.add('no-webgl');
-    if (els.readoutScene) els.readoutScene.textContent = 'css fallback';
   } else {
-    if (els.readoutScene) els.readoutScene.textContent = 'webgl';
     on(els.scene, 'star:select', (event) => {
       const id = event.detail && event.detail.id;
       if (!id) return;
@@ -1392,6 +1392,34 @@ async function mountEffects() {
     });
   } catch {
     glyphs = null;
+  }
+
+  // The hero's own layer: the nebula band under the standfirst. Independent of the sky — a
+  // machine that cannot draw the constellation can still usually draw fourteen sprites — and if
+  // it fails, the container's CSS gradient is what the visitor sees, so nothing is added here.
+  let mounted = null;
+  try {
+    const module = await import('../fx/nebula.js');
+    mounted = await module.mountNebula(els.heroNebula, { palette: paletteColors });
+  } catch {
+    mounted = null;
+  }
+  // `mountEffects()` is not awaited by its caller, so `dispose()` can have run while the imports
+  // above were still in flight. A handle assigned after teardown would keep a frame callback and
+  // a resize listener alive with no owner left to release them, so a late arrival is disposed on
+  // the spot instead of installed.
+  if (effectsDisposed) {
+    mounted?.dispose();
+    return;
+  }
+  nebula = mounted;
+  if (nebula) {
+    // With the canvas painting, the container's static fallback gradient stands down — left on,
+    // the two washes add together and the cloud loses its shape against the lit corners.
+    els.heroNebula.parentElement?.classList.add('hero-fx--live');
+    // The palette was read before two awaited mounts; a theme switched during that window found
+    // `nebula` still null and had nothing to re-tint, so the current tokens are re-read here.
+    nebula.setPalette(readScenePalette());
   }
 }
 
@@ -1501,11 +1529,8 @@ function cacheElements() {
   els.themeButtons = [...document.querySelectorAll('[data-theme-id]')];
   els.openPalette = byId('open-palette');
   els.heroSearch = byId('hero-search');
+  els.heroNebula = byId('hero-nebula');
 
-  els.readoutTheme = byId('readout-theme');
-  els.readoutView = byId('readout-view');
-  els.readoutNodes = byId('readout-nodes');
-  els.readoutScene = byId('readout-scene');
   els.provenance = byId('catalog-provenance');
 
   els.content = byId('main');
@@ -1610,7 +1635,6 @@ function fillFigures({ animate = false } = {}) {
     el.textContent = `${formatCount(count)} ${count === 1 ? 'repository' : 'repositories'}`;
   }
 
-  if (els.readoutNodes) els.readoutNodes.textContent = String(totals.repos);
 }
 
 /**
@@ -2023,7 +2047,11 @@ export function dispose() {
   // to be asked to release them rather than having them removed from out here.
   void telemetry.dispose();
 
+  effectsDisposed = true;
   cosmos?.dispose();
+  nebula?.dispose();
+  nebula = null;
+  els.heroNebula?.parentElement?.classList.remove('hero-fx--live');
   cosmos = null;
   glyphs?.dispose();
   glyphs = null;

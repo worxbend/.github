@@ -70,7 +70,6 @@ export const SECTIONS = [
       'w0rxbend/twitch-vizer',
       'w0rxbend/twitch-voxer',
       'w0rxbend/twitch-musicplayer',
-      'w0rxbend/chat-brawl',
     ],
   },
   {

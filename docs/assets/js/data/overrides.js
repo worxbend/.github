@@ -153,11 +153,6 @@ export const COPY = {
     desc:
       'A keyboard-driven program that shows a YouTube live chat inside a terminal window rather than a browser tab. Written in Go, it displays how much of the YouTube Data API’s daily request allowance (its quota) has been spent, and includes 58 colour themes.',
   },
-  'w0rxbend/chat-brawl': {
-    tagline: 'Chat-driven brawler arena overlay for OBS Studio',
-    desc:
-      'A browser overlay for OBS Studio (the open-source live-streaming program) in which every Twitch viewer who types in chat automatically joins an on-screen fighting arena as a small character. Chat commands cover attacking, fleeing, character classes, teams, duels and betting, and the whole simulation is drawn in the browser with PixiJS.',
-  },
   'w0rxbend/codefolio': {
     tagline: 'GTK4 desktop viewer for a GitHub profile',
     desc:

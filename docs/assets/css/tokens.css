@@ -193,6 +193,7 @@
      Signal    --signal-ok --signal-warn --signal-crit
      Effects   --glow --grid-line --scanline --selection --focus-ring
                --scanline-opacity --ambient-play-state
+  --hero-fx-ground: #070B16;
      Scene     --scene-star-a --scene-star-b --scene-star-c
                --scene-fog --scene-glyph --scene-link
 
@@ -268,6 +269,10 @@
   --selection: rgba(76, 125, 255, 0.30);
   --focus-ring: #8FB0FF;
   --scanline-opacity: 0;
+  /* The ground inside the hero's nebula band. The band is a window into
+     space, so it stays dark in every theme — the cloud inside it glows
+     additively, and additive light needs darkness to glow against. */
+  --hero-fx-ground: #070B16;
   --ambient-play-state: running;
 
   --scene-star-a: #DCE6FF;
@@ -321,6 +326,10 @@
   /* The sweep is this theme's signature, so it is the one theme that paints
      the scanline layer instead of leaving it transparent. */
   --scanline-opacity: 1;
+  /* The ground inside the hero's nebula band. The band is a window into
+     space, so it stays dark in every theme — the cloud inside it glows
+     additively, and additive light needs darkness to glow against. */
+  --hero-fx-ground: #02120A;
   --ambient-play-state: running;
 
   --scene-star-a: #D6F5DE;
@@ -372,6 +381,10 @@
   --selection: rgba(53, 198, 244, 0.30);
   --focus-ring: #7FD9FF;
   --scanline-opacity: 0;
+  /* The ground inside the hero's nebula band. The band is a window into
+     space, so it stays dark in every theme — the cloud inside it glows
+     additively, and additive light needs darkness to glow against. */
+  --hero-fx-ground: #081226;
   --ambient-play-state: running;
 
   --scene-star-a: #EAF2FF;
@@ -423,6 +436,10 @@
   --selection: rgba(255, 111, 165, 0.28);
   --focus-ring: #D9A7FF;
   --scanline-opacity: 0;
+  /* The ground inside the hero's nebula band. The band is a window into
+     space, so it stays dark in every theme — the cloud inside it glows
+     additively, and additive light needs darkness to glow against. */
+  --hero-fx-ground: #120825;
   --ambient-play-state: running;
 
   --scene-star-a: #F5E9FF;
@@ -484,6 +501,10 @@
   --selection: rgba(31, 79, 208, 0.20);
   --focus-ring: #1F4FD0;
   --scanline-opacity: 0;
+  /* The ground inside the hero's nebula band. The band is a window into
+     space, so it stays dark in every theme — the cloud inside it glows
+     additively, and additive light needs darkness to glow against. */
+  --hero-fx-ground: #101A3A;
   /* The one theme that holds every ambient animation still. See the note at
      the top of section 2 for why daylight and drifting starfields do not mix. */
   --ambient-play-state: paused;

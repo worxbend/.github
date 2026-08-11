@@ -185,15 +185,12 @@
           </p>
         </div>
 
-        <!-- `readout--hero` caps the width. In the left rail this block is as wide as the rail;
-             dropped into the hero it would otherwise run the full 1240px column while the sentence
-             above it stops at 65 characters, which reads as two unrelated layouts. -->
-        <div class="rail__readout readout--hero" id="readout" data-parallax="0.05">
-          <span class="rail__value"><span>theme</span><span id="readout-theme">foundation</span></span>
-          <span class="rail__value"><span>view</span><span id="readout-view">grid</span></span>
-          <span class="rail__value"><span>nodes</span><span id="readout-nodes">—</span></span>
-          <span class="rail__value"><span>scene</span><span id="readout-scene">booting</span></span>
-          <span class="mono">&gt; observatory --watch<span class="anim-caret" aria-hidden="true">▌</span></span>
+        <!-- The nebula. A PixiJS layer (fx/nebula.js) paints a slow drifting cloud into this
+             canvas; if the library cannot load, the CSS `hero-fx` gradient below is all a visitor
+             sees, which still reads as a wash of colour rather than as a hole in the page. The
+             canvas is decoration and carries no information, hence aria-hidden. -->
+        <div class="hero-fx" data-parallax="0.05">
+          <canvas class="hero-fx__canvas" id="hero-nebula" aria-hidden="true"></canvas>
         </div>
 
         <div class="banner__actions">

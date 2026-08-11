@@ -11,25 +11,11 @@
  *
  * To change how a repository reads on the site, edit overrides.js — not this file.
  *
- * Captured 2026-08-10T14:37:24+00:00
+ * Captured 2026-08-11T08:10:59+00:00
  */
 
 /** Every public repository on the three accounts, in the same shape a live response produces. */
 export const SEED = [
-  {
-    "name": ".github",
-    "owner": "worxbend",
-    "url": "https://github.com/worxbend/.github",
-    "home": "",
-    "description": "",
-    "lang": "",
-    "stars": 0,
-    "forks": 0,
-    "updated": "2026-08-10",
-    "topics": [],
-    "isFork": false,
-    "isArchived": false
-  },
   {
     "name": "saltmere",
     "owner": "w0rxbend",
@@ -37,6 +23,34 @@ export const SEED = [
     "home": "",
     "description": "",
     "lang": "CSS",
+    "stars": 0,
+    "forks": 0,
+    "updated": "2026-08-11",
+    "topics": [],
+    "isFork": false,
+    "isArchived": false
+  },
+  {
+    "name": "obsctl",
+    "owner": "worxbend",
+    "url": "https://github.com/worxbend/obsctl",
+    "home": "",
+    "description": "CLI/TUI for controlling OBS Studio through obs-websocket 5.x.",
+    "lang": "Crystal",
+    "stars": 2,
+    "forks": 0,
+    "updated": "2026-08-10",
+    "topics": [],
+    "isFork": false,
+    "isArchived": false
+  },
+  {
+    "name": ".github",
+    "owner": "worxbend",
+    "url": "https://github.com/worxbend/.github",
+    "home": "",
+    "description": "",
+    "lang": "Python",
     "stars": 0,
     "forks": 0,
     "updated": "2026-08-10",
@@ -59,6 +73,26 @@ export const SEED = [
     "isArchived": false
   },
   {
+    "name": "obs-effects",
+    "owner": "w0rxbend",
+    "url": "https://github.com/w0rxbend/obs-effects",
+    "home": "https://obs-effects.worxbend.com",
+    "description": "A collection of GPU-accelerated PixiJS 8 overlays and animated screens for use as OBS Browser Sources.",
+    "lang": "TypeScript",
+    "stars": 0,
+    "forks": 0,
+    "updated": "2026-08-10",
+    "topics": [
+      "obs",
+      "obs-background",
+      "obs-effects",
+      "obs-overlay",
+      "obs-overlays"
+    ],
+    "isFork": false,
+    "isArchived": false
+  },
+  {
     "name": "w0rxbend",
     "owner": "w0rxbend",
     "url": "https://github.com/w0rxbend/w0rxbend",
@@ -68,20 +102,6 @@ export const SEED = [
     "stars": 0,
     "forks": 0,
     "updated": "2026-08-10",
-    "topics": [],
-    "isFork": false,
-    "isArchived": false
-  },
-  {
-    "name": "obsctl",
-    "owner": "worxbend",
-    "url": "https://github.com/worxbend/obsctl",
-    "home": "",
-    "description": "CLI/TUI for controlling OBS Studio through obs-websocket 5.x.",
-    "lang": "Crystal",
-    "stars": 2,
-    "forks": 0,
-    "updated": "2026-08-09",
     "topics": [],
     "isFork": false,
     "isArchived": false
@@ -370,26 +390,6 @@ export const SEED = [
     "isArchived": false
   },
   {
-    "name": "obs-effects",
-    "owner": "w0rxbend",
-    "url": "https://github.com/w0rxbend/obs-effects",
-    "home": "https://obs-effects.worxbend.com",
-    "description": "A collection of GPU-accelerated PixiJS 8 overlays and animated screens for use as OBS Browser Sources.",
-    "lang": "TypeScript",
-    "stars": 0,
-    "forks": 0,
-    "updated": "2026-08-07",
-    "topics": [
-      "obs",
-      "obs-background",
-      "obs-effects",
-      "obs-overlay",
-      "obs-overlays"
-    ],
-    "isFork": false,
-    "isArchived": false
-  },
-  {
     "name": "instachron",
     "owner": "w0rxbend",
     "url": "https://github.com/w0rxbend/instachron",
@@ -585,20 +585,6 @@ export const SEED = [
       "tui",
       "tui-app"
     ],
-    "isFork": false,
-    "isArchived": false
-  },
-  {
-    "name": "chat-brawl",
-    "owner": "w0rxbend",
-    "url": "https://github.com/w0rxbend/chat-brawl",
-    "home": "",
-    "description": "",
-    "lang": "TypeScript",
-    "stars": 0,
-    "forks": 0,
-    "updated": "2026-08-02",
-    "topics": [],
     "isFork": false,
     "isArchived": false
   },
