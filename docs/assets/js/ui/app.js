@@ -1413,9 +1413,14 @@ async function mountEffects() {
     return;
   }
   nebula = mounted;
-  // The palette was read before two awaited mounts; a theme switched during that window found
-  // `nebula` still null and had nothing to re-tint, so the current tokens are re-read here.
-  if (nebula) nebula.setPalette(readScenePalette());
+  if (nebula) {
+    // The palette was read before two awaited mounts; a theme switched during that window found
+    // `nebula` still null and had nothing to re-tint, so the current tokens are re-read here.
+    nebula.setPalette(readScenePalette());
+    // Same race, other direction: the visitor may have pressed play while the mount was in
+    // flight, and the cloud that just arrived should already be listening.
+    if (sound.playing) nebula.setAudioSource(sampleSound);
+  }
 }
 
 /**
@@ -1525,6 +1530,7 @@ function cacheElements() {
   els.openPalette = byId('open-palette');
   els.heroSearch = byId('hero-search');
   els.heroNebula = byId('hero-nebula');
+  els.soundToggle = byId('sound-toggle');
 
   els.provenance = byId('catalog-provenance');
 
@@ -1810,6 +1816,107 @@ function wireThemeAndToggles() {
   on(els.toastClose, 'click', hideToast);
 }
 
+/* ============================================================================================ *
+ * Soundtrack
+ * ============================================================================================ */
+
+/**
+ * Everything the soundtrack owns, created lazily on the first press of the sound button.
+ *
+ * Nothing here exists until the visitor asks for it: browsers refuse to autoplay audio anyway,
+ * and building an AudioContext costs a real system resource, so the page carries none of this
+ * for the visitor who never presses play.
+ */
+const sound = {
+  element: null,
+  context: null,
+  analyser: null,
+  bins: null,
+  playing: false,
+};
+
+/**
+ * Read the analyser and reduce its spectrum to three numbers the particle cloud understands.
+ *
+ * The analyser hands back 128 frequency bins, 0–255 each, covering 0 to about 22 kHz. The split
+ * is tuned to this specific track — a lofi bed with rain texture — rather than to textbook band
+ * edges: the kick and bass live in the first few bins, the keys in the low middle, and the rain
+ * and hats spread thin across the top, which is why the high band gets a lift.
+ */
+function sampleSound() {
+  sound.analyser.getByteFrequencyData(sound.bins);
+  const avg = (from, to) => {
+    let total = 0;
+    for (let i = from; i < to; i += 1) total += sound.bins[i];
+    return total / ((to - from) * 255);
+  };
+  return {
+    bass: avg(1, 8),
+    mid: avg(8, 40),
+    high: Math.min(1, avg(40, 110) * 2.2),
+  };
+}
+
+/** Reflect the current state on the button, for sight and for assistive technology alike. */
+function renderSoundToggle() {
+  if (!els.soundToggle) return;
+  els.soundToggle.setAttribute('aria-pressed', String(sound.playing));
+  els.soundToggle.classList.toggle('btn--sound-on', sound.playing);
+}
+
+/**
+ * Start the soundtrack, or pause it. First press builds the whole audio path:
+ *
+ *   <audio loop>  →  MediaElementSource  →  AnalyserNode  →  speakers
+ *
+ * The analyser sits in the middle of the graph, so the same samples that reach the speakers are
+ * the ones the particle cloud reads — the visual is reacting to what is actually heard, not to a
+ * second decode. The context is created inside the click handler on purpose: that is the user
+ * gesture autoplay policies require, and creating it any earlier would leave it suspended.
+ */
+async function toggleSound() {
+  try {
+    if (!sound.element) {
+      sound.element = new Audio('./assets/audio/focus-bed.mp3');
+      sound.element.loop = true;
+      sound.element.volume = 0.7;
+      sound.element.preload = 'auto';
+
+      const Context = window.AudioContext || window.webkitAudioContext;
+      sound.context = new Context();
+      const source = sound.context.createMediaElementSource(sound.element);
+      sound.analyser = sound.context.createAnalyser();
+      sound.analyser.fftSize = 256;
+      sound.analyser.smoothingTimeConstant = 0.55;
+      sound.bins = new Uint8Array(sound.analyser.frequencyBinCount);
+      source.connect(sound.analyser);
+      sound.analyser.connect(sound.context.destination);
+    }
+
+    if (sound.playing) {
+      sound.element.pause();
+      sound.playing = false;
+      if (nebula) nebula.setAudioSource(null);
+    } else {
+      // A context created before any sound has played starts life suspended.
+      if (sound.context.state === 'suspended') await sound.context.resume();
+      await sound.element.play();
+      sound.playing = true;
+      if (nebula) nebula.setAudioSource(sampleSound);
+    }
+  } catch (error) {
+    // A blocked play() or a missing file must not take the button down with it.
+    console.error('[app] the soundtrack could not start', error);
+    sound.playing = false;
+  }
+  renderSoundToggle();
+}
+
+function wireSound() {
+  if (!els.soundToggle) return;
+  on(els.soundToggle, 'click', () => void toggleSound());
+}
+
 /**
  * Keep the effects layers in step with the motion module, and mirror preference changes made in
  * another tab. `store.subscribe` fires for writes from this tab as well as from other ones; the
@@ -1955,6 +2062,7 @@ function boot() {
   wireCatalog();
   wirePalette();
   wireThemeAndToggles();
+  wireSound();
   wireMotion();
   wireSectionHighlight();
 
@@ -2043,6 +2151,12 @@ export function dispose() {
   void telemetry.dispose();
 
   effectsDisposed = true;
+  if (sound.element) {
+    sound.element.pause();
+    sound.element.src = '';
+    sound.playing = false;
+  }
+  void sound.context?.close();
   cosmos?.dispose();
   nebula?.dispose();
   nebula = null;

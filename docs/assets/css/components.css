@@ -310,6 +310,13 @@
   color: var(--ink-2);
 }
 
+/* The sound button while the soundtrack is playing: lit in the accent so a glance says which
+   state it is in, the same convention as a pressed filter chip. */
+.btn--sound-on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .btn--ghost:hover {
   border-color: var(--line);
   background: var(--panel-hover);

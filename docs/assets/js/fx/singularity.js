@@ -332,15 +332,56 @@ export async function mountSingularity(canvas, { palette } = {}) {
     // up behind the heading and drops to half strength instead, glow rather than obstruction.
     material.opacity = wide ? 0.95 : 0.45;
     fieldMaterial.opacity = wide ? 0.35 : 0.2;
+    baseScale = wide ? 0.62 : 0.42;
+    baseOpacity = material.opacity;
+    baseSize = material.size;
   }
+  // The resting values the audio modulation multiplies. Owned by layout(), because they differ
+  // between the wide and the narrow arrangement of the hero.
+  let baseScale = 0.62;
+  let baseOpacity = 0.95;
+  let baseSize = material.size;
   layout();
 
+  /**
+   * The audio hook. When the page's soundtrack is playing, ui/app.js hands this layer a sampler —
+   * a function returning `{ bass, mid, high }`, each 0..1, read from a WebAudio analyser — and
+   * the cloud starts listening. `null` unhooks it and the cloud settles back to its resting size.
+   *
+   * The smoothing lives here, not in the sampler: a fast attack and a slow release per band, so a
+   * kick drum snaps the cloud outward and lets it fall back gently — raw analyser values flicker
+   * at frame rate and read as noise, not rhythm.
+   */
+  let audioSampler = null;
+  const levels = { bass: 0, mid: 0, high: 0 };
+
+  function follow(current, target, dt) {
+    const rate = target > current ? 18 : 3.5;
+    return current + (target - current) * Math.min(1, rate * dt);
+  }
+
   let elapsed = 0;
+  /** Extra spin the music has wound onto the cloud, accumulated so it never jumps backwards. */
+  let audioSpin = 0;
 
   function frame(dt) {
     // Reduced motion holds the cloud still but keeps it painted: the visitor asked for less
     // movement, not for a blank rectangle. `elapsed` simply stops advancing.
     if (!motion.reduced) elapsed += dt;
+
+    // Listen to the soundtrack, if one is playing. Reduced motion also mutes the *visual*
+    // response — the audio keeps playing, but a visitor who asked for stillness gets stillness.
+    if (audioSampler && !motion.reduced) {
+      const sample = audioSampler();
+      levels.bass = follow(levels.bass, sample.bass, dt);
+      levels.mid = follow(levels.mid, sample.mid, dt);
+      levels.high = follow(levels.high, sample.high, dt);
+      audioSpin += dt * levels.mid * 0.9;
+    } else if (levels.bass || levels.mid || levels.high) {
+      levels.bass = follow(levels.bass, 0, dt);
+      levels.mid = follow(levels.mid, 0, dt);
+      levels.high = follow(levels.high, 0, dt);
+    }
 
     // Where in the hold-morph-hold cycle are we, and between which two forms?
     const period = HOLD_S + MORPH_S;
@@ -351,18 +392,28 @@ export async function mountSingularity(canvas, { palette } = {}) {
     const inCycle = (cycle - Math.floor(cycle)) * period;
     const mix = inCycle < HOLD_S ? 0 : easeInOutCubic((inCycle - HOLD_S) / MORPH_S);
 
+    // Treble widens every particle's breath, so hats and rain texture shimmer through the
+    // whole cloud rather than moving any one thing.
+    const shimmer = 1 + levels.high * 2.6;
     for (let i = 0; i < COUNT; i += 1) {
       const j = i * 3;
       // The breath: a tiny radial pulse per particle, on top of the morph.
-      const breathe = 1 + Math.sin(elapsed * 1.4 + phases[i]) * pulses[i];
+      const breathe = 1 + Math.sin(elapsed * 1.4 + phases[i]) * pulses[i] * shimmer;
       positions[j] = (from[j] + (to[j] - from[j]) * mix) * breathe;
       positions[j + 1] = (from[j + 1] + (to[j + 1] - from[j + 1]) * mix) * breathe;
       positions[j + 2] = (from[j + 2] + (to[j + 2] - from[j + 2]) * mix) * breathe;
     }
     geometry.attributes.position.needsUpdate = true;
 
-    points.rotation.y = elapsed * SPIN;
-    field.rotation.y = elapsed * SPIN * 0.18;
+    // The bass is the pulse of the whole object: the cloud swells on a kick and brightens with
+    // it, the way the MagicalBoy-style visualisers breathe with their track.
+    points.scale.setScalar(baseScale * (1 + levels.bass * 0.22));
+    material.opacity = Math.min(1, baseOpacity * (1 + levels.bass * 0.35));
+    material.size = baseSize * (1 + levels.bass * 0.4);
+
+    // The mids drive momentum: melody speeds the rotation up, quiet lets it coast back down.
+    points.rotation.y = elapsed * SPIN + audioSpin;
+    field.rotation.y = (elapsed * SPIN + audioSpin) * 0.18;
     // A slow secondary sway, so the tilt itself is alive rather than bolted.
     points.rotation.x = 0.42 + Math.sin(elapsed * 0.21) * 0.07;
 
@@ -386,6 +437,10 @@ export async function mountSingularity(canvas, { palette } = {}) {
     setPalette(next) {
       paintColors(THREE, colorAttr, forms[0], next || {}, makeRandom(0x636f6c72));
       frame(0);
+    },
+    /** Hook the cloud to a playing soundtrack, or pass null to let it settle. */
+    setAudioSource(sampler) {
+      audioSampler = typeof sampler === 'function' ? sampler : null;
     },
     dispose() {
       removeFrame();

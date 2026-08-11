@@ -199,6 +199,14 @@
           <a class="btn btn--primary" href="#catalog">Browse the catalogue</a>
           <button class="btn" type="button" id="hero-search">Search projects</button>
           <a class="btn btn--ghost" href="https://github.com/worxbend">Open GitHub</a>
+          <!-- The soundtrack. Off until pressed — browsers rightly refuse to autoplay audio, and
+               a page that starts making noise uninvited is worse than one that offers to. While
+               it plays, the particle cloud above listens to it through a WebAudio analyser and
+               moves with the music; see wireSound() in ui/app.js. -->
+          <button class="btn btn--ghost" type="button" id="sound-toggle" aria-pressed="false"
+                  aria-label="Play the soundtrack and let the particles move with it">
+            <span aria-hidden="true">♪</span> Sound
+          </button>
         </div>
 
         <div class="grid" style="--col-min: 9rem">
