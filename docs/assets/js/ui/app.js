@@ -1874,7 +1874,7 @@ function renderSoundToggle() {
  * second decode. The context is created inside the click handler on purpose: that is the user
  * gesture autoplay policies require, and creating it any earlier would leave it suspended.
  */
-async function toggleSound() {
+async function toggleSound({ persist = true } = {}) {
   try {
     if (!sound.element) {
       sound.element = new Audio('./assets/audio/focus-bed.mp3');
@@ -1904,6 +1904,10 @@ async function toggleSound() {
       sound.playing = true;
       if (nebula) nebula.setAudioSource(sampleSound);
     }
+    // Remember the choice — but only a choice the visitor actually made. The automatic start on
+    // the first interaction passes `persist: false`, because "clicked a link while music began"
+    // is not a preference, and writing it as one would make the automatic start permanent.
+    if (persist) store.set(KEYS.sound, sound.playing ? 'on' : 'off');
   } catch (error) {
     // A blocked play() or a missing file must not take the button down with it.
     console.error('[app] the soundtrack could not start', error);
@@ -1915,6 +1919,30 @@ async function toggleSound() {
 function wireSound() {
   if (!els.soundToggle) return;
   on(els.soundToggle, 'click', () => void toggleSound());
+
+  // Autoplay, as close as a browser permits. No browser will start audible sound on page load —
+  // Firefox rejects it outright, Chrome for first-time visitors — because `play()` only succeeds
+  // inside a user gesture. So the page arms itself and starts the soundtrack on the visitor's
+  // FIRST gesture anywhere: the first click, tap or key press, whatever it lands on, counts. The
+  // two listeners tear themselves down after firing once.
+  //
+  // The one visitor this must never surprise is the one who pressed pause on an earlier visit:
+  // the stored 'off' stands as a standing answer, and the page stays silent until the button is
+  // pressed again. A first-time visitor has given no answer yet, so the music starts.
+  if (store.get(KEYS.sound, null) === 'off') return;
+
+  const startOnFirstGesture = (event) => {
+    window.removeEventListener('pointerdown', startOnFirstGesture);
+    window.removeEventListener('keydown', startOnFirstGesture);
+    // The sound button runs its own toggle on this same click; starting here too would
+    // double-toggle the track straight back off.
+    if (event.target instanceof Element && event.target.closest('#sound-toggle')) return;
+    if (!sound.playing) void toggleSound({ persist: false });
+  };
+  // Registered through on(), so dispose() also removes them if no gesture ever arrives. The
+  // handler removing itself first makes dispose()'s removal a no-op, which is harmless.
+  on(window, 'pointerdown', startOnFirstGesture);
+  on(window, 'keydown', startOnFirstGesture);
 }
 
 /**

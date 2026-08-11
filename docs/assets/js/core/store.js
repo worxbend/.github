@@ -46,6 +46,7 @@ export const KEYS = {
   motion: 'motion',
   density: 'density',
   view: 'view',
+  sound: 'sound',
   telemetry: 'telemetry:consent',
   recent: 'search:recent',
   visits: 'visits',
