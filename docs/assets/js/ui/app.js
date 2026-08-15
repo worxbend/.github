@@ -13,7 +13,7 @@
  *   - renders the catalogue, wires the search box, the filter chips and the view toggle;
  *   - runs the command palette, the theme picker, the motion and density toggles;
  *   - keeps the address bar in step with what is on screen through hash routes;
- *   - initialises the local-only telemetry and draws its inspector panel.
+ *   - initialises the local-only telemetry module.
  *
  * Two rules that are load-bearing and easy to break later:
  *
@@ -27,7 +27,7 @@
 
 import {
   OWNERS, CLUSTERS, LANGS, PROJECTS, byCluster, stats,
-  loadCatalog, onCatalogChange, catalogMeta,
+  loadCatalog, onCatalogChange,
   langColor as colorForLang,
 } from '../data/projects.js';
 import { store, KEYS } from '../core/store.js';
@@ -70,20 +70,8 @@ const PALETTE_LIMIT = 7;
 /** Half-life, in days, of the "recently pushed" part of a star's size in the constellation. */
 const RECENCY_HALF_LIFE = 180;
 
-/** How long the delete button stays armed after the first click, in milliseconds. */
-const CONFIRM_WINDOW_MS = 6000;
-
 /** How often the frames-per-second readout is refreshed, in milliseconds. */
 const HUD_INTERVAL_MS = 400;
-
-/**
- * How long the toast takes to fade out, in milliseconds.
- *
- * It is a little longer than the 200 ms transition in components.css on purpose: the element is
- * given the `hidden` attribute when this elapses, and taking it out of the page a frame early
- * would cut the fade off rather than let it finish.
- */
-const TOAST_FADE_MS = 260;
 
 /** Cluster metadata by id, so a project can be turned into its cluster's name in one lookup. */
 const CLUSTER_BY_ID = new Map(CLUSTERS.map((cluster) => [cluster.id, cluster]));
@@ -220,50 +208,6 @@ function onNextFrame(fn) {
     { priority: 20 },
   );
   pendingFrameJob = remove;
-}
-
-/**
- * Show a short message in the corner. `tone` is one of 'ok', 'warn', 'crit'.
- *
- * The toast carries the `hidden` attribute whenever it is not showing, so between messages it is
- * out of the accessibility tree and out of the layout entirely rather than merely transparent.
- * That attribute has to come off before the class goes on: a browser only animates between two
- * states it has actually laid out, and an element that appears and gains `.toast--visible` in the
- * same tick has no "before" to animate from, so it would pop in. Reading `offsetWidth` in between
- * forces the layout that gives the transition its starting point.
- */
-let toastTimer = 0;
-function toast(message, tone = 'ok') {
-  if (!els.toast) return;
-  // Order matters for the announcement, not only for the fade. A polite live region that is
-  // `display: none` is not in the accessibility tree at all, so text written into it while it is
-  // still hidden is written where nothing is listening. Taking `hidden` off first puts the region
-  // back in the tree, and the text that follows is then a genuine change to a live region, which
-  // every screen reader announces the same way.
-  els.toast.hidden = false;
-  els.toastMsg.textContent = message;
-  els.toast.className = `toast toast--${tone}`;
-  void els.toast.offsetWidth;
-  els.toast.classList.add('toast--visible');
-  window.clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(hideToast, 4200);
-}
-
-/**
- * Take the toast away again.
- *
- * Dropping `.toast--visible` starts the fade; `hidden` can only follow once the fade has run,
- * otherwise the element would be pulled out of the page mid-transition and the message would
- * vanish instead of fading. The same `toastTimer` handle carries that wait, so a new message
- * arriving during the fade cancels it along with everything else.
- */
-function hideToast() {
-  window.clearTimeout(toastTimer);
-  if (!els.toast) return;
-  els.toast.className = 'toast';
-  toastTimer = window.setTimeout(() => {
-    els.toast.hidden = true;
-  }, TOAST_FADE_MS);
 }
 
 /** True when the keyboard is inside a control that expects the character being typed. */
@@ -437,7 +381,6 @@ function applyDensity(id, { persist = true } = {}) {
       shell.style.removeProperty('--sp-section');
     }
   }
-  if (els.densityToggle) els.densityToggle.checked = next === 'compact';
   if (persist) store.set(KEYS.density, next);
 }
 
@@ -459,7 +402,6 @@ function applyDensity(id, { persist = true } = {}) {
  */
 function applyMotionPreference(animate, { persist = true } = {}) {
   document.documentElement.setAttribute('data-motion', animate ? 'full' : 'reduced');
-  if (els.motionToggle) els.motionToggle.checked = animate;
   if (persist) store.set(KEYS.motion, animate ? 'full' : 'reduced');
 }
 
@@ -948,20 +890,6 @@ function paletteItems(rawQuery) {
         scrollTo(els.catalogSection);
       },
     },
-    {
-      title: 'Go to what this page is doing',
-      run: () => {
-        closePalette();
-        scrollTo(els.instrumentSection);
-      },
-    },
-    {
-      title: 'Download my visit log',
-      run: () => {
-        closePalette();
-        void exportTelemetry();
-      },
-    },
   ];
 
   for (const action of actions) {
@@ -1138,184 +1066,22 @@ function wirePalette() {
 }
 
 /* ============================================================================================ *
- * Telemetry: consent, the inspector panel, export and delete
+ * Telemetry
  * ============================================================================================ */
 
 /**
- * Reflect the current consent state on the button inside the panel.
+ * Start the local-only telemetry module.
  *
- * The value can be passed in explicitly, which matters for the cross-tab path: this page's store
- * subscriber may run before telemetry's own, in which case `getConsent()` would still be the old
- * answer while the event already carries the new one.
+ * The inspector panel and the consent banner were removed from the page, so there is no control
+ * left that can grant consent. The module still initialises because `telemetry.track()` is called
+ * throughout this file; without a stored 'granted' consent every one of those calls is a no-op and
+ * nothing is ever written to storage.
  */
-function syncConsentButton(explicit) {
-  const granted = explicit === undefined ? telemetry.getConsent() === 'granted' : explicit === 'granted';
-  els.consentButton.textContent = granted ? 'Recording: on' : 'Recording: off';
-  els.consentButton.setAttribute('aria-pressed', String(granted));
-}
-
-/** Set consent, update the interface, and refresh the panel so the change is visible at once. */
-function setConsent(next) {
-  telemetry.setConsent(next);
-  syncConsentButton();
-  els.consentBanner.hidden = true;
-  void refreshInspector();
-}
-
-/**
- * Draw the inspector: the one-line summary, the per-day bars, and the most recent events.
- *
- * Both reads flush anything still queued first, so a panel opened straight after a click shows
- * that click rather than waiting for the browser's next idle moment.
- */
-async function refreshInspector() {
-  let summary;
-  let events;
-  try {
-    summary = await telemetry.summary();
-    events = await telemetry.query({ limit: 40 });
-  } catch {
-    // The module promises never to reject, but a broken browser build is not worth a dead page.
-    return;
-  }
-
-  const sessions = summary.sessions === 1 ? '1 visit' : `${formatCount(summary.sessions)} visits`;
-  els.telemetrySummary.textContent = summary.total === 0
-    ? 'Nothing recorded in this browser yet.'
-    : `${formatCount(summary.total)} events across ${sessions}, first seen ${formatRelative(summary.firstSeen)}.`;
-
-  els.telemetryStorage.textContent = telemetry.storage === 'indexeddb'
-    ? 'indexeddb'
-    : `memory only — ${telemetry.degradeReason || 'storage unavailable'}`;
-
-  const days = Object.keys(summary.byDay);
-  const counts = days.map((day) => summary.byDay[day]);
-  const peak = counts.reduce((most, value) => Math.max(most, value), 0);
-
-  setChildren(
-    els.telemetryBars,
-    days.map((day, position) =>
-      h('span', {
-        className: counts[position] > 0 && counts[position] === peak ? 'panel__bar panel__bar--peak' : 'panel__bar',
-        // The bar's height is `calc(var(--v) * 100%)`, so --v is this day's share of the busiest.
-        style: { '--v': String(peak > 0 ? counts[position] / peak : 0) },
-        title: `${day}: ${counts[position]}`,
-      }),
-    ),
-  );
-  els.telemetryDayFirst.textContent = days[0] || '';
-  els.telemetryDayLast.textContent = days[days.length - 1] || '';
-
-  setChildren(
-    els.telemetryRows,
-    events.map((event) =>
-      h('tr', { className: 'panel__row' }, [
-        h('td', { className: 'panel__td' }, new Date(event.ts).toLocaleTimeString()),
-        h('td', { className: 'panel__td' }, event.name),
-        h('td', { className: 'panel__td' }, describeProps(event.props)),
-      ]),
-    ),
-  );
-  els.telemetryEmpty.hidden = events.length > 0;
-}
-
-/** Turn an event's properties into one readable line. Values are already sanitised by the module. */
-function describeProps(props) {
-  if (!props) return '';
-  const parts = [];
-  for (const key of Object.keys(props)) parts.push(`${key}=${props[key]}`);
-  return parts.join('  ');
-}
-
-/** Hand the visitor their own data as a file. Nothing is uploaded; the Blob never leaves the tab. */
-async function exportTelemetry() {
-  const summary = await telemetry.summary();
-  const blob = await telemetry.export();
-  if (!blob) {
-    toast('This browser cannot build the download.', 'warn');
-    return;
-  }
-
-  const url = URL.createObjectURL(blob);
-  const link = h('a', { href: url, download: 'worxbend-telemetry.json' });
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  // Revoking immediately can cancel the download in some browsers, so let the click settle first.
-  window.setTimeout(() => URL.revokeObjectURL(url), 2000);
-
-  // Emitted after the export, per the vocabulary note in core/telemetry.js.
-  telemetry.track(EVENT_NAMES.TELEMETRY_EXPORT, { count: summary.total });
-  toast(`Exported ${formatCount(summary.total)} events.`);
-  void refreshInspector();
-}
-
-/**
- * Delete everything, but only on a second click.
- *
- * A two-step button rather than a `confirm()` dialog: this destroys data that cannot be recovered,
- * so it needs a deliberate confirmation, and a native dialog would block the whole page while the
- * WebGL scene is running.
- */
-let clearArmedAt = 0;
-let clearResetTimer = 0;
-
-function disarmClear() {
-  clearArmedAt = 0;
-  window.clearTimeout(clearResetTimer);
-  els.telemetryClear.textContent = 'Delete all';
-}
-
-async function onClearClicked() {
-  const now = Date.now();
-  if (now - clearArmedAt > CONFIRM_WINDOW_MS) {
-    clearArmedAt = now;
-    els.telemetryClear.textContent = 'Click again to delete';
-    toast('This deletes every event stored in this browser. Click again to confirm.', 'warn');
-    window.clearTimeout(clearResetTimer);
-    clearResetTimer = window.setTimeout(disarmClear, CONFIRM_WINDOW_MS);
-    return;
-  }
-
-  disarmClear();
-  const summary = await telemetry.summary();
-  await telemetry.clear();
-  // Tracked after the wipe resolves, otherwise the wipe would delete the record of the wipe.
-  telemetry.track(EVENT_NAMES.TELEMETRY_CLEAR, { count: summary.total });
-  toast(`Deleted ${formatCount(summary.total)} events.`);
-  await refreshInspector();
-}
-
-/** Start telemetry, show the consent banner once, and wire the panel's four buttons. */
 async function wireTelemetry() {
-  const stored = store.get(KEYS.telemetry, null);
   await telemetry.init({});
-  syncConsentButton();
-
-  if (stored !== 'granted' && stored !== 'denied') {
-    if (telemetry.doNotTrack) {
-      els.consentBody.textContent =
-        'Your browser sends a "Do Not Track" signal, so recording stays off. If you turn it on, ' +
-        'the events go into a database inside this browser and are never sent anywhere.';
-    }
-    els.consentBanner.hidden = false;
-  }
-
-  on(els.consentAllow, 'click', () => setConsent('granted'));
-  on(els.consentDeny, 'click', () => setConsent('denied'));
-  on(els.consentButton, 'click', () => {
-    setConsent(telemetry.getConsent() === 'granted' ? 'denied' : 'granted');
-  });
-
-  on(els.telemetryRefresh, 'click', () => void refreshInspector());
-  on(els.telemetryExport, 'click', () => void exportTelemetry());
-  on(els.telemetryClear, 'click', () => void onClearClicked());
-  on(els.telemetryClear, 'blur', disarmClear);
-
   // The first page view waits until here, because `track()` stores nothing until the consent
   // state has been read back out of storage.
   telemetry.page();
-  await refreshInspector();
 }
 
 /* ============================================================================================ *
@@ -1532,15 +1298,12 @@ function cacheElements() {
   els.heroNebula = byId('hero-nebula');
   els.soundToggle = byId('sound-toggle');
 
-  els.provenance = byId('catalog-provenance');
-
   els.content = byId('main');
   els.catalogSection = byId('catalog');
   // Every section's inner column. `applyView` walks this fixed list to give the pointer back to the
   // controls when <main> hands it to the sky, so the toggle is one pass over an array gathered once
   // rather than a query of the document on every switch.
   els.sectionWraps = [...document.querySelectorAll('.section > .wrap')];
-  els.instrumentSection = byId('instrument');
   els.catalogSearch = byId('catalog-search');
   els.catalogClear = byId('catalog-clear');
   els.catalogCount = byId('catalog-count');
@@ -1550,36 +1313,12 @@ function cacheElements() {
   els.viewGrid = byId('view-grid');
   els.viewConstellation = byId('view-constellation');
 
-  els.motionToggle = byId('toggle-motion');
-  els.densityToggle = byId('toggle-density');
-
   els.palette = byId('palette');
   els.paletteDialog = els.palette.querySelector('.palette__dialog');
   els.paletteScrim = byId('palette-scrim');
   els.paletteInput = byId('palette-input');
   els.paletteList = byId('palette-list');
   els.paletteStatus = byId('palette-status');
-
-  els.consentBanner = byId('consent-banner');
-  els.consentBody = byId('consent-body');
-  els.consentAllow = byId('consent-allow');
-  els.consentDeny = byId('consent-deny');
-  els.consentButton = byId('telemetry-consent');
-
-  els.telemetrySummary = byId('telemetry-summary');
-  els.telemetryStorage = byId('telemetry-storage');
-  els.telemetryBars = byId('telemetry-bars');
-  els.telemetryDayFirst = byId('telemetry-day-first');
-  els.telemetryDayLast = byId('telemetry-day-last');
-  els.telemetryRows = byId('telemetry-rows');
-  els.telemetryEmpty = byId('telemetry-empty');
-  els.telemetryRefresh = byId('telemetry-refresh');
-  els.telemetryExport = byId('telemetry-export');
-  els.telemetryClear = byId('telemetry-clear');
-
-  els.toast = byId('toast');
-  els.toastMsg = byId('toast-msg');
-  els.toastClose = byId('toast-close');
 
   els.hud = byId('hud');
   els.hudFps = byId('hud-fps');
@@ -1630,12 +1369,6 @@ function fillFigures({ animate = false } = {}) {
     el.textContent = `${formatCount(count)} ${count === 1 ? 'repository' : 'repositories'}`;
   }
 
-  for (const el of document.querySelectorAll('[data-owner-count]')) {
-    const login = el.dataset.ownerCount;
-    const count = PROJECTS.filter((project) => project.owner === login).length;
-    el.textContent = `${formatCount(count)} ${count === 1 ? 'repository' : 'repositories'}`;
-  }
-
 }
 
 /**
@@ -1660,7 +1393,6 @@ function wireCatalogRefresh() {
     DEFAULT_ORDER = projects.slice().sort(sortDefault);
     index = buildIndex(projects);
     fillFigures();
-    renderProvenance(meta);
     applyQuery();
 
     // The sky is a picture of the catalogue, so a changed catalogue means a changed sky. Remount
@@ -1674,38 +1406,6 @@ function wireCatalogRefresh() {
       failed: Boolean(meta.error),
     });
   }));
-}
-
-/**
- * Say where the catalogue came from and how old it is.
- *
- * A page that quietly shows month-old numbers is worse than one that admits it, so the instrument
- * panel always states which of the four sources answered: a live call, a cached answer still
- * inside its six-hour window, a revalidated one GitHub confirmed unchanged, a stale cache kept
- * because the network failed, or the copy committed alongside the code.
- */
-function renderProvenance(meta = catalogMeta) {
-  if (!els.provenance) return;
-  const when = meta.fetchedAt ? formatRelative(new Date(meta.fetchedAt).toISOString()) : null;
-  const text = {
-    // Nothing has been asked for yet: the seed is on screen and the request is in flight.
-    pending: () => 'Checking GitHub for the current list…',
-    network: () => `Live from the GitHub API, fetched ${when}.`,
-    revalidated: () => `Live from the GitHub API — unchanged since ${when}.`,
-    cache: () => `From this browser's saved copy, fetched ${when}.`,
-    'stale-cache': () =>
-      `GitHub could not be reached, so this is the saved copy from ${when}.`,
-    seed: () =>
-      'GitHub could not be reached, so this is the copy committed with the page. It may be out of date.',
-  }[meta.source];
-  const missing = meta.missing?.length
-    ? ` ${meta.missing.length} of the ${meta.selected} configured repositories did not come back ` +
-      'from GitHub and are not shown.'
-    : '';
-  els.provenance.textContent =
-    `${text ? text() : 'Loading…'} Showing the ${PROJECTS.length} projects named in the site's ` +
-    `catalogue configuration.${missing}`;
-  els.provenance.dataset.source = meta.source;
 }
 
 function wireCatalog() {
@@ -1805,15 +1505,6 @@ function wireThemeAndToggles() {
     on(button, 'click', () => applyTheme(button.dataset.themeId));
   }
 
-  on(els.motionToggle, 'change', () => {
-    applyMotionPreference(els.motionToggle.checked);
-  });
-
-  on(els.densityToggle, 'change', () => {
-    applyDensity(els.densityToggle.checked ? 'compact' : 'comfortable');
-  });
-
-  on(els.toastClose, 'click', hideToast);
 }
 
 /* ============================================================================================ *
@@ -1957,7 +1648,6 @@ function wireMotion() {
       // file wrote, so the attribute the stylesheets read is stamped here as well as in
       // `applyMotionPreference`. Whichever of the two sources moves, the page ends up in step.
       document.documentElement.setAttribute('data-motion', reduced ? 'reduced' : 'full');
-      if (els.motionToggle) els.motionToggle.checked = !reduced;
       if (glyphs) glyphs.setIntensity(reduced ? 0 : glyphIntensityFor(state.theme));
     }),
   );
@@ -1979,7 +1669,6 @@ function wireMotion() {
     store.subscribe(KEYS.theme, (value) => applyTheme(value, { persist: false })),
     store.subscribe(KEYS.view, (value) => applyView(value, { persist: false })),
     store.subscribe(KEYS.density, (value) => applyDensity(value, { persist: false })),
-    store.subscribe(KEYS.telemetry, (value) => syncConsentButton(value)),
   );
 
   on(window, 'hashchange', () => applyRoute());
@@ -2080,11 +1769,6 @@ function boot() {
   applyMotionPreference(!motion.reduced, { persist: false });
 
   fillFigures({ animate: true });
-  renderProvenance();
-  for (const el of document.querySelectorAll('[data-selected-count]')) {
-    el.textContent = String(catalogMeta.selected);
-  }
-
   index = buildIndex(PROJECTS);
   wireCatalogRefresh();
   wireCatalog();
@@ -2150,8 +1834,6 @@ export function dispose() {
     pendingFrameJob = null;
   }
 
-  window.clearTimeout(toastTimer);
-  window.clearTimeout(clearResetTimer);
 
   // `splice(0)` empties each list as it hands the contents over, so calling dispose() twice is
   // harmless rather than a second round of removals.

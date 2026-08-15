@@ -173,35 +173,6 @@ cloud account or the vendor's phone app.
 
 </details>
 
-<details>
-<summary><h2>🧭 The two accounts, and what to expect</h2></summary>
-
-### Two accounts, one person
-
-The work sits in this organisation, `worxbend`, and on my personal account,
-[`w0rxbend`](https://github.com/w0rxbend) (with a **zero**). The split is historical rather than meaningful:
-the organisation came later, and projects already running stayed where they were rather than having their
-links broken. A third, quieter account,
-[`oleksandr-balyshyn`](https://github.com/oleksandr-balyshyn), carries a few newer pieces. Every link above
-is written as `owner/repository` so you can always tell which one you are about to open.
-
-### What this is
-
-- Learning projects for trying languages, frameworks, APIs, desktop stacks and deployment patterns.
-- Personal Linux utilities for workstation setup, fonts, dotfiles and automation.
-- AirGradient and OBS tooling built around my own devices and daily workflow.
-- Small hardware projects where firmware on a microcontroller talks to a server I also wrote.
-- Scratchpad repositories where ideas are tested before being cleaned up or abandoned.
-- AI-assisted experiments that may be messy, useful, incomplete, or all three at once.
-
-### What this is not
-
-- Not production-ready software, and not a promise of stable APIs, releases, packaging or support.
-- Not always idiomatic, perfectly tested or cleanly maintained.
-- Not a portfolio of finished products, and not something to run blindly on important machines.
-
-</details>
-
 <br />
 
 <div align="center">
