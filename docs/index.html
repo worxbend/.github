@@ -147,8 +147,8 @@
           <div class="noscript">
             <h2 class="noscript__title">JavaScript is off</h2>
             <p class="noscript__body">
-              The catalogue renders at runtime. Nothing to render it with. The clusters and both
-              accounts are linked below.
+              The catalogue renders at runtime, so there is nothing here to render it. Links
+              below.
             </p>
             <ul class="noscript__list">
               <li><a class="noscript__link" href="#cluster-streaming">Streaming &amp; OBS</a></li>
@@ -185,8 +185,9 @@
           <p class="stat__label">Open source · every repo on one page</p>
           <h1 id="hero-title">worxbend</h1>
           <p>
-            Terminal dashboards. ESP32 firmware. OBS controllers. Linux provisioning. Scala
-            libraries. Every dot in the sky is one repo, and every repo is below.
+            Tools for my own machine. Terminal dashboards, ESP32 firmware, OBS controllers, Linux
+            provisioning, Scala libraries. Several written twice in different languages, on
+            purpose. One dot per repo, and every repo is below.
           </p>
         </div>
 
@@ -241,10 +242,9 @@
         <div class="section-head">
           <div class="stack stack--tight">
             <p class="stat__label">Clusters</p>
-            <h2 id="clusters-title">Six subjects</h2>
+            <h2 id="clusters-title">What I actually work on</h2>
             <p>
-              Grouped by what the code does. Each group is one constellation up top. Click to
-              filter the catalogue.
+              Grouped by what the code does. One constellation each. Click to filter.
             </p>
           </div>
         </div>
@@ -259,7 +259,8 @@
               <h3 class="cluster__name">Streaming &amp; OBS</h3>
               <p class="cluster__blurb">
                 Drive OBS from a CLI, a TUI or a GTK window. Twitch and YouTube chat in a
-                terminal. Browser-source overlays. Everything that runs while the stream is live.
+                terminal. Browser-source overlays. Built because clicking the mouse mid-stream is
+                how you miss the moment.
               </p>
             </div>
             <p class="card__foot">
@@ -274,7 +275,8 @@
               <h3 class="cluster__name">Air Quality</h3>
               <p class="cluster__blurb">
                 One AirGradient sensor, eight clients: GTK desktop, Android, CLI, GNOME applet,
-                e-paper, LED wall, TV dashboard, Prometheus stack. All over LAN. No cloud account.
+                e-paper, LED wall, TV dashboard, metrics stack. Eight is more than anyone needs.
+                All over LAN, no cloud account.
               </p>
             </div>
             <p class="card__foot">
@@ -288,8 +290,9 @@
               <span class="cluster__glyph" aria-hidden="true">◆</span>
               <h3 class="cluster__name">IoT &amp; Edge</h3>
               <p class="cluster__blurb">
-                ESP32 and ESP8266 firmware: cameras, relays, LED matrices. Raw TCP on the wire.
-                Half of these ship with the server that sits on the other end of the socket.
+                ESP32 and ESP8266 firmware: cameras, relays, LED matrices. Raw TCP on the wire, no
+                HTTP, no JSON, no broker. Half of these ship with the server on the other end of
+                the socket.
               </p>
             </div>
             <p class="card__foot">
@@ -303,8 +306,9 @@
               <span class="cluster__glyph" aria-hidden="true">▣</span>
               <h3 class="cluster__name">Linux &amp; Provisioning</h3>
               <p class="cluster__blurb">
-                Wiped machine to working workstation, driven from YAML in Git. Packages, dotfiles,
-                fonts, pinned binaries. Same tool written four times in four languages.
+                Wiped disk to working workstation, driven from YAML in Git. Packages, dotfiles,
+                fonts, pinned binaries. The same tool exists here four times in four languages,
+                which is how I learned four languages.
               </p>
             </div>
             <p class="card__foot">
@@ -319,7 +323,8 @@
               <h3 class="cluster__name">Scala &amp; JVM</h3>
               <p class="cluster__blurb">
                 Scala 3: compile-time derivation, typed API clients, an auth server, Kafka and
-                Flink pipelines. Plus two Lichess libraries ported to Flix, byte-for-byte.
+                Flink pipelines. Plus two Lichess libraries ported to Flix, where one wrong bit
+                corrupts every stored game.
               </p>
             </div>
             <p class="card__foot">
@@ -334,7 +339,7 @@
               <h3 class="cluster__name">CAD &amp; 3D printing</h3>
               <p class="cluster__blurb">
                 FreeCAD parts, printed to hold the hardware everything else here runs on. Camera
-                housings, SBC mounts, bracket sets.
+                housings, SBC mounts, brackets. Ugly, and they fit.
               </p>
             </div>
             <p class="card__foot">
@@ -354,7 +359,7 @@
         <div class="section-head">
           <div class="stack stack--tight">
             <p class="stat__label">Catalogue</p>
-            <h2 id="catalog-title">All of it</h2>
+            <h2 id="catalog-title">Everything, including the dead ends</h2>
           </div>
           <div class="panel__actions" role="group" aria-label="Catalogue view">
             <button class="btn btn--ghost" type="button" id="view-grid" aria-pressed="true">Grid</button>
@@ -397,7 +402,7 @@
       <div class="wrap">
         <p class="stat__label">worxbend</p>
         <p>
-          Static files. No build step, no bundler, no tracking. Source lives in
+          Static files. No build step, no bundler, no tracking, no server. Source lives in
           <span class="mono">.github/docs</span>.
         </p>
         <ul class="card__topics">

@@ -30,10 +30,11 @@
     </td>
     <td valign="middle">
       <p>
-        <strong>I learn systems by building them. Linux tools, firmware, libraries, and a lot of things written twice.</strong>
+        <strong>Tools for my own machine. Linux utilities, firmware, libraries, and a lot of things written twice.</strong>
       </p>
       <p>
-        Read the code before you run it. Everything here is a summary — the
+        I learn a system by building it, so some of these exist only because I wanted to understand
+        something. Read the code before you run it. This page is a summary — the
         <a href="https://worxbend.github.io/.github/"><strong>project site</strong></a> has every repo,
         searchable.
       </p>
@@ -43,7 +44,7 @@
 
 ## Start here
 
-Six things worth opening first. Everything else is grouped below.
+If you open one thing, open one of these. The rest is grouped below.
 
 | | Project | What it is |
 | --- | --- | --- |
@@ -103,8 +104,9 @@ their own repos. Mill build, reusable pieces under `libs/`.
 <details>
 <summary><h2>🛠️ Linux tooling and provisioning</h2></summary>
 
-Wiped disk to working dev machine, no manual steps. The same tool shows up here four times in four
-languages on purpose: reimplementing something you already understand is a good way to learn a new one.
+Wiped disk to working dev machine, no manual steps. The same tool shows up four times in four
+languages. That is not accidental — rebuilding something you already understand is how you learn a
+language, because the problem stops being the problem.
 
 | Project | What it does | Built with |
 | --- | --- | --- |
@@ -123,6 +125,7 @@ languages on purpose: reimplementing something you already understand is a good 
 <summary><h2>🌬️ IoT: air quality and TCP cameras</h2></summary>
 
 Firmware on small Wi-Fi boards, usually shipped with the server on the other end of the socket.
+Raw TCP, no broker, no cloud.
 
 ### The ESP32-CAM link — three repos, one system
 
@@ -178,6 +181,6 @@ over LAN. No cloud account, no vendor app.
 </div>
 
 <p align="center">
-  <sub>Issues and small PRs welcome, especially for Linux usability, packaging, docs and clear bugs. These are
-  personal tools first, so anything that changes a project's direction will probably get a no.</sub>
+  <sub>No API stability, no release cadence, no support. Issues and small PRs welcome — Linux usability,
+  packaging, docs, clear bugs. Anything that changes a project's direction will probably get a no.</sub>
 </p>
