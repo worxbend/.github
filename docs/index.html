@@ -23,8 +23,8 @@
   })();
 </script>
 
-<title>worxbend — the Foundation Observatory</title>
-<meta name="description" content="worxbend builds instruments: OBS Studio controllers, air-quality readers, camera firmware, Linux provisioning and Scala libraries. Browse the whole open-source catalogue as a constellation.">
+<title>worxbend — every repo, one page</title>
+<meta name="description" content="OBS controllers, ESP32 firmware, air-quality clients, Linux provisioning, Scala libraries. Every public repo, searchable.">
 <!-- One theme-color tag, and ui/app.js rewrites its content from the resolved `--ground` token
      after every theme change. A mobile browser paints its address bar with this value, and the
      theme on this page is a choice the visitor makes here — not a reading of their operating
@@ -41,18 +41,18 @@
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="worxbend">
-<meta property="og:title" content="worxbend — the Foundation Observatory">
-<meta property="og:description" content="Every repository is a star. Size is stargazers and recency, hue is language, and the lines join repositories that share a subject.">
+<meta property="og:title" content="worxbend — every repo, one page">
+<meta property="og:description" content="One dot per repo. Size is stars and recency. Colour is language. Lines join repos in the same cluster.">
 <meta property="og:url" content="https://worxbend.github.io/.github/">
 <!-- Absolute, not relative. Every other URL on this page is relative so the site works from
      any path, but a social-preview crawler is not a browser resolving a document: Slack,
      Discord, Twitter/X and LinkedIn read these tags out of the HTML and fetch what they find,
      and a relative value gives them nothing to resolve against. -->
 <meta property="og:image" content="https://worxbend.github.io/.github/assets/img/og.png">
-<meta property="og:image:alt" content="A dark constellation map of the worxbend repositories.">
+<meta property="og:image:alt" content="A dark constellation map of the worxbend repos.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="worxbend — the Foundation Observatory">
-<meta name="twitter:description" content="Every repository is a star. Size is stargazers and recency, hue is language, and the lines join repositories that share a subject.">
+<meta name="twitter:title" content="worxbend — every repo, one page">
+<meta name="twitter:description" content="One dot per repo. Size is stars and recency. Colour is language. Lines join repos in the same cluster.">
 <meta name="twitter:image" content="https://worxbend.github.io/.github/assets/img/og.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -145,11 +145,10 @@
       <section class="section">
         <div class="wrap">
           <div class="noscript">
-            <h2 class="noscript__title">JavaScript is switched off</h2>
+            <h2 class="noscript__title">JavaScript is off</h2>
             <p class="noscript__body">
-              The catalogue on this page is drawn at runtime, so with scripting disabled there is
-              nothing here to draw it. Everything is still on GitHub, and the subject groups are
-              described further down this page.
+              The catalogue renders at runtime. Nothing to render it with. The clusters and both
+              accounts are linked below.
             </p>
             <ul class="noscript__list">
               <li><a class="noscript__link" href="#cluster-streaming">Streaming &amp; OBS</a></li>
@@ -160,8 +159,8 @@
               <li><a class="noscript__link" href="#cluster-cad">CAD &amp; 3D printing</a></li>
             </ul>
             <ul class="noscript__list">
-              <li><a class="noscript__link" href="https://github.com/worxbend">github.com/worxbend — the organisation</a></li>
-              <li><a class="noscript__link" href="https://github.com/w0rxbend">github.com/w0rxbend — the personal account</a></li>
+              <li><a class="noscript__link" href="https://github.com/worxbend">github.com/worxbend — org</a></li>
+              <li><a class="noscript__link" href="https://github.com/w0rxbend">github.com/w0rxbend — personal</a></li>
             </ul>
           </div>
         </div>
@@ -183,12 +182,11 @@
       </div>
       <div class="wrap">
         <div class="stack stack--tight">
-          <p class="stat__label">Foundation Observatory · est. 2025</p>
+          <p class="stat__label">Open source · every repo on one page</p>
           <h1 id="hero-title">worxbend</h1>
           <p>
-            A workshop that builds instruments — terminal dashboards, air-quality readers, camera
-            firmware, streaming controllers and the small libraries underneath them. Every
-            repository below is a star in the sky behind this text.
+            Terminal dashboards. ESP32 firmware. OBS controllers. Linux provisioning. Scala
+            libraries. Every dot in the sky is one repo, and every repo is below.
           </p>
         </div>
 
@@ -242,12 +240,11 @@
       <div class="wrap">
         <div class="section-head">
           <div class="stack stack--tight">
-            <p class="stat__label">Constellations</p>
-            <h2 id="clusters-title">Six things this workshop keeps coming back to</h2>
+            <p class="stat__label">Clusters</p>
+            <h2 id="clusters-title">Six subjects</h2>
             <p>
-              The catalogue is grouped by subject rather than by language or by account. Each
-              group is one constellation in the sky, and each link below filters the catalogue
-              down to it.
+              Grouped by what the code does. Each group is one constellation up top. Click to
+              filter the catalogue.
             </p>
           </div>
         </div>
@@ -261,8 +258,8 @@
               <span class="cluster__glyph" aria-hidden="true">◈</span>
               <h3 class="cluster__name">Streaming &amp; OBS</h3>
               <p class="cluster__blurb">
-                Controllers, dashboards and browser overlays for OBS Studio, plus chat clients and
-                bots for Twitch and YouTube — everything that runs while a live stream is on air.
+                Drive OBS from a CLI, a TUI or a GTK window. Twitch and YouTube chat in a
+                terminal. Browser-source overlays. Everything that runs while the stream is live.
               </p>
             </div>
             <p class="card__foot">
@@ -276,9 +273,8 @@
               <span class="cluster__glyph" aria-hidden="true">◇</span>
               <h3 class="cluster__name">Air Quality</h3>
               <p class="cluster__blurb">
-                Ways of reading an AirGradient air-quality monitor: a desktop window, a phone app,
-                a terminal, a panel icon, an e-paper screen, a wall of LEDs and a metrics stack —
-                all talking to the sensor on the local network rather than to a cloud account.
+                One AirGradient sensor, eight clients: GTK desktop, Android, CLI, GNOME applet,
+                e-paper, LED wall, TV dashboard, Prometheus stack. All over LAN. No cloud account.
               </p>
             </div>
             <p class="card__foot">
@@ -292,9 +288,8 @@
               <span class="cluster__glyph" aria-hidden="true">◆</span>
               <h3 class="cluster__name">IoT &amp; Edge</h3>
               <p class="cluster__blurb">
-                Firmware for small Wi-Fi microcontroller boards — cameras, relays, LED panels —
-                together with the network services on the other end of the wire that receive their
-                frames and send them commands.
+                ESP32 and ESP8266 firmware: cameras, relays, LED matrices. Raw TCP on the wire.
+                Half of these ship with the server that sits on the other end of the socket.
               </p>
             </div>
             <p class="card__foot">
@@ -308,9 +303,8 @@
               <span class="cluster__glyph" aria-hidden="true">▣</span>
               <h3 class="cluster__name">Linux &amp; Provisioning</h3>
               <p class="cluster__blurb">
-                Tools that take a fresh Linux machine, or a homelab of them, and bring it to a
-                known state from files kept in version control: packages, dotfiles, fonts,
-                binaries and monitoring.
+                Wiped machine to working workstation, driven from YAML in Git. Packages, dotfiles,
+                fonts, pinned binaries. Same tool written four times in four languages.
               </p>
             </div>
             <p class="card__foot">
@@ -324,9 +318,8 @@
               <span class="cluster__glyph" aria-hidden="true">⬡</span>
               <h3 class="cluster__name">Scala &amp; JVM</h3>
               <p class="cluster__blurb">
-                Libraries and services for the Java Virtual Machine, mostly written in Scala 3 —
-                API clients, an authentication server, data pipelines and ports of existing
-                libraries to the Flix language.
+                Scala 3: compile-time derivation, typed API clients, an auth server, Kafka and
+                Flink pipelines. Plus two Lichess libraries ported to Flix, byte-for-byte.
               </p>
             </div>
             <p class="card__foot">
@@ -340,9 +333,8 @@
               <span class="cluster__glyph" aria-hidden="true">⬢</span>
               <h3 class="cluster__name">CAD &amp; 3D printing</h3>
               <p class="cluster__blurb">
-                Parts drawn in FreeCAD, the open-source computer-aided design program, and printed
-                to hold the hardware the rest of this catalogue runs on: camera housings,
-                single-board-computer mounts and bracket sets.
+                FreeCAD parts, printed to hold the hardware everything else here runs on. Camera
+                housings, SBC mounts, bracket sets.
               </p>
             </div>
             <p class="card__foot">
@@ -362,7 +354,7 @@
         <div class="section-head">
           <div class="stack stack--tight">
             <p class="stat__label">Catalogue</p>
-            <h2 id="catalog-title">Every repository, searchable</h2>
+            <h2 id="catalog-title">All of it</h2>
           </div>
           <div class="panel__actions" role="group" aria-label="Catalogue view">
             <button class="btn btn--ghost" type="button" id="view-grid" aria-pressed="true">Grid</button>
@@ -378,7 +370,7 @@
             <span class="palette__glyph" aria-hidden="true">⌕</span>
             <label class="sr-only" for="catalog-search">Search the catalogue</label>
             <input class="palette__input" id="catalog-search" type="search" autocomplete="off"
-                   spellcheck="false" placeholder="Search by name, topic or language — try lang:rust">
+                   spellcheck="false" placeholder="name, topic, language — try lang:rust">
             <button class="palette__esc" type="button" id="catalog-clear" hidden>clear</button>
           </div>
 
@@ -403,16 +395,15 @@
 
     <footer class="section">
       <div class="wrap">
-        <p class="stat__label">worxbend · Foundation Observatory</p>
+        <p class="stat__label">worxbend</p>
         <p>
-          Static files, no build step, no bundler and no tracking. Source for this page lives in
-          the <span class="mono">.github</span> repository under
-          <span class="mono">docs/</span>.
+          Static files. No build step, no bundler, no tracking. Source lives in
+          <span class="mono">.github/docs</span>.
         </p>
         <ul class="card__topics">
           <li><a class="chip" href="https://github.com/worxbend">worxbend</a></li>
           <li><a class="chip" href="https://github.com/w0rxbend">w0rxbend</a></li>
-          <li><a class="chip" href="https://github.com/worxbend/.github">this repository</a></li>
+          <li><a class="chip" href="https://github.com/worxbend/.github">this repo</a></li>
         </ul>
       </div>
     </footer>
