@@ -55,8 +55,9 @@ export const SECTIONS = [
     glyph: '◈',
     blurb:
       'Controllers, dashboards and browser overlays for OBS Studio — the free program most live ' +
-      'streamers use to mix their video — plus chat clients and bots for Twitch and YouTube. ' +
-      'Everything here runs while a stream is on air.',
+      'streamers use to mix their video — plus chat clients and bots for Twitch and YouTube, and ' +
+      'a desk display that shows a channel’s live figures on hardware of its own. Everything here ' +
+      'runs while a stream is on air.',
     repos: [
       'worxbend/obsctl',
       'worxbend/obsctl-rs',
@@ -66,6 +67,7 @@ export const SECTIONS = [
       'worxbend/twi',
       'worxbend/yc',
       'worxbend/streaming-tools-site',
+      'worxbend/twitch-screen',
       'w0rxbend/obs-effects',
       'w0rxbend/twitch-vizer',
       'w0rxbend/twitch-voxer',
@@ -139,8 +141,8 @@ export const SECTIONS = [
     glyph: '⬡',
     blurb:
       'Libraries and services for the Java Virtual Machine, mostly written in Scala 3: printers ' +
-      'and terminal toolkits, API clients for Git hosting, a computer-vision binding, and ports ' +
-      'of existing libraries to the Flix language.',
+      'and terminal toolkits, API clients for Git hosting, a computer-vision binding, a browser ' +
+      'console for Apache Kafka, and ports of existing libraries to the Flix language.',
     repos: [
       'worxbend/worxbend',
       'oleksandr-balyshyn/glyphora',
@@ -149,6 +151,7 @@ export const SECTIONS = [
       'worxbend/gitea-scala-client',
       'w0rxbend/compression-flix',
       'w0rxbend/scalachess-flix',
+      'w0rxbend/kui',
       'w0rxbend/Zephyr',
     ],
   },

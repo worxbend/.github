@@ -143,6 +143,11 @@ export const COPY = {
     desc:
       'A keyboard-first Twitch chat client that runs in a terminal window instead of a browser. Written in Go, it reads and sends messages across several channels over IRC (the long-standing chat protocol Twitch still speaks), ships 13 colour themes, and keeps OAuth login tokens out of its log output.',
   },
+  'worxbend/twitch-screen': {
+    tagline: 'Desk display for a Twitch channel’s live figures',
+    desc:
+      'A build-it-yourself desk gadget that puts a Twitch channel on a physical 240x240 round screen: whether the stream is live, viewer count, uptime, followers, subscribers and how busy chat is, with animated cards for follows, subscriptions, gifts, cheers and raids. Three halves ship in one repository — C++ firmware for an ESP32 microcontroller board, a Scala 3 relay that does all the talking to Twitch and pushes updates over a single long-lived TCP connection, and a four-part printable enclosure drawn in FreeCAD. The relay can be run against a scripted, simulated audience first, with no Twitch account and no hardware.',
+  },
   'worxbend/worxbend': {
     tagline: 'Monorepo of Scala tools, libraries and notes',
     desc:
@@ -187,6 +192,11 @@ export const COPY = {
     tagline: 'TCP frame server for the spycam ESP32 cameras',
     desc:
       'A Go service that listens on a raw TCP socket (a plain network connection with no HTTP, JSON or text framing on top) and receives JPEG camera frames pushed by the spycam and spycam-s3 firmware. It is the server half of that camera link: once frames arrive it republishes them through an HTTP interface, restreaming proxies, optional detection and upscaling, and a timelapse recorder.',
+  },
+  'w0rxbend/kui': {
+    tagline: 'Browser console for operating Apache Kafka',
+    desc:
+      'A web console for running Apache Kafka, the system many organisations use to move streams of events between their services. It replaces the usual handful of separate tools with one screen: broker and cluster health, topics and their partitions, a record browser that decodes Avro, Protobuf and JSON Schema payloads through a Schema Registry, consumer lag with previewed offset resets, Kafka Connect and ksqlDB, and a live alert feed. The services are written in Scala 3 and publish OpenAPI contracts that generate the TypeScript client its SolidJS interface uses. Each area keeps working when an optional service is unavailable, and anything destructive needs a previewed plan and a confirmation token.',
   },
   'w0rxbend/led-matrix-controller': {
     tagline: 'ESP8266 firmware for a WS2812B 8x8 LED matrix',
