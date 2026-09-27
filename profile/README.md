@@ -71,6 +71,7 @@ Everything that runs while the stream is live. Most of it drives OBS over **obs-
 | [worxbend/twi](https://github.com/worxbend/twi) | Twitch chat over IRC in a terminal. Multiple channels, 13 themes. | Go |
 | [worxbend/yc](https://github.com/worxbend/yc) | YouTube live chat in a terminal, with the daily API quota on screen. 58 themes. | Go |
 | [worxbend/streaming-tools-site](https://github.com/worxbend/streaming-tools-site) | Interactive map of how these tools wire into OBS, Twitch and YouTube. [obs.worxbend.com](https://obs.worxbend.com) | JavaScript, PixiJS |
+| [worxbend/twitch-screen](https://github.com/worxbend/twitch-screen) | A 240x240 round LCD on the desk: live/offline, viewers, uptime, followers, subs, chat activity, and animated cards for follows, gifts, cheers and raids. Relay, firmware and printable shell in one repo. | Scala 3, C++, ESP32 |
 | [w0rxbend/obs-effects](https://github.com/w0rxbend/obs-effects) | Animated transparent overlays, dropped into OBS as browser sources. [obs-effects.worxbend.com](https://obs-effects.worxbend.com) | TypeScript, PixiJS 8 |
 | [w0rxbend/twitch-voxer](https://github.com/w0rxbend/twitch-voxer) | Reads chat aloud. Detects Ukrainian or English, pins one voice per chatter. | Python |
 | [w0rxbend/twitch-vizer](https://github.com/w0rxbend/twitch-vizer) | Alerts for follows, subs, cheers and raids, off Twitch EventSub. | Python, TypeScript |
@@ -95,6 +96,7 @@ their own repos. Mill build, reusable pieces under `libs/`.
 | [w0rxbend/shield](https://github.com/w0rxbend/shield) | Self-hostable auth server, wire-compatible with SuperTokens clients. | Scala 3, ZIO |
 | [w0rxbend/compression-flix](https://github.com/w0rxbend/compression-flix) | Lichess clock and move compression ported to Flix, byte-for-byte. One differing bit would invalidate every stored game. | Flix |
 | [w0rxbend/scalachess-flix](https://github.com/w0rxbend/scalachess-flix) | Lichess chess rules in Flix, checked against the upstream fixtures. Not a drop-in replacement. | Flix |
+| [w0rxbend/kui](https://github.com/w0rxbend/kui) | Kafka console in a browser. Topics, records, consumer lag, schemas, Connect, ksqlDB — one screen instead of five tools. Scala 3 services publish the OpenAPI contract the frontend client is generated from. | Scala 3, SolidJS |
 | [w0rxbend/data-engineering](https://github.com/w0rxbend/data-engineering) | Kafka, Kafka Connect and Flink sandbox, with a custom partitioner for the S3 sink. | Scala, Kafka |
 | [worxbend/playground](https://github.com/worxbend/playground) | One event-streaming service, three web frameworks, side by side. | Scala 3, Kafka |
 | [worxbend/worxbend](https://github.com/worxbend/worxbend) | The monorepo: small Scala apps, the libraries above, deploy recipes, notes. | Scala, Mill |
