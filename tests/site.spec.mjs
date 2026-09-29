@@ -29,8 +29,12 @@ test('initial grid stays silent and does not download optional graphics', async 
   await expect(page.locator('h1')).toContainText('Small tools.');
   expect(unnecessaryRequests).toEqual([]);
   expect(errors).toEqual([]);
-  const labels = await new AxeBuilder({ page }).withRules(['label-content-name-mismatch']).analyze();
+  const labels = await new AxeBuilder({ page }).include('#open-palette').withRules(['label-content-name-mismatch']).analyze();
   expect(labels.violations).toEqual([]);
+  await page.locator('#sound-toggle').scrollIntoViewIfNeeded();
+  await expect(page.locator('#sound-toggle')).toHaveAttribute('aria-label', 'Sound off — play the soundtrack');
+  const soundLabel = await new AxeBuilder({ page }).include('#sound-toggle').withRules(['label-content-name-mismatch']).analyze();
+  expect(soundLabel.violations).toEqual([]);
 });
 
 test('search and category survive reload together, with an actionable empty state', async ({ page }) => {

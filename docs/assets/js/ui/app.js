@@ -1602,7 +1602,7 @@ function renderSoundToggle() {
   els.soundToggle.setAttribute('aria-pressed', String(sound.playing));
   els.soundToggle.classList.toggle('btn--sound-on', sound.playing);
   els.soundToggle.textContent = sound.playing ? 'Sound on' : 'Sound off';
-  els.soundToggle.setAttribute('aria-label', sound.playing ? 'Pause the soundtrack' : 'Play the soundtrack');
+  els.soundToggle.setAttribute('aria-label', sound.playing ? 'Sound on — pause the soundtrack' : 'Sound off — play the soundtrack');
 }
 
 /**
