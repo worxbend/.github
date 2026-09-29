@@ -221,6 +221,7 @@ export async function fetchCatalog({ seed = [], force = false } = {}) {
       fetchedAt: cached.fetchedAt,
       error: null,
       accounts: cached.accounts || [],
+      partial: Boolean(cached.partial),
     };
   }
 
@@ -285,7 +286,7 @@ export async function fetchCatalog({ seed = [], force = false } = {}) {
     // than exceptional: fall back to whatever is on hand and say so.
     if (cached) {
       return { repos: cached.repos, source: 'stale-cache', fetchedAt: cached.fetchedAt,
-               error, accounts: cached.accounts || [] };
+               error, accounts: cached.accounts || [], partial: Boolean(cached.partial) };
     }
     return { repos: seed, source: 'seed', fetchedAt: null, error, accounts: [] };
   } finally {

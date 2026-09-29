@@ -11,7 +11,7 @@
  *
  * To change how a repository reads on the site, edit overrides.js — not this file.
  *
- * Captured 2026-09-27T10:27:03+00:00
+ * Captured 2026-09-29T07:46:59+00:00
  */
 
 /** Every public repository on the three accounts, in the same shape a live response produces. */
@@ -25,8 +25,177 @@ export const SEED = [
     "lang": "Shell",
     "stars": 3,
     "forks": 1,
+    "updated": "2026-09-28",
+    "topics": [],
+    "isFork": false,
+    "isArchived": false
+  },
+  {
+    "name": "streaming-tools-site",
+    "owner": "worxbend",
+    "url": "https://github.com/worxbend/streaming-tools-site",
+    "home": "obs.worxbend.com",
+    "description": "",
+    "lang": "JavaScript",
+    "stars": 1,
+    "forks": 0,
+    "updated": "2026-09-28",
+    "topics": [],
+    "isFork": false,
+    "isArchived": false
+  },
+  {
+    "name": "fluxion.cr",
+    "owner": "worxbend",
+    "url": "https://github.com/worxbend/fluxion.cr",
+    "home": "https://worxbend.github.io/fluxion.cr/",
+    "description": "Turn a fresh Linux machine into your machine. One YAML file, one preview, one run. CLI or TUI.",
+    "lang": "Crystal",
+    "stars": 0,
+    "forks": 0,
+    "updated": "2026-09-28",
+    "topics": [
+      "bootstrap",
+      "cli",
+      "crystal",
+      "dotfiles",
+      "linux",
+      "provisioning",
+      "tui",
+      "workstation"
+    ],
+    "isFork": false,
+    "isArchived": false
+  },
+  {
+    "name": "macropad-nyxilab",
+    "owner": "worxbend",
+    "url": "https://github.com/worxbend/macropad-nyxilab",
+    "home": "",
+    "description": "Hand-wired Pico 2 macropad: 3D-printable 3-layer wedge case (build123d), 12 MX keys, two ST7789 displays, thumbstick, PlatformIO firmware",
+    "lang": "Python",
+    "stars": 0,
+    "forks": 0,
+    "updated": "2026-09-28",
+    "topics": [],
+    "isFork": false,
+    "isArchived": false
+  },
+  {
+    "name": "obs-effects",
+    "owner": "w0rxbend",
+    "url": "https://github.com/w0rxbend/obs-effects",
+    "home": "https://w0rxbend.github.io/obs-effects/",
+    "description": "A collection of GPU-accelerated PixiJS 8 overlays and animated screens for use as OBS Browser Sources.",
+    "lang": "TypeScript",
+    "stars": 0,
+    "forks": 0,
+    "updated": "2026-09-28",
+    "topics": [
+      "obs",
+      "obs-background",
+      "obs-effects",
+      "obs-overlay",
+      "obs-overlays"
+    ],
+    "isFork": false,
+    "isArchived": false
+  },
+  {
+    "name": "ubuntu-bootstrap",
+    "owner": "w0rxbend",
+    "url": "https://github.com/w0rxbend/ubuntu-bootstrap",
+    "home": "",
+    "description": "Ubuntu 26.04 LTS workstation bootstrap with fluxion: apt/Docker/toolchains/flatpaks/GNOME, dotbot dotfiles from system-bootstrap, agent skills, tested",
+    "lang": "Shell",
+    "stars": 0,
+    "forks": 0,
+    "updated": "2026-09-28",
+    "topics": [
+      "bootstrap",
+      "dotfiles",
+      "fluxion",
+      "gnome",
+      "ubuntu",
+      "ubuntu-2604",
+      "workstation-setup"
+    ],
+    "isFork": false,
+    "isArchived": false
+  },
+  {
+    "name": "Zephyr",
+    "owner": "w0rxbend",
+    "url": "https://github.com/w0rxbend/Zephyr",
+    "home": "",
+    "description": "",
+    "lang": "Kotlin",
+    "stars": 0,
+    "forks": 0,
+    "updated": "2026-09-28",
+    "topics": [],
+    "isFork": false,
+    "isArchived": false
+  },
+  {
+    "name": "kui",
+    "owner": "w0rxbend",
+    "url": "https://github.com/w0rxbend/kui",
+    "home": "",
+    "description": "Kafka ops, minus the tab chaos — a resilient web console for topics, messages, consumer lag, schemas, Connect, ksqlDB, and live metrics.",
+    "lang": "Scala",
+    "stars": 1,
+    "forks": 1,
+    "updated": "2026-09-27",
+    "topics": [
+      "apache-kafka",
+      "developer-tools",
+      "docker",
+      "event-streaming",
+      "kafka",
+      "kafka-connect",
+      "kafka-management",
+      "kafka-ui",
+      "ksqldb",
+      "observability",
+      "scala3",
+      "schema-registry"
+    ],
+    "isFork": false,
+    "isArchived": false
+  },
+  {
+    "name": ".github",
+    "owner": "worxbend",
+    "url": "https://github.com/worxbend/.github",
+    "home": "",
+    "description": "",
+    "lang": "Python",
+    "stars": 0,
+    "forks": 0,
     "updated": "2026-09-27",
     "topics": [],
+    "isFork": false,
+    "isArchived": false
+  },
+  {
+    "name": "plastic-lighthouse",
+    "owner": "w0rxbend",
+    "url": "https://github.com/w0rxbend/plastic-lighthouse",
+    "home": "",
+    "description": "Printable mini softbox for a plain E27 bulb: parametric Python (manifold3d), round & square, fits Bambu A1 mini",
+    "lang": "Python",
+    "stars": 0,
+    "forks": 0,
+    "updated": "2026-09-27",
+    "topics": [
+      "3d-printing",
+      "bambu-lab",
+      "e27",
+      "manifold3d",
+      "parametric",
+      "softbox"
+    ],
     "isFork": false,
     "isArchived": false
   },
@@ -42,6 +211,30 @@ export const SEED = [
     "updated": "2026-09-26",
     "topics": [
       "scala"
+    ],
+    "isFork": false,
+    "isArchived": false
+  },
+  {
+    "name": "obsctl-rs",
+    "owner": "worxbend",
+    "url": "https://github.com/worxbend/obsctl-rs",
+    "home": "",
+    "description": "A local OBS Studio controller for obs-websocket 5.x, written in Rust with Ratatui.",
+    "lang": "Rust",
+    "stars": 1,
+    "forks": 0,
+    "updated": "2026-09-26",
+    "topics": [
+      "obs",
+      "obs-cli",
+      "obs-client",
+      "obs-control",
+      "obs-studio",
+      "ratatui",
+      "ratatui-rs",
+      "rust",
+      "tui"
     ],
     "isFork": false,
     "isArchived": false
@@ -89,30 +282,6 @@ export const SEED = [
     "isArchived": false
   },
   {
-    "name": "obsctl-rs",
-    "owner": "worxbend",
-    "url": "https://github.com/worxbend/obsctl-rs",
-    "home": "",
-    "description": "A local OBS Studio controller for obs-websocket 5.x, written in Rust with Ratatui.",
-    "lang": "Rust",
-    "stars": 0,
-    "forks": 0,
-    "updated": "2026-09-26",
-    "topics": [
-      "obs",
-      "obs-cli",
-      "obs-client",
-      "obs-control",
-      "obs-studio",
-      "ratatui",
-      "ratatui-rs",
-      "rust",
-      "tui"
-    ],
-    "isFork": false,
-    "isArchived": false
-  },
-  {
     "name": "twitch-screen",
     "owner": "worxbend",
     "url": "https://github.com/worxbend/twitch-screen",
@@ -141,26 +310,6 @@ export const SEED = [
     "isArchived": false
   },
   {
-    "name": "obs-effects",
-    "owner": "w0rxbend",
-    "url": "https://github.com/w0rxbend/obs-effects",
-    "home": "https://w0rxbend.github.io/obs-effects/",
-    "description": "A collection of GPU-accelerated PixiJS 8 overlays and animated screens for use as OBS Browser Sources.",
-    "lang": "TypeScript",
-    "stars": 0,
-    "forks": 0,
-    "updated": "2026-09-25",
-    "topics": [
-      "obs",
-      "obs-background",
-      "obs-effects",
-      "obs-overlay",
-      "obs-overlays"
-    ],
-    "isFork": false,
-    "isArchived": false
-  },
-  {
     "name": "fluxion",
     "owner": "worxbend",
     "url": "https://github.com/worxbend/fluxion",
@@ -182,47 +331,6 @@ export const SEED = [
     "description": "Scala 3 API for OpenCV 4.13",
     "lang": "Scala",
     "stars": 1,
-    "forks": 0,
-    "updated": "2026-09-24",
-    "topics": [],
-    "isFork": false,
-    "isArchived": false
-  },
-  {
-    "name": "kui",
-    "owner": "w0rxbend",
-    "url": "https://github.com/w0rxbend/kui",
-    "home": "",
-    "description": "Kafka ops, minus the tab chaos — a resilient web console for topics, messages, consumer lag, schemas, Connect, ksqlDB, and live metrics.",
-    "lang": "Scala",
-    "stars": 1,
-    "forks": 1,
-    "updated": "2026-09-24",
-    "topics": [
-      "apache-kafka",
-      "developer-tools",
-      "docker",
-      "event-streaming",
-      "kafka",
-      "kafka-connect",
-      "kafka-management",
-      "kafka-ui",
-      "ksqldb",
-      "observability",
-      "scala3",
-      "schema-registry"
-    ],
-    "isFork": false,
-    "isArchived": false
-  },
-  {
-    "name": "Zephyr",
-    "owner": "w0rxbend",
-    "url": "https://github.com/w0rxbend/Zephyr",
-    "home": "",
-    "description": "",
-    "lang": "Kotlin",
-    "stars": 0,
     "forks": 0,
     "updated": "2026-09-24",
     "topics": [],
@@ -271,7 +379,7 @@ export const SEED = [
     "home": "",
     "description": "CLI/TUI for controlling OBS Studio through obs-websocket 5.x.",
     "lang": "Crystal",
-    "stars": 3,
+    "stars": 4,
     "forks": 0,
     "updated": "2026-09-22",
     "topics": [],
@@ -733,29 +841,6 @@ export const SEED = [
     "isArchived": false
   },
   {
-    "name": "fluxion.cr",
-    "owner": "worxbend",
-    "url": "https://github.com/worxbend/fluxion.cr",
-    "home": "https://worxbend.github.io/fluxion.cr/",
-    "description": "Turn a fresh Linux machine into your machine. One YAML file, one preview, one run. CLI or TUI.",
-    "lang": "Crystal",
-    "stars": 0,
-    "forks": 0,
-    "updated": "2026-08-23",
-    "topics": [
-      "bootstrap",
-      "cli",
-      "crystal",
-      "dotfiles",
-      "linux",
-      "provisioning",
-      "tui",
-      "workstation"
-    ],
-    "isFork": false,
-    "isArchived": false
-  },
-  {
     "name": "airgradient-cli",
     "owner": "worxbend",
     "url": "https://github.com/worxbend/airgradient-cli",
@@ -916,34 +1001,6 @@ export const SEED = [
     "updated": "2026-08-21",
     "topics": [],
     "isFork": true,
-    "isArchived": false
-  },
-  {
-    "name": "streaming-tools-site",
-    "owner": "worxbend",
-    "url": "https://github.com/worxbend/streaming-tools-site",
-    "home": "obs.worxbend.com",
-    "description": "",
-    "lang": "JavaScript",
-    "stars": 1,
-    "forks": 0,
-    "updated": "2026-08-16",
-    "topics": [],
-    "isFork": false,
-    "isArchived": false
-  },
-  {
-    "name": ".github",
-    "owner": "worxbend",
-    "url": "https://github.com/worxbend/.github",
-    "home": "",
-    "description": "",
-    "lang": "Python",
-    "stars": 0,
-    "forks": 0,
-    "updated": "2026-08-16",
-    "topics": [],
-    "isFork": false,
     "isArchived": false
   },
   {

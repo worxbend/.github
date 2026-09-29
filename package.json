@@ -1,0 +1,13 @@
+{
+  "name": "worxbend-workshop-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test scripts/site.test.mjs",
+    "test:browser": "playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0"
+  }
+}

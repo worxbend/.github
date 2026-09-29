@@ -391,6 +391,19 @@ export function focusTrap(element, { initial = null, restore = true } = {}) {
   let released = false;
   /** Set when we had to make a non-focusable container focusable, so it can be undone. */
   let addedTabIndex = false;
+  // A modal must also hide background controls from pointer and screen-reader navigation.
+  // Walk up to body because the dialog may be nested inside a scrim or site shell.
+  const background = [];
+  for (let branch = element; branch.parentElement; branch = branch.parentElement) {
+    for (const sibling of branch.parentElement.children) {
+      if (sibling === branch || !(sibling instanceof HTMLElement) || sibling.contains(element) || sibling.id === 'palette-scrim') continue;
+      background.push({ element: sibling, inert: sibling.inert });
+      sibling.inert = true;
+    }
+    if (branch.parentElement === document.body) break;
+  }
+  const previousOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
 
   const focusables = () => [...element.querySelectorAll(FOCUSABLE_SELECTOR)].filter(isVisible);
 
@@ -453,6 +466,8 @@ export function focusTrap(element, { initial = null, restore = true } = {}) {
     document.removeEventListener('keydown', onKeyDown, true);
     document.removeEventListener('focusin', onFocusIn, true);
     if (addedTabIndex) element.removeAttribute('tabindex');
+    for (const entry of background) entry.element.inert = entry.inert;
+    document.body.style.overflow = previousOverflow;
     // Only restore if the element that opened the dialog is still on the page; putting focus on a
     // removed node drops it to <body>, which is worse than leaving it alone.
     if (restore && previous && previous.isConnected) previous.focus();

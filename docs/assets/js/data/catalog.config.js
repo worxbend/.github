@@ -54,10 +54,7 @@ export const SECTIONS = [
     name: 'Streaming & OBS',
     glyph: '◈',
     blurb:
-      'Controllers, dashboards and browser overlays for OBS Studio — the free program most live ' +
-      'streamers use to mix their video — plus chat clients and bots for Twitch and YouTube, and ' +
-      'a desk display that shows a channel’s live figures on hardware of its own. Everything here ' +
-      'runs while a stream is on air.',
+      'OBS controllers, streaming dashboards and browser overlays. Chat tools for Twitch and YouTube, plus a dedicated desk display for your channel’s live figures.',
     repos: [
       'worxbend/obsctl',
       'worxbend/obsctl-rs',
@@ -79,10 +76,7 @@ export const SECTIONS = [
     name: 'Air Quality',
     glyph: '◇',
     blurb:
-      'Ways of reading an AirGradient air-quality monitor: a desktop window, a phone app, a ' +
-      'terminal, a panel icon, an e-paper screen, a wall of LEDs, a television dashboard and a ' +
-      'metrics stack — all talking to the sensor on the local network rather than to a cloud ' +
-      'account.',
+      'Keep an eye on your air through desktop, phone, terminal and hardware displays. AirGradient clients that connect over your local network, without a cloud account.',
     repos: [
       'worxbend/airgradient-desktop',
       'worxbend/airgradient-android',
@@ -99,9 +93,7 @@ export const SECTIONS = [
     name: 'IoT & Edge',
     glyph: '◆',
     blurb:
-      'Firmware in C++ for small Wi-Fi microcontroller boards — ESP32 cameras, relays and LED ' +
-      'panels — together with the network services on the other end of the wire that receive ' +
-      'their frames and send them commands.',
+      'C++ firmware for ESP32 cameras, relays and LED panels, paired with the network services that receive their frames and send commands back.',
     repos: [
       'w0rxbend/spycam',
       'w0rxbend/spycam-s3',
@@ -118,9 +110,7 @@ export const SECTIONS = [
     name: 'Linux & Provisioning',
     glyph: '▣',
     blurb:
-      'Tools that take a fresh Linux machine, or a homelab of them, and bring it to a known state ' +
-      'from files kept in version control — packages, dotfiles, fonts, binaries and monitoring — ' +
-      'plus the desktop applications that sit on top.',
+      'Bring Linux machines and homelabs to a known state with version-controlled packages, dotfiles, fonts and monitoring. Practical desktop tools complete the setup.',
     repos: [
       'worxbend/fluxion.cr',
       'worxbend/fluxion',
@@ -131,7 +121,6 @@ export const SECTIONS = [
       'w0rxbend/system-bootstrap',
       'w0rxbend/infrastruct',
       'w0rxbend/ops-dashboard',
-      'w0rxbend/codefolio',
       'oleksandr-balyshyn/deskctl',
     ],
   },
@@ -140,9 +129,7 @@ export const SECTIONS = [
     name: 'Scala & JVM',
     glyph: '⬡',
     blurb:
-      'Libraries and services for the Java Virtual Machine, mostly written in Scala 3: printers ' +
-      'and terminal toolkits, API clients for Git hosting, a computer-vision binding, a browser ' +
-      'console for Apache Kafka, and ports of existing libraries to the Flix language.',
+      'Scala and JVM libraries for terminals, Git hosting and computer vision. Explore Kafka tooling, services and ports of existing libraries to Flix.',
     repos: [
       'worxbend/worxbend',
       'oleksandr-balyshyn/glyphora',
@@ -160,9 +147,7 @@ export const SECTIONS = [
     name: 'CAD & 3D printing',
     glyph: '⬢',
     blurb:
-      'Parts drawn in FreeCAD, the open-source computer-aided design program, and printed to hold ' +
-      'the hardware the rest of this catalogue runs on: camera housings, single-board-computer ' +
-      'mounts and bracket sets.',
+      'FreeCAD designs for the hardware behind the software: printable camera housings, single-board-computer mounts and bracket sets, ready to adapt for your own setup.',
     repos: [
       'w0rxbend/FreeCAD-Projects',
     ],

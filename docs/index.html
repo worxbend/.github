@@ -3,11 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<!-- No-flash theme guard. This has to run before any stylesheet is applied, and it has to be
-     inline and synchronous: an external file would be a second network round trip, during which
-     the page would paint in the wrong palette and then visibly repaint. The value is JSON-encoded
-     because core/store.js writes every preference through JSON.stringify. -->
 <script>
   (function () {
     var THEMES = ['foundation', 'matrix', 'blueprint', 'nebula', 'solar'];
@@ -23,54 +18,33 @@
   })();
 </script>
 
-<title>worxbend — every repo, one page</title>
-<meta name="description" content="OBS controllers, ESP32 firmware, air-quality clients, Linux provisioning, Scala libraries. Every public repo, searchable.">
-<!-- One theme-color tag, and ui/app.js rewrites its content from the resolved `--ground` token
-     after every theme change. A mobile browser paints its address bar with this value, and the
-     theme on this page is a choice the visitor makes here — not a reading of their operating
-     system — so keying two tags to `prefers-color-scheme` would leave the bar showing a palette
-     nobody selected. The value below is the default theme's ground, used for the first paint.
-     `color-scheme` itself is declared per theme in tokens.css, where the palette lives. -->
-<meta name="theme-color" content="#05060B">
+<title>worxbend — an open-source workshop</title>
+<meta name="description" content="Explore a curated collection of open-source tools for Linux, live streaming, air quality, connected hardware, and more.">
+<meta name="theme-color" content="#101211">
 <link rel="canonical" href="https://worxbend.github.io/.github/">
-
-<!-- An SVG icon covers every modern browser at every size. The PNG is the fallback for the few
-     places that still will not take a vector — chiefly an iOS home-screen shortcut. -->
 <link rel="icon" href="./assets/img/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./assets/img/apple-touch-icon.png">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="worxbend">
-<meta property="og:title" content="worxbend — every repo, one page">
-<meta property="og:description" content="One dot per repo. Size is stars and recency. Colour is language. Lines join repos in the same cluster.">
+<meta property="og:title" content="worxbend — an open-source workshop">
+<meta property="og:description" content="Small tools. Real possibilities. Discover open-source projects for the desktop, the stream, and the things in between.">
 <meta property="og:url" content="https://worxbend.github.io/.github/">
-<!-- Absolute, not relative. Every other URL on this page is relative so the site works from
-     any path, but a social-preview crawler is not a browser resolving a document: Slack,
-     Discord, Twitter/X and LinkedIn read these tags out of the HTML and fetch what they find,
-     and a relative value gives them nothing to resolve against. -->
 <meta property="og:image" content="https://worxbend.github.io/.github/assets/img/og.png">
-<meta property="og:image:alt" content="A dark constellation map of the worxbend repos.">
+<meta property="og:image:alt" content="worxbend — an open-source workshop. Small tools. Real possibilities.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="worxbend — every repo, one page">
-<meta name="twitter:description" content="One dot per repo. Size is stars and recency. Colour is language. Lines join repos in the same cluster.">
+<meta name="twitter:title" content="worxbend — an open-source workshop">
+<meta name="twitter:description" content="Small tools. Real possibilities. Discover open-source projects for the desktop, the stream, and the things in between.">
 <meta name="twitter:image" content="https://worxbend.github.io/.github/assets/img/og.png">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Manrope:wght@400;500;700&amp;display=swap">
-
-<!-- Load order is a dependency order: tokens defines every colour, base resets and sets type,
-     layout places the regions, components decorate them, motion animates them. -->
+<link rel="preload" href="./assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="./assets/css/fonts.css">
 <link rel="stylesheet" href="./assets/css/tokens.css">
 <link rel="stylesheet" href="./assets/css/base.css">
 <link rel="stylesheet" href="./assets/css/layout.css">
 <link rel="stylesheet" href="./assets/css/components.css">
 <link rel="stylesheet" href="./assets/css/motion.css">
-
-<!-- The two graphics libraries are the only third-party code on the page. An import map lets the
-     modules write `import * as THREE from 'three'` while the browser fetches them from a content
-     delivery network, with no bundler in between. Both are optional at runtime: if either fetch
-     fails, ui/app.js catches it and the page carries on without that layer. -->
+<link rel="stylesheet" href="./assets/css/workshop.css">
 <script type="importmap">
 {
   "imports": {
@@ -85,14 +59,7 @@
 <body>
 
 <a class="skip-link" href="#main">Skip to content</a>
-
-<!-- `--rail-size` is the height the layout reserves for the top bar on narrow screens. It is set
-     here rather than left at its default because components.css re-declares `.rail` as a column,
-     which stacks the bar's three groups instead of laying them in a row. -->
-<div class="shell" style="--rail-size: 7.5rem">
-
-  <!-- Both canvases are decoration and are hidden from assistive technology. Everything they
-       show — the catalogue, the clusters, the counts — is also present as real text below. -->
+<div class="shell">
   <canvas class="scene" id="scene" aria-hidden="true"></canvas>
   <canvas class="glyphs" id="glyphs" aria-hidden="true"></canvas>
   <div class="veil" aria-hidden="true"></div>
@@ -104,41 +71,29 @@
       <a class="wordmark" href="#hero">
         <span class="wordmark__tile" aria-hidden="true">&gt;_</span>
         <span class="wordmark__name">worxbend</span>
-        <span class="wordmark__pill">org</span>
+
       </a>
     </div>
 
     <nav class="rail-nav" id="rail-nav" aria-label="Sections">
-      <a class="rail__link" href="#hero">Overview</a>
-      <a class="rail__link" href="#clusters">Clusters</a>
-      <a class="rail__link" href="#catalog">Catalogue</a>
+      <a class="rail__link" href="#clusters">Work</a>
+      <a class="rail__link" href="#catalog">Explore</a>
+      <a class="rail__link" href="https://github.com/worxbend">GitHub <span aria-hidden="true">↗</span></a>
     </nav>
 
     <div class="rail-coords">
-      <button class="btn btn--icon" id="open-palette" type="button" aria-label="Open the command palette (Control or Command and K)">
-        <span aria-hidden="true">⌘K</span>
+      <button class="btn btn--icon" id="open-palette" type="button" aria-label="Search ⌘K — open command palette (Control or Command and K)">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><span class="search-label">Search</span><kbd aria-hidden="true">⌘K</kbd>
       </button>
-      <!-- Each swatch shows the colour of the theme it selects. An ordinary token is no use here,
-           because a token only ever holds the theme that is currently active — all five swatches
-           would come out the same colour. So tokens.css defines five extra ones,
-           --swatch-foundation through --swatch-solar, outside any theme block: each is that
-           theme's accent, adjusted where it needed adjusting to stay readable against every
-           ground. Writing the hex values here instead would duplicate tokens.css and drift the
-           first time an accent is retuned for contrast, which has already happened once. -->
-      <div class="rail__themes" id="theme-picker" role="group" aria-label="Colour theme">
+      <details class="appearance"><summary aria-label="Choose colour theme"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg></summary><div class="rail__themes" id="theme-picker" role="group" aria-label="Colour theme">
         <button class="rail__swatch" type="button" data-theme-id="foundation" aria-pressed="false" aria-label="Foundation theme" style="--swatch: var(--swatch-foundation)"></button>
         <button class="rail__swatch" type="button" data-theme-id="matrix" aria-pressed="false" aria-label="Matrix theme" style="--swatch: var(--swatch-matrix)"></button>
         <button class="rail__swatch" type="button" data-theme-id="blueprint" aria-pressed="false" aria-label="Blueprint theme" style="--swatch: var(--swatch-blueprint)"></button>
         <button class="rail__swatch" type="button" data-theme-id="nebula" aria-pressed="false" aria-label="Nebula theme" style="--swatch: var(--swatch-nebula)"></button>
         <button class="rail__swatch" type="button" data-theme-id="solar" aria-pressed="false" aria-label="Solar theme, the light one" style="--swatch: var(--swatch-solar)"></button>
-      </div>
+      </div></details>
     </div>
   </header>
-
-  <!-- `tabindex="-1"` makes this region focusable by script and by a fragment link, without
-       putting it in the tab order. Without it, Safari with VoiceOver follows the skip link by
-       scrolling here but leaves the keyboard back on the link, so the next Tab returns the
-       visitor to the navigation the link exists to skip past. -->
   <main class="content" id="main" tabindex="-1">
 
     <noscript>
@@ -147,8 +102,7 @@
           <div class="noscript">
             <h2 class="noscript__title">JavaScript is off</h2>
             <p class="noscript__body">
-              The catalogue renders at runtime, so there is nothing here to render it. Links
-              below.
+              The interactive catalogue needs JavaScript. Browse the project areas below or visit the repositories directly on GitHub.
             </p>
             <ul class="noscript__list">
               <li><a class="noscript__link" href="#cluster-streaming">Streaming &amp; OBS</a></li>
@@ -166,50 +120,22 @@
         </div>
       </section>
     </noscript>
-
-    <!-- ================================================================================
-         Hero
-         ================================================================================ -->
     <section class="section section--hero" id="hero" aria-labelledby="hero-title">
-      <!-- The singularity. A three.js layer (fx/singularity.js) draws a cloud of six thousand
-           particles that slowly melts between four forms — a spiral galaxy, a torus knot, a
-           sphere and a wave. It is not a panel: the layer floats over the whole hero with a
-           transparent ground, drawn above the text and buttons but with pointer-events off, so
-           nothing under it loses a click. If the library cannot load the canvas stays empty and
-           invisible, and the hero is unchanged. Decoration only, hence aria-hidden. -->
-      <div class="hero-fx" aria-hidden="true">
-        <canvas class="hero-fx__canvas" id="hero-nebula"></canvas>
-      </div>
       <div class="wrap">
-        <div class="stack stack--tight">
-          <p class="stat__label">Open source · every repo on one page</p>
-          <h1 id="hero-title">worxbend</h1>
-          <p>
-            Tools for my own machine. Terminal dashboards, ESP32 firmware, OBS controllers, Linux
-            provisioning, Scala libraries. Several written twice in different languages, on
-            purpose. One dot per repo, and every repo is below.
-          </p>
+        <div class="hero-composition">
+          <div class="hero-copy">
+            <h1 id="hero-title">Small tools.<br><span>Real possibilities.</span></h1>
+            <p class="hero-intro">An open-source workshop for the desktop, the stream, and the things in between.</p>
+            <div class="banner__actions">
+              <a class="btn btn--primary" href="#catalog">Explore projects <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a>
+              <button class="btn" type="button" id="hero-search">Find a repository</button>
+            </div>
+          </div>
+          <figure class="hero-art" aria-hidden="true">
+            <img src="./assets/img/orbital-workshop-800.webp" srcset="./assets/img/orbital-workshop-480.webp 480w, ./assets/img/orbital-workshop-800.webp 800w, ./assets/img/orbital-workshop-transparent.webp 1254w" sizes="(max-width: 760px) 70vw, (max-width: 1100px) 45vw, 560px" width="1254" height="1254" alt="" fetchpriority="high" decoding="async">
+          </figure>
         </div>
-
-
-        <div class="banner__actions">
-          <a class="btn btn--primary" href="#catalog">Browse the catalogue</a>
-          <button class="btn" type="button" id="hero-search">Search projects</button>
-          <a class="btn btn--ghost" href="https://github.com/worxbend">Open GitHub</a>
-          <!-- The soundtrack toggle. The track starts on the visitor's first click or key press
-               anywhere on the page — the closest thing to autoplay a browser permits, since no
-               browser will start audible sound without a user gesture — and this button pauses
-               it or starts it again. A pause is remembered, so a visitor who switched the music
-               off stays in silence on every later visit. While the track plays, the particle
-               cloud above listens to it through a WebAudio analyser and moves with the music;
-               see wireSound() in ui/app.js. -->
-          <button class="btn btn--ghost" type="button" id="sound-toggle" aria-pressed="false"
-                  aria-label="Play the soundtrack and let the particles move with it">
-            <span aria-hidden="true">♪</span> Sound
-          </button>
-        </div>
-
-        <div class="grid" style="--col-min: 9rem">
+        <div class="hero-stats">
           <div class="stat">
             <span class="stat__figure u-tabular" data-stat="repos">—</span>
             <span class="stat__label">Repositories</span>
@@ -233,212 +159,131 @@
         </div>
       </div>
     </section>
-
-    <!-- ================================================================================
-         Clusters
-         ================================================================================ -->
     <section class="section" id="clusters" aria-labelledby="clusters-title">
       <div class="wrap">
         <div class="section-head">
           <div class="stack stack--tight">
-            <p class="stat__label">Clusters</p>
-            <h2 id="clusters-title">What I actually work on</h2>
+            <h2 id="clusters-title">Built out of curiosity.</h2>
             <p>
-              Grouped by what the code does. One constellation each. Click to filter.
+              From live streams to living spaces. Explore the areas that connect the work.
             </p>
           </div>
         </div>
-
-        <!-- Rebuilt from assets/js/data/catalog.config.js as soon as the script runs, so this
-             markup is the no-JavaScript fallback rather than the source of truth. Editing a
-             section here changes nothing for a visitor with scripting on; edit the config. -->
-        <ul class="grid" id="cluster-grid" style="--col-min: 20rem">
+        <ul class="grid" id="cluster-grid">
           <li class="card" id="cluster-streaming">
             <div class="cluster">
-              <span class="cluster__glyph" aria-hidden="true">◈</span>
+              <span class="cluster__glyph" aria-hidden="true">01</span>
               <h3 class="cluster__name">Streaming &amp; OBS</h3>
-              <p class="cluster__blurb">
-                Drive OBS from a CLI, a TUI or a GTK window. Twitch and YouTube chat in a
-                terminal. Browser-source overlays. Built because clicking the mouse mid-stream is
-                how you miss the moment.
-              </p>
+              <p class="cluster__blurb">OBS controllers, streaming dashboards and browser overlays. Chat tools for Twitch and YouTube, plus a dedicated desk display for your channel’s live figures.</p>
             </div>
-            <p class="card__foot">
-              <span class="cluster__count" data-cluster-count="streaming">—</span>
-              <a class="chip" href="#/c/streaming">Filter catalogue</a>
-            </p>
+            <p class="card__foot"><a class="chip" href="https://github.com/worxbend/obsctl" aria-label="Explore Streaming &amp; OBS on GitHub">Explore on GitHub</a></p>
           </li>
-
           <li class="card" id="cluster-air">
             <div class="cluster">
-              <span class="cluster__glyph" aria-hidden="true">◇</span>
+              <span class="cluster__glyph" aria-hidden="true">02</span>
               <h3 class="cluster__name">Air Quality</h3>
-              <p class="cluster__blurb">
-                One AirGradient sensor, eight clients: GTK desktop, Android, CLI, GNOME applet,
-                e-paper, LED wall, TV dashboard, metrics stack. Eight is more than anyone needs.
-                All over LAN, no cloud account.
-              </p>
+              <p class="cluster__blurb">Keep an eye on your air through desktop, phone, terminal and hardware displays. AirGradient clients that connect over your local network, without a cloud account.</p>
             </div>
-            <p class="card__foot">
-              <span class="cluster__count" data-cluster-count="air">—</span>
-              <a class="chip" href="#/c/air">Filter catalogue</a>
-            </p>
+            <p class="card__foot"><a class="chip" href="https://github.com/worxbend/airgradient-desktop" aria-label="Explore Air Quality on GitHub">Explore on GitHub</a></p>
           </li>
-
           <li class="card" id="cluster-iot">
             <div class="cluster">
-              <span class="cluster__glyph" aria-hidden="true">◆</span>
+              <span class="cluster__glyph" aria-hidden="true">03</span>
               <h3 class="cluster__name">IoT &amp; Edge</h3>
-              <p class="cluster__blurb">
-                ESP32 and ESP8266 firmware: cameras, relays, LED matrices. Raw TCP on the wire, no
-                HTTP, no JSON, no broker. Half of these ship with the server on the other end of
-                the socket.
-              </p>
+              <p class="cluster__blurb">C++ firmware for ESP32 cameras, relays and LED panels, paired with the network services that receive their frames and send commands back.</p>
             </div>
-            <p class="card__foot">
-              <span class="cluster__count" data-cluster-count="iot">—</span>
-              <a class="chip" href="#/c/iot">Filter catalogue</a>
-            </p>
+            <p class="card__foot"><a class="chip" href="https://github.com/w0rxbend/spycam" aria-label="Explore IoT &amp; Edge on GitHub">Explore on GitHub</a></p>
           </li>
-
           <li class="card" id="cluster-linux">
             <div class="cluster">
-              <span class="cluster__glyph" aria-hidden="true">▣</span>
+              <span class="cluster__glyph" aria-hidden="true">04</span>
               <h3 class="cluster__name">Linux &amp; Provisioning</h3>
-              <p class="cluster__blurb">
-                Wiped disk to working workstation, driven from YAML in Git. Packages, dotfiles,
-                fonts, pinned binaries. The same tool exists here four times in four languages,
-                which is how I learned four languages.
-              </p>
+              <p class="cluster__blurb">Bring Linux machines and homelabs to a known state with version-controlled packages, dotfiles, fonts and monitoring. Practical desktop tools complete the setup.</p>
             </div>
-            <p class="card__foot">
-              <span class="cluster__count" data-cluster-count="linux">—</span>
-              <a class="chip" href="#/c/linux">Filter catalogue</a>
-            </p>
+            <p class="card__foot"><a class="chip" href="https://github.com/worxbend/fluxion.cr" aria-label="Explore Linux &amp; Provisioning on GitHub">Explore on GitHub</a></p>
           </li>
-
           <li class="card" id="cluster-scala">
             <div class="cluster">
-              <span class="cluster__glyph" aria-hidden="true">⬡</span>
+              <span class="cluster__glyph" aria-hidden="true">05</span>
               <h3 class="cluster__name">Scala &amp; JVM</h3>
-              <p class="cluster__blurb">
-                Scala 3: compile-time derivation, typed API clients, an auth server, Kafka and
-                Flink pipelines. Plus two Lichess libraries ported to Flix, where one wrong bit
-                corrupts every stored game.
-              </p>
+              <p class="cluster__blurb">Scala and JVM libraries for terminals, Git hosting and computer vision. Explore Kafka tooling, services and ports of existing libraries to Flix.</p>
             </div>
-            <p class="card__foot">
-              <span class="cluster__count" data-cluster-count="scala">—</span>
-              <a class="chip" href="#/c/scala">Filter catalogue</a>
-            </p>
+            <p class="card__foot"><a class="chip" href="https://github.com/worxbend/worxbend" aria-label="Explore Scala &amp; JVM on GitHub">Explore on GitHub</a></p>
           </li>
-
           <li class="card" id="cluster-cad">
             <div class="cluster">
-              <span class="cluster__glyph" aria-hidden="true">⬢</span>
+              <span class="cluster__glyph" aria-hidden="true">06</span>
               <h3 class="cluster__name">CAD &amp; 3D printing</h3>
-              <p class="cluster__blurb">
-                FreeCAD parts, printed to hold the hardware everything else here runs on. Camera
-                housings, SBC mounts, brackets. Ugly, and they fit.
-              </p>
+              <p class="cluster__blurb">FreeCAD designs for the hardware behind the software: printable camera housings, single-board-computer mounts and bracket sets, ready to adapt for your own setup.</p>
             </div>
-            <p class="card__foot">
-              <span class="cluster__count" data-cluster-count="cad">—</span>
-              <a class="chip" href="#/c/cad">Filter catalogue</a>
-            </p>
+            <p class="card__foot"><a class="chip" href="https://github.com/w0rxbend/FreeCAD-Projects" aria-label="Explore CAD &amp; 3D printing on GitHub">Explore on GitHub</a></p>
           </li>
         </ul>
       </div>
     </section>
-
-    <!-- ================================================================================
-         Catalogue
-         ================================================================================ -->
     <section class="section" id="catalog" aria-labelledby="catalog-title">
       <div class="wrap">
         <div class="section-head">
           <div class="stack stack--tight">
-            <p class="stat__label">Catalogue</p>
-            <h2 id="catalog-title">Everything, including the dead ends</h2>
+            <h2 id="catalog-title">Find your next rabbit hole.</h2>
           </div>
           <div class="panel__actions" role="group" aria-label="Catalogue view">
             <button class="btn btn--ghost" type="button" id="view-grid" aria-pressed="true">Grid</button>
             <button class="btn btn--ghost" type="button" id="view-constellation" aria-pressed="false">Constellation</button>
           </div>
         </div>
-
-        <!-- Search box, filter chips and result count are one control group, so they are stacked
-             tightly together and the section's usual rhythm falls between the group and the grid
-             below it rather than between each of the three. -->
         <div class="stack stack--tight">
           <div class="palette__field palette__field--inline">
-            <span class="palette__glyph" aria-hidden="true">⌕</span>
+            <svg class="palette__glyph icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
             <label class="sr-only" for="catalog-search">Search the catalogue</label>
             <input class="palette__input" id="catalog-search" type="search" autocomplete="off"
-                   spellcheck="false" placeholder="name, topic, language — try lang:rust">
+                   spellcheck="false" placeholder="Search by name, topic, or language…">
             <button class="palette__esc" type="button" id="catalog-clear" hidden>clear</button>
           </div>
-
-          <!-- Also rebuilt from assets/js/data/catalog.config.js — one chip per section. -->
           <ul class="card__topics chips--filter" id="filter-chips" aria-label="Filter by cluster">
             <li><button class="chip" type="button" data-filter="" aria-pressed="true">All</button></li>
           </ul>
-
-          <!-- The polite live region. Screen readers announce a change here without interrupting
-               whatever is already being read, which is what "polite" means. -->
-          <p class="cluster__count" id="catalog-count" role="status" aria-live="polite">Loading the catalogue…</p>
+          <div class="catalog-status"><p class="cluster__count" id="catalog-count" role="status" aria-live="polite">Loading the catalogue…</p><p class="cluster__count" id="catalog-source"></p></div>
         </div>
-
-        <!-- Populated by ui/app.js. It is never hidden: in constellation view it gains
-             .catalog--compact and becomes one dense column beside the sky, so every card stays
-             visible, readable and reachable by keyboard whichever view is showing. -->
         <div class="catalog" id="catalog-grid"></div>
 
         <div id="star-detail" hidden></div>
       </div>
     </section>
 
-    <footer class="section">
+    <footer class="section footer">
       <div class="wrap">
-        <p class="stat__label">worxbend</p>
-        <p>
-          Static files. No build step, no bundler, no tracking, no server. Source lives in
-          <span class="mono">.github/docs</span>.
-        </p>
-        <ul class="card__topics">
-          <li><a class="chip" href="https://github.com/worxbend">worxbend</a></li>
-          <li><a class="chip" href="https://github.com/w0rxbend">w0rxbend</a></li>
-          <li><a class="chip" href="https://github.com/worxbend/.github">this repo</a></li>
-        </ul>
+        <div class="footer-main">
+          <div class="stack stack--tight">
+            <a class="wordmark" href="#hero">worxbend<span class="footer-dot" aria-hidden="true">.</span></a>
+            <p>Made to be useful. Shared to be built on.</p>
+          </div>
+          <a class="footer-source" href="https://github.com/worxbend/.github">Explore the source <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"/></svg></a>
+        </div>
+        <div class="footer-bottom">
+          <p>A curated collection. Open source, always.</p>
+          <div class="footer-settings" role="group" aria-label="Site preferences">
+            <button class="btn btn--ghost" type="button" id="motion-toggle" aria-pressed="true">Motion on</button>
+            <button class="btn btn--ghost" type="button" id="sound-toggle" aria-pressed="false" aria-label="Play the soundtrack">Sound off</button>
+            <a href="https://github.com/w0rxbend">Personal GitHub</a>
+          </div>
+        </div>
       </div>
     </footer>
   </main>
-
-  <!-- ==================================================================================
-       Command palette. It is a direct child of .shell rather than of a .wrap, because
-       .wrap is a container-query container and would become the containing block for a
-       fixed-position descendant.
-       ================================================================================== -->
   <div class="palette" id="palette" hidden>
     <div class="palette__scrim" id="palette-scrim"></div>
     <div class="palette__dialog" role="dialog" aria-modal="true" aria-labelledby="palette-label">
       <h2 class="sr-only" id="palette-label">Command palette</h2>
       <div class="palette__field">
         <span class="palette__glyph" aria-hidden="true">&gt;</span>
-        <!-- `aria-expanded` starts false and is rewritten by ui/app.js on every keystroke: it
-             means "there is a list of results open below this field", which is not true of an
-             empty palette and not true of a search that matched nothing. -->
         <input class="palette__input" id="palette-input" type="text" role="combobox"
-               aria-expanded="false" aria-controls="palette-list" aria-autocomplete="list"
+               aria-expanded="false" aria-controls="palette-list" aria-autocomplete="list" aria-label="Search projects and commands"
                autocomplete="off" spellcheck="false"
                placeholder="Jump to a project, a theme or a section">
         <span class="palette__esc" aria-hidden="true">esc</span>
       </div>
       <ul class="palette__list" id="palette-list" role="listbox" aria-label="Palette results"></ul>
-      <!-- How many results there are, in words, for anyone who cannot see the list. The keyboard
-           stays in the text field while the palette is open — that is what a combobox is — so a
-           screen reader never enters the list and never reads it out. This region is announced
-           whenever ui/app.js changes its text, without interrupting whatever is being spoken. -->
       <p class="sr-only" id="palette-status" role="status" aria-live="polite"></p>
       <p class="palette__hint">
         <span>↑↓ move</span>

@@ -277,6 +277,7 @@ export const PROJECTS = buildProjects(SEED);
 /** Where the current contents came from, and when. The page shows this in the instrument panel. */
 export const catalogMeta = {
   source: 'pending',
+  partial: false,
   fetchedAt: null,
   error: null,
   accounts: [],
@@ -310,10 +311,17 @@ export async function loadCatalog({ force = false } = {}) {
   const result = await fetchCatalog({ seed: SEED, force });
   const next = buildProjects(result.repos);
 
-  catalogMeta.source = result.source;
-  catalogMeta.fetchedAt = result.fetchedAt;
-  catalogMeta.error = result.error || null;
-  catalogMeta.accounts = result.accounts || [];
+  if (next.length > 0) {
+    catalogMeta.partial = Boolean(result.partial);
+    catalogMeta.source = result.source;
+    catalogMeta.fetchedAt = result.fetchedAt;
+    catalogMeta.error = result.error || null;
+    catalogMeta.accounts = result.accounts || [];
+  } else {
+    // The displayed rows are unchanged, so do not label a rejected empty refresh as live data.
+    catalogMeta.source = catalogMeta.fetchedAt ? 'stale-cache' : 'seed';
+    catalogMeta.error = result.error || new Error('GitHub returned no selected repositories');
+  }
 
   // An empty answer is treated as a failure rather than as "there are no repositories", because
   // wiping a full catalogue is far worse than showing a slightly old one.

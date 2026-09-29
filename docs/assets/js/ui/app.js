@@ -27,7 +27,7 @@
 
 import {
   OWNERS, CLUSTERS, LANGS, PROJECTS, byCluster, stats,
-  loadCatalog, onCatalogChange,
+  loadCatalog, onCatalogChange, catalogMeta,
   langColor as colorForLang,
 } from '../data/projects.js';
 import { store, KEYS } from '../core/store.js';
@@ -350,7 +350,12 @@ function applyView(id, { persist = true } = {}) {
   if (els.content) els.content.style.pointerEvents = passThrough ? 'none' : '';
   for (const wrap of els.sectionWraps) wrap.style.pointerEvents = passThrough ? 'auto' : '';
 
-  if (next === 'constellation') renderStarDetail(state.selected);
+  if (next === 'constellation') {
+    renderStarDetail(state.selected);
+    void mountEffects();
+  } else {
+    stopEffects();
+  }
 
   if (persist) store.set(KEYS.view, next);
   if (previous !== null) telemetry.track(EVENT_NAMES.VIEW_CHANGE, { from: previous, to: next });
@@ -402,6 +407,11 @@ function applyDensity(id, { persist = true } = {}) {
  */
 function applyMotionPreference(animate, { persist = true } = {}) {
   document.documentElement.setAttribute('data-motion', animate ? 'full' : 'reduced');
+  const toggle = byId('motion-toggle');
+  if (toggle) {
+    toggle.setAttribute('aria-pressed', String(animate));
+    toggle.textContent = animate ? 'Motion on' : 'Motion off';
+  }
   if (persist) store.set(KEYS.motion, animate ? 'full' : 'reduced');
 }
 
@@ -514,6 +524,33 @@ function buildCard(project, idPrefix = 'card') {
   return { root, project, titleLink, tagline, desc };
 }
 
+/** Refresh metadata in place while retaining the card and its primary link. */
+function refreshCard(entry, project) {
+  if (entry.project === project) return entry;
+  const fresh = buildCard(project);
+  const focused = entry.root.contains(document.activeElement) ? document.activeElement : null;
+  const focusedTopic = focused?.dataset.topic;
+  const focusedHref = focused?.getAttribute('href');
+
+  entry.project = project;
+  entry.root.classList.toggle('card--featured', Boolean(project.featured));
+  const languageColor = colorForLang(project.lang);
+  if (languageColor) entry.root.style.setProperty('--lang', languageColor);
+  else entry.root.style.removeProperty('--lang');
+  // The fresh factory applies the same URL validation used for the initial card.
+  entry.titleLink.setAttribute('href', fresh.titleLink.getAttribute('href'));
+  for (const selector of ['.card__head', '.card__topics', '.card__foot']) {
+    entry.root.querySelector(selector).replaceWith(fresh.root.querySelector(selector));
+  }
+  if (focused && !focused.isConnected) {
+    const replacement = [...entry.root.querySelectorAll('button, a')].find((element) =>
+      focusedTopic ? element.dataset.topic === focusedTopic
+        : focusedHref && element.getAttribute('href') === focusedHref);
+    (replacement || entry.titleLink).focus({ preventScroll: true });
+  }
+  return entry;
+}
+
 /** Get the grid card for a project, building it the first time it is needed. */
 function cardFor(project) {
   let entry = cardCache.get(project.id);
@@ -521,7 +558,7 @@ function cardFor(project) {
     entry = buildCard(project);
     cardCache.set(project.id, entry);
   }
-  return entry;
+  return refreshCard(entry, project);
 }
 
 /**
@@ -537,7 +574,7 @@ function starCardFor(project) {
     entry = buildCard(project, 'star-card');
     starCardCache.set(project.id, entry);
   }
-  return entry;
+  return refreshCard(entry, project);
 }
 
 /**
@@ -616,7 +653,7 @@ function renderStarDetail(id) {
 
   const entry = starCardFor(project);
   updateCard(entry, null);
-  setChildren(els.starDetail, entry.root);
+  if (els.starDetail.firstElementChild !== entry.root) setChildren(els.starDetail, entry.root);
   els.starDetailLink = entry.titleLink;
 }
 
@@ -743,7 +780,8 @@ function parseRoute(hash) {
   if (slash === -1) return { kind: 'none' };
 
   const kind = body.slice(0, slash);
-  let value = body.slice(slash + 1);
+  const [encodedValue, parameters = ''] = body.slice(slash + 1).split('?');
+  let value = encodedValue;
   try {
     value = decodeURIComponent(value);
   } catch {
@@ -752,7 +790,7 @@ function parseRoute(hash) {
   if (!value) return { kind: 'none' };
   if (kind === 'p') return { kind: 'project', value };
   if (kind === 'c') return { kind: 'cluster', value };
-  if (kind === 'q') return { kind: 'query', value };
+  if (kind === 'q') return { kind: 'query', value, cluster: new URLSearchParams(parameters).get('cluster') || '' };
   return { kind: 'none' };
 }
 
@@ -779,6 +817,17 @@ function writeRoute(hash) {
   telemetry.page();
 }
 
+/** Preserve both controls in a shareable catalogue URL. */
+function writeCatalogRoute() {
+  const query = state.query.trim();
+  const cluster = encodeURIComponent(state.cluster);
+  if (query) {
+    writeRoute(`#/q/${encodeURIComponent(query)}${cluster ? `?cluster=${cluster}` : ''}`);
+  } else {
+    writeRoute(cluster ? `#/c/${cluster}` : '');
+  }
+}
+
 /** Apply whatever route is currently in the address bar. */
 function applyRoute({ initial = false } = {}) {
   if (applyingRoute) return;
@@ -802,7 +851,7 @@ function applyRoute({ initial = false } = {}) {
     }
 
     if (route.kind === 'query') {
-      setCluster('');
+      setCluster(route.cluster);
       setQuery(route.value, { immediate: true });
       scrollTo(els.catalogSection);
       if (!initial) telemetry.track(EVENT_NAMES.SEARCH_OPEN, { via: 'hash' });
@@ -1006,17 +1055,18 @@ function wirePalette() {
   });
 
   on(els.paletteInput, 'keydown', (event) => {
+    if (event.isComposing) return;
     if (event.key === 'ArrowDown') {
       event.preventDefault();
       movePaletteSelection(1);
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
       movePaletteSelection(-1);
-    } else if (event.key === 'Home') {
+    } else if (event.key === 'Home' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
       palette.active = 0;
       renderPalette();
-    } else if (event.key === 'End') {
+    } else if (event.key === 'End' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
       palette.active = Math.max(0, palette.items.length - 1);
       renderPalette();
@@ -1027,8 +1077,11 @@ function wirePalette() {
     }
   });
 
-  // Pointer selection. `mousedown` rather than `click`, so the input never loses focus first.
+  // Keep input focus on mouse press, but activate on click so touch scrolling never selects.
   on(els.paletteList, 'mousedown', (event) => {
+    if (event.button === 0) event.preventDefault();
+  });
+  on(els.paletteList, 'click', (event) => {
     const row = event.target.closest('[data-position]');
     if (!row) return;
     event.preventDefault();
@@ -1049,6 +1102,7 @@ function wirePalette() {
   on(els.heroSearch, 'click', () => openPalette('button'));
 
   on(document, 'keydown', (event) => {
+    if (event.isComposing || event.defaultPrevented) return;
     // Control-K on Windows and Linux, Command-K on a Mac.
     if ((event.ctrlKey || event.metaKey) && (event.key === 'k' || event.key === 'K')) {
       event.preventDefault();
@@ -1058,7 +1112,7 @@ function wirePalette() {
     }
     // "/" is the other conventional search key, but only when the visitor is not already typing
     // a slash into a field — a search for "lang:rust" contains no slash, but a URL does.
-    if (event.key === '/' && !palette.open && !isTypingTarget(event.target)) {
+    if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey && !palette.open && !isTypingTarget(event.target)) {
       event.preventDefault();
       openPalette('shortcut');
     }
@@ -1111,119 +1165,51 @@ function constellationNodes() {
   });
 }
 
-/**
- * Mount both canvases.
- *
- * Note the dynamic `import()`. `fx/cosmos.js` imports three.js at the top of the file, which means
- * a failure to fetch three.js takes that whole module down — and a static import here would take
- * *this* module down with it, leaving a blank page. A dynamic import is an expression, so the
- * failure lands in the catch and the catalogue below carries on working. `fx/glyphs.js` already
- * imports PixiJS dynamically for the same reason, but it is loaded the same way for symmetry.
- *
- * When the sky cannot be drawn, `no-webgl` goes on <html> and motion.css takes over with a
- * CSS-only drifting starfield. A failure of the glyph layer alone does not set that class: there
- * is no CSS fallback for glyph rain, and the sky is still real.
- */
-async function mountEffects() {
-  const paletteColors = readScenePalette();
+/** Load the optional constellation only while its view is selected. A generation token prevents
+ * imports completing after a view switch from reviving an invisible renderer. The grid remains
+ * usable when the graphics library or WebGL is unavailable. */
+let effectsGeneration = 0;
+let effectsMounting = false;
 
-  try {
-    const module = await import('../fx/cosmos.js');
-    cosmos = await module.mountCosmos(els.scene, {
-      palette: paletteColors,
-      quality: motion.quality,
-      nodes: constellationNodes(),
-      seed: 'worxbend',
-    });
-  } catch {
-    cosmos = null;
-  }
-
-  if (!cosmos) {
-    document.documentElement.classList.add('no-webgl');
-  } else {
-    on(els.scene, 'star:select', (event) => {
-      const id = event.detail && event.detail.id;
-      if (!id) return;
-      telemetry.track(EVENT_NAMES.STAR_SELECT, { id });
-      openProject(id, 'star');
-    });
-  }
-
-  try {
-    const module = await import('../fx/glyphs.js');
-    glyphs = await module.mountGlyphs(els.glyphs, {
-      palette: paletteColors,
-      intensity: glyphIntensityFor(state.theme),
-    });
-  } catch {
-    glyphs = null;
-  }
-
-  // The hero's own layer: the morphing particle cloud under the standfirst. Independent of the
-  // sky — it is a second, smaller three.js scene with its own renderer — and if it fails, the
-  // container's CSS gradient is what the visitor sees, so nothing is added here.
-  let mounted = null;
-  try {
-    const module = await import('../fx/singularity.js');
-    mounted = await module.mountSingularity(els.heroNebula, { palette: paletteColors });
-  } catch {
-    mounted = null;
-  }
-  // `mountEffects()` is not awaited by its caller, so `dispose()` can have run while the imports
-  // above were still in flight. A handle assigned after teardown would keep a frame callback and
-  // a resize listener alive with no owner left to release them, so a late arrival is disposed on
-  // the spot instead of installed.
-  if (effectsDisposed) {
-    mounted?.dispose();
-    return;
-  }
-  nebula = mounted;
-  if (nebula) {
-    // The palette was read before two awaited mounts; a theme switched during that window found
-    // `nebula` still null and had nothing to re-tint, so the current tokens are re-read here.
-    nebula.setPalette(readScenePalette());
-    // Same race, other direction: the visitor may have pressed play while the mount was in
-    // flight, and the cloud that just arrived should already be listening.
-    if (sound.playing) nebula.setAudioSource(sampleSound);
-  }
+function stopEffects() {
+  effectsGeneration += 1;
+  effectsMounting = false;
+  cosmos?.dispose();
+  cosmos = null;
 }
 
-/**
- * Rebuild the sky after the catalogue changes.
- *
- * The constellation layout is seeded from the node list, so a repository that arrived after mount
- * has no position and cannot simply be pushed in. Tearing the scene down and building it again is
- * both simpler and correct, and it is rare — at most once per page view, and only when the live
- * catalogue actually differs from the seed.
- *
- * `remounting` guards against a second refresh landing while the first is still awaiting the
- * dynamic import, which would otherwise leave two scenes drawing to one canvas.
- */
-let remounting = false;
-async function remountCosmos() {
-  if (remounting || !cosmos) return;
-  remounting = true;
+async function mountEffects() {
+  if (effectsDisposed || state.view !== 'constellation' || cosmos || effectsMounting) return;
+  const generation = ++effectsGeneration;
+  effectsMounting = true;
+  let mounted = null;
   try {
     const module = await import('../fx/cosmos.js');
-    const previous = cosmos;
-    cosmos = null;
-    previous.dispose();
-    cosmos = await module.mountCosmos(els.scene, {
+    if (generation !== effectsGeneration || effectsDisposed || state.view !== 'constellation') return;
+    mounted = await module.mountCosmos(els.scene, {
       palette: readScenePalette(),
       quality: motion.quality,
       nodes: constellationNodes(),
       seed: 'worxbend',
     });
-  } catch (error) {
-    // The sky is decoration over an information graphic that also exists as a list. Losing it is
-    // survivable; taking the catalogue down with it is not.
-    console.error('[app] could not rebuild the constellation', error);
-    cosmos = null;
-    document.documentElement.classList.add('no-webgl');
+    if (generation !== effectsGeneration || effectsDisposed || state.view !== 'constellation') {
+      mounted?.dispose();
+      return;
+    }
+    cosmos = mounted;
+    if (cosmos) cosmos.setPalette(readScenePalette());
+    document.documentElement.classList.toggle('no-webgl', !cosmos);
+  } catch {
+    mounted?.dispose();
+    if (generation === effectsGeneration) document.documentElement.classList.add('no-webgl');
   } finally {
-    remounting = false;
+    if (generation === effectsGeneration) effectsMounting = false;
   }
+}
+
+async function remountCosmos() {
+  stopEffects();
+  await mountEffects();
 }
 
 /* ============================================================================================ *
@@ -1243,45 +1229,56 @@ async function remountCosmos() {
  * moment this runs, so a visitor with scripting on never sees it, and a visitor with scripting off
  * still gets a readable list rather than an empty page.
  */
+function explorationArrow() {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', '16');
+  svg.setAttribute('height', '16');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('focusable', 'false');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M5 12h14M12 5l7 7-7 7');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', 'currentColor');
+  path.setAttribute('stroke-width', '1.5');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('stroke-linejoin', 'round');
+  svg.append(path);
+  return svg;
+}
+
 function renderSections() {
   const grid = byId('cluster-grid');
   if (grid) {
-    setChildren(grid, CLUSTERS.map((cluster) => h('li', { class: 'card', id: `cluster-${cluster.id}` }, [
+    setChildren(grid, CLUSTERS.map((cluster, position) => h('li', { class: 'card', id: `cluster-${cluster.id}` }, [
       h('div', { class: 'cluster' }, [
-        h('span', { class: 'cluster__glyph', 'aria-hidden': 'true' }, cluster.glyph),
-        h('h3', { class: 'cluster__name' }, cluster.name),
+        h('span', { class: 'cluster__glyph', 'aria-hidden': 'true' }, String(position + 1).padStart(2, '0')),
+        h('h3', { class: 'cluster__name' }, h('a', { href: `#/c/${cluster.id}` }, cluster.name)),
         h('p', { class: 'cluster__blurb' }, cluster.blurb),
       ]),
       h('p', { class: 'card__foot' }, [
         h('span', { class: 'cluster__count', dataset: { clusterCount: cluster.id } }, '—'),
-        h('a', { class: 'chip', href: `#/c/${cluster.id}` }, 'Filter catalogue'),
+        h('a', { class: 'chip', href: `#/c/${cluster.id}`, 'aria-label': `Explore ${cluster.name}` }, ['Explore ', explorationArrow()]),
       ]),
     ])));
   }
 
-  // The heading counts the sections rather than repeating a number that would be wrong the first
-  // time one is added. Spelled out, because "Six things" reads better in a heading than "6 things".
-  const WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
-                 'Ten', 'Eleven', 'Twelve'];
-  const heading = byId('clusters-title');
-  if (heading) {
-    const count = WORDS[CLUSTERS.length] || String(CLUSTERS.length);
-    heading.textContent = `${count} things this workshop keeps coming back to`;
-  }
-
   const chips = byId('filter-chips');
   if (chips) {
-    const chip = (filter, label, pressed) => h('li', null, [
+    const labels = { streaming: 'Streaming', air: 'Air quality', iot: 'IoT', linux: 'Linux', scala: 'Scala', cad: 'CAD' };
+    const chip = (filter, label, pressed, fullName = label) => h('li', null, [
       h('button', {
         class: 'chip',
         type: 'button',
         'aria-pressed': String(pressed),
+        'aria-label': fullName,
+        title: fullName,
         dataset: { filter },
       }, label),
     ]);
     setChildren(chips, [
       chip('', 'All', true),
-      ...CLUSTERS.map((cluster) => chip(cluster.id, cluster.id, false)),
+      ...CLUSTERS.map((cluster) => chip(cluster.id, labels[cluster.id] || cluster.name, false, cluster.name)),
     ]);
   }
 }
@@ -1381,8 +1378,25 @@ function fillFigures({ animate = false } = {}) {
  * position and their focus all survive, because the update goes through the same `applyQuery()`
  * path a keystroke does.
  */
+function renderCatalogSource(meta = catalogMeta) {
+  const element = byId('catalog-source');
+  if (!element) return;
+  const date = meta.fetchedAt && Number.isFinite(new Date(meta.fetchedAt).getTime())
+    ? ` · ${new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(meta.fetchedAt))}`
+    : '';
+  const live = meta.source === 'network' || meta.source === 'revalidated';
+  const label = live && !meta.error && !meta.partial ? 'Live from GitHub'
+    : live ? 'Partially refreshed from GitHub'
+    : meta.source === 'cache' || meta.source === 'stale-cache' ? `Cached snapshot${date}`
+    : 'Saved snapshot';
+  const warning = meta.error ? ' · Refresh unavailable' : meta.partial ? ' · Some accounts unavailable' : '';
+  element.textContent = `${label}${warning}`;
+}
+
 function wireCatalogRefresh() {
+  renderCatalogSource();
   unsubscribes.push(onCatalogChange((projects, meta) => {
+    renderCatalogSource(meta);
     // Cards are memoised by project id. A repository that has gone (archived, made private, or
     // simply not pushed to for six months) must not keep a cached node, or it would reappear the
     // next time the grid is rebuilt.
@@ -1393,7 +1407,13 @@ function wireCatalogRefresh() {
     DEFAULT_ORDER = projects.slice().sort(sortDefault);
     index = buildIndex(projects);
     fillFigures();
+    const focused = document.activeElement;
     applyQuery();
+    if (state.view === 'constellation') renderStarDetail(state.selected);
+    // Sorting can move a focused node, which browsers otherwise drop back to the page body.
+    if (focused instanceof HTMLElement && focused.isConnected && document.activeElement !== focused) {
+      focused.focus({ preventScroll: true });
+    }
 
     // The sky is a picture of the catalogue, so a changed catalogue means a changed sky. Remount
     // rather than patch: the layout is seeded from the node list, and rebuilding it is the only
@@ -1409,6 +1429,10 @@ function wireCatalogRefresh() {
 }
 
 function wireCatalog() {
+  on(els.scene, 'star:select', (event) => {
+    const id = event.detail?.id;
+    if (id) openProject(id, 'star');
+  });
   on(els.catalogSearch, 'input', () => {
     setQuery(els.catalogSearch.value, { writeInput: false });
   });
@@ -1417,19 +1441,18 @@ function wireCatalog() {
     if (event.key === 'Escape' && els.catalogSearch.value) {
       event.preventDefault();
       setQuery('', { immediate: true });
-      writeRoute('');
+      writeCatalogRoute();
     }
   });
 
   // Keep the address bar in step, but only once the typing has settled into a rendered result.
   on(els.catalogSearch, 'change', () => {
-    const query = state.query.trim();
-    writeRoute(query ? `#/q/${encodeURIComponent(query)}` : '');
+    writeCatalogRoute();
   });
 
   on(els.catalogClear, 'click', () => {
     setQuery('', { immediate: true });
-    writeRoute('');
+    writeCatalogRoute();
     els.catalogSearch.focus();
   });
 
@@ -1441,7 +1464,7 @@ function wireCatalog() {
       const next = wanted && wanted === state.cluster ? '' : wanted;
       setCluster(next);
       applyQuery();
-      writeRoute(next ? `#/c/${encodeURIComponent(next)}` : '');
+      writeCatalogRoute();
     });
   }
 
@@ -1452,8 +1475,9 @@ function wireCatalog() {
   on(els.catalogGrid, 'click', (event) => {
     const topicChip = event.target.closest('[data-topic]');
     if (topicChip) {
+      setCluster('');
       setQuery(topicChip.dataset.topic, { immediate: true });
-      writeRoute(`#/q/${encodeURIComponent(topicChip.dataset.topic)}`);
+      writeCatalogRoute();
       scrollTo(els.catalogSection);
       return;
     }
@@ -1495,14 +1519,37 @@ function wireCatalog() {
     const topicChip = event.target.closest('[data-topic]');
     if (!topicChip) return;
     applyView('grid');
+    setCluster('');
     setQuery(topicChip.dataset.topic, { immediate: true });
+    writeCatalogRoute();
     scrollTo(els.catalogSection);
   });
 }
 
 function wireThemeAndToggles() {
+  const toggle = byId('motion-toggle');
+  if (toggle) on(toggle, 'click', () => applyMotionPreference(motion.reduced));
+  const appearance = document.querySelector('details.appearance');
+  if (appearance) {
+    on(appearance, 'keydown', (event) => {
+      if (event.key !== 'Escape' || !appearance.open) return;
+      event.preventDefault();
+      appearance.open = false;
+      appearance.querySelector('summary')?.focus();
+    });
+    on(document, 'pointerdown', (event) => {
+      if (appearance.open && !appearance.contains(event.target)) appearance.open = false;
+    });
+  }
   for (const button of els.themeButtons) {
-    on(button, 'click', () => applyTheme(button.dataset.themeId));
+    on(button, 'click', () => {
+      applyTheme(button.dataset.themeId);
+      const menu = button.closest('details.appearance');
+      if (menu) {
+        menu.open = false;
+        menu.querySelector('summary')?.focus();
+      }
+    });
   }
 
 }
@@ -1524,6 +1571,7 @@ const sound = {
   analyser: null,
   bins: null,
   playing: false,
+  pending: false,
 };
 
 /**
@@ -1553,6 +1601,8 @@ function renderSoundToggle() {
   if (!els.soundToggle) return;
   els.soundToggle.setAttribute('aria-pressed', String(sound.playing));
   els.soundToggle.classList.toggle('btn--sound-on', sound.playing);
+  els.soundToggle.textContent = sound.playing ? 'Sound on' : 'Sound off';
+  els.soundToggle.setAttribute('aria-label', sound.playing ? 'Pause the soundtrack' : 'Play the soundtrack');
 }
 
 /**
@@ -1565,7 +1615,10 @@ function renderSoundToggle() {
  * second decode. The context is created inside the click handler on purpose: that is the user
  * gesture autoplay policies require, and creating it any earlier would leave it suspended.
  */
-async function toggleSound({ persist = true } = {}) {
+async function toggleSound() {
+  if (sound.pending || effectsDisposed) return;
+  sound.pending = true;
+  els.soundToggle.setAttribute('aria-busy', 'true');
   try {
     if (!sound.element) {
       sound.element = new Audio('./assets/audio/focus-bed.mp3');
@@ -1574,14 +1627,16 @@ async function toggleSound({ persist = true } = {}) {
       sound.element.preload = 'auto';
 
       const Context = window.AudioContext || window.webkitAudioContext;
-      sound.context = new Context();
-      const source = sound.context.createMediaElementSource(sound.element);
-      sound.analyser = sound.context.createAnalyser();
-      sound.analyser.fftSize = 256;
-      sound.analyser.smoothingTimeConstant = 0.55;
-      sound.bins = new Uint8Array(sound.analyser.frequencyBinCount);
-      source.connect(sound.analyser);
-      sound.analyser.connect(sound.context.destination);
+      if (Context && nebula) {
+        sound.context = new Context();
+        const source = sound.context.createMediaElementSource(sound.element);
+        sound.analyser = sound.context.createAnalyser();
+        sound.analyser.fftSize = 256;
+        sound.analyser.smoothingTimeConstant = 0.55;
+        sound.bins = new Uint8Array(sound.analyser.frequencyBinCount);
+        source.connect(sound.analyser);
+        sound.analyser.connect(sound.context.destination);
+      }
     }
 
     if (sound.playing) {
@@ -1590,19 +1645,26 @@ async function toggleSound({ persist = true } = {}) {
       if (nebula) nebula.setAudioSource(null);
     } else {
       // A context created before any sound has played starts life suspended.
-      if (sound.context.state === 'suspended') await sound.context.resume();
+      if (sound.context?.state === 'suspended') await sound.context.resume();
       await sound.element.play();
+      if (effectsDisposed) {
+        sound.element.pause();
+        return;
+      }
       sound.playing = true;
-      if (nebula) nebula.setAudioSource(sampleSound);
+      if (nebula && sound.analyser) nebula.setAudioSource(sampleSound);
     }
-    // Remember the choice — but only a choice the visitor actually made. The automatic start on
-    // the first interaction passes `persist: false`, because "clicked a link while music began"
-    // is not a preference, and writing it as one would make the automatic start permanent.
-    if (persist) store.set(KEYS.sound, sound.playing ? 'on' : 'off');
+    els.soundToggle.title = sound.playing ? 'Pause soundtrack' : 'Play soundtrack';
+    store.set(KEYS.sound, sound.playing ? 'on' : 'off');
   } catch (error) {
-    // A blocked play() or a missing file must not take the button down with it.
     console.error('[app] the soundtrack could not start', error);
+    sound.element?.pause();
     sound.playing = false;
+    if (nebula) nebula.setAudioSource(null);
+    els.soundToggle.title = 'Audio could not start. Press to try again.';
+  } finally {
+    sound.pending = false;
+    els.soundToggle.removeAttribute('aria-busy');
   }
   renderSoundToggle();
 }
@@ -1611,29 +1673,8 @@ function wireSound() {
   if (!els.soundToggle) return;
   on(els.soundToggle, 'click', () => void toggleSound());
 
-  // Autoplay, as close as a browser permits. No browser will start audible sound on page load —
-  // Firefox rejects it outright, Chrome for first-time visitors — because `play()` only succeeds
-  // inside a user gesture. So the page arms itself and starts the soundtrack on the visitor's
-  // FIRST gesture anywhere: the first click, tap or key press, whatever it lands on, counts. The
-  // two listeners tear themselves down after firing once.
-  //
-  // The one visitor this must never surprise is the one who pressed pause on an earlier visit:
-  // the stored 'off' stands as a standing answer, and the page stays silent until the button is
-  // pressed again. A first-time visitor has given no answer yet, so the music starts.
-  if (store.get(KEYS.sound, null) === 'off') return;
-
-  const startOnFirstGesture = (event) => {
-    window.removeEventListener('pointerdown', startOnFirstGesture);
-    window.removeEventListener('keydown', startOnFirstGesture);
-    // The sound button runs its own toggle on this same click; starting here too would
-    // double-toggle the track straight back off.
-    if (event.target instanceof Element && event.target.closest('#sound-toggle')) return;
-    if (!sound.playing) void toggleSound({ persist: false });
-  };
-  // Registered through on(), so dispose() also removes them if no gesture ever arrives. The
-  // handler removing itself first makes dispose()'s removal a no-op, which is harmless.
-  on(window, 'pointerdown', startOnFirstGesture);
-  on(window, 'keydown', startOnFirstGesture);
+  // Audio always requires an explicit press of this control, including returning visits.
+  renderSoundToggle();
 }
 
 /**
@@ -1647,7 +1688,7 @@ function wireMotion() {
       // This callback also fires when the *operating system* setting changes, which no code in this
       // file wrote, so the attribute the stylesheets read is stamped here as well as in
       // `applyMotionPreference`. Whichever of the two sources moves, the page ends up in step.
-      document.documentElement.setAttribute('data-motion', reduced ? 'reduced' : 'full');
+      applyMotionPreference(!reduced, { persist: false });
       if (glyphs) glyphs.setIntensity(reduced ? 0 : glyphIntensityFor(state.theme));
     }),
   );
@@ -1788,6 +1829,7 @@ function boot() {
   // stylesheet starts a `[data-reveal]` element at opacity 0, so a page whose script never runs
   // must not contain the attribute at all.
   for (const wrap of els.sectionWraps) {
+    if (wrap.closest('#hero')) continue;
     wrap.setAttribute('data-reveal', '');
   }
   // Each of these returns a function that disconnects its observer. Collecting them here is what
@@ -1795,10 +1837,8 @@ function boot() {
   // IntersectionObservers and a scroll subscription on every remount.
   unsubscribes.push(reveal(document), parallax(document), counters(document));
 
-  startHud();
 
   void wireTelemetry();
-  void mountEffects();
   // Last, and deliberately not awaited: the page is already complete and interactive from the
   // seed, so asking GitHub for the current list is an upgrade rather than a prerequisite.
   void loadCatalog();
@@ -1861,6 +1901,7 @@ export function dispose() {
   void telemetry.dispose();
 
   effectsDisposed = true;
+  stopEffects();
   if (sound.element) {
     sound.element.pause();
     sound.element.src = '';

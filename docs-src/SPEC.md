@@ -4,73 +4,46 @@ This file is the contract every module is written against. It is **not** shipped
 brief. Read it fully before writing any file.
 
 Target: a static site served from `docs/` at `https://worxbend.github.io/.github/`.
-No build step. No bundler. Plain ES modules, plain CSS. Everything must work when opened
-from a `file://` path too (use relative URLs only — `./assets/...`, never `/assets/...`).
+No build step. No bundler. Plain ES modules, plain CSS. Use relative URLs only (`./assets/...`, never `/assets/...`) so the site works at the
+Pages subpath. Preview through local HTTP; browser ES modules are not supported on `file://`.
 
 ---
 
 ## 1. Design direction
 
-**Concept — "The Foundation Observatory."** The org is a workshop that builds instruments:
-terminal dashboards, air-quality sensors, TCP camera links, OBS controllers. So the page is
-itself an instrument panel pointed at a sky. Three visual languages are layered, in this order
-of dominance:
+**Concept — “The open-source workshop.”** A calm editorial surface for finding useful
+projects: graphite, ivory, sage, strong Manrope typography, and a contained orbital illustration.
+The catalogue is curated, not an exhaustive account listing. Never claim “every public repo.”
 
-1. **Cosmic / celestial** — the ground. Deep space, drifting starfield, parallax.
-2. **Engineering / foundation** — the structure. Drafting rules, tick marks, coordinate
-   readouts, monospaced labels, hairline grids. This is what keeps it from being a screensaver.
-3. **Matrix / signal** — the accent. Glyph rain, scanlines, phosphor decay — used sparingly
-   in the default theme, and turned all the way up in the `matrix` theme.
+The page has three main regions:
 
-The single aesthetic risk, and the centrepiece: **Constellation view.** Every repository is a
-star. Size encodes stargazers + recency, hue encodes primary language, and lines connect repos
-that share a topic — so the constellations that emerge are the org's actual subject clusters
-(streaming, air quality, IoT, Scala, Linux tooling). It is a real information graphic, not decor.
+1. A split hero: “Small tools. Real possibilities.”, a short introduction, primary catalogue
+   link and repository search. The generated orbital artwork is decorative, separate from text,
+   and must never overlap or displace a control.
+2. “Built out of curiosity.”: six numbered topic rows with concise descriptions and descriptive
+   links. Desktop uses two columns; narrow phones stack metadata beneath each description.
+3. “Find your next rabbit hole.”: searchable catalogue, readable category filters, result count
+   and data provenance. Repository cards retain their real metadata and outbound links.
 
-Everything else stays quiet so the constellation and the type carry the page.
+The horizontal header contains Work, Explore, GitHub, command search, and a native appearance
+menu. Optional sound and motion controls belong in the footer. Audio starts only from its own
+button. No performance HUD is shown to visitors.
 
-### Typography
+### Typography and composition
 
-Three roles, loaded from Google Fonts with `display=swap` and real fallback stacks. Never let a
-missing webfont change the layout — set fallbacks with similar metrics.
+Manrope is both display and body; JetBrains Mono is reserved for compact metadata.
+Self-hosted variable WOFF2 fonts retain their SIL licenses under `docs/assets/fonts/`.
+Use system fallbacks and `display=swap`; preload the main Latin font. Headings use tight tracking and a fluid scale;
+body copy remains readable at 320px. The hero title is two lines on the supported mobile sizes.
+The main container is 1488px including 48px gutters, reducing to 20px gutters on phones.
+Interactive targets remain keyboard reachable with visible focus rings.
 
-| Role | Family | Used for |
-| --- | --- | --- |
-| Display | `Chakra Petch` (600/700) | Section headings, the wordmark, stat figures. Angular, drafting-stencil feel. |
-| Body | `Manrope` (400/500/700) | Running text, card copy, buttons. |
-| Data | `JetBrains Mono` (400/500/700) | Eyebrows, labels, coordinates, telemetry readouts, code, tags, numbers. |
+`workshop.css` owns the editorial composition and responsive variants; `components.css`
+retains shared control primitives. Theme colors remain exclusively in `tokens.css`.
+The artwork is an asset, not a screenshot of the interface. Text and all controls are native HTML.
 
-Fallbacks:
-- display: `'Chakra Petch', 'Segoe UI Semibold', system-ui, sans-serif`
-- body: `'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif`
-- mono: `'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, monospace`
-
-Rules: running text ≈ 65ch max. Headings get `text-wrap: balance`. Uppercase eyebrows get
-`letter-spacing: 0.22em`. All aligned digits get `font-variant-numeric: tabular-nums`.
-
-### Type scale (rem, on a 16px root)
-
-`--fs-3xs .6875 / --fs-2xs .75 / --fs-xs .8125 / --fs-sm .9375 / --fs-md 1 / --fs-lg 1.125 /
---fs-xl 1.375 / --fs-2xl 1.75 / --fs-3xl 2.25 / --fs-4xl 3 / --fs-5xl 4.5`
-
-Fluid headings use `clamp()` but must land on scale values at the ends.
-
----
-
-### Spacing rhythm
-
-`--sp-N` is a linear 4px scale. Two values are deliberately fluid, because a phone should not
-inherit a wide monitor's empty space:
-
-| Token | Where it applies |
-| --- | --- |
-| `--sp-section` | Between major page regions. Lives on `.section` as block padding. |
-| `--sp-stack` | Between the children of one region. Lives on `.wrap`, which is a flex column. |
-| `--sp-stack-tight` | Between parts of one idea — kicker/heading/standfirst, or a search field and its filter chips. Applied with `.stack.stack--tight`. |
-
-`base.css` removes every default margin, so a component never carries spacing of its own: a
-container states the gap once and any component can be dropped into it. Adding a `margin` to a
-component to separate it from a sibling is the thing this rule exists to prevent.
+The decorative hero is independent of optional WebGL. Constellation view preserves the text
+catalogue and loads its visual layer on demand. Default browsing must not pay for unused 3D work.
 
 ## 2. Theme system
 
@@ -88,7 +61,7 @@ color and may never be defined inside a `[data-theme]` block. Only `tokens.css` 
 
 | id | name | character |
 | --- | --- | --- |
-| `foundation` | Foundation | **Default dark.** Deep blue-black space, worxbend blue + Ukrainian gold. |
+| `foundation` | Foundation | **Default dark.** Graphite ground, ivory text, sage accent. |
 | `matrix` | Matrix | Black ground, phosphor green, CRT scanlines, glyph rain at full strength. |
 | `blueprint` | Blueprint | Drafting navy, cyan ink, white hairline grid — engineering drawing. |
 | `nebula` | Nebula | Violet/magenta deep field, warmer, softer bloom. |
@@ -196,7 +169,7 @@ Rules that follow from this and must not be broken:
 - **`PROJECTS` is refilled in place, never reassigned**, so `import { PROJECTS }` stays live.
 - **Never render an empty catalogue.** The chain is fresh cache → network → stale cache → seed, and
   an empty response is treated as a failure rather than as "there are no repositories".
-- **Say which source answered.** `catalogMeta.source` drives a line in the instrument section. A
+- **Say which source answered.** `catalogMeta.source` drives the provenance line beside the catalogue count. A
   page quietly showing month-old numbers is worse than one that admits it.
 - **Membership is chosen, not inferred.** The catalogue is exactly the repositories named in
   `data/catalog.config.js`, and adding one is a single line in that file. It used to be every
@@ -342,7 +315,8 @@ export async function mountGlyphs(canvas, { palette, intensity }); // -> { dispo
 ### `ui/app.js`
 Owns the DOM: renders the catalog, wires the command palette (`⌘K` / `Ctrl-K` / `/`), filters,
 theme picker, view toggle (`grid` ↔ `constellation`), the telemetry panel, and hash routing
-(`#/p/<id>`, `#/c/<cluster>`, `#/q/<query>`). Reads `PROJECTS`, calls the modules above.
+(`#/p/<id>`, `#/c/<cluster>`, `#/q/<query>?cluster=<cluster>`). Combined query and category
+state must survive copying the URL, reload, and browser navigation. Reads `PROJECTS`, calls the modules above.
 
 Accessibility is not optional: every control is a real `<button>`/`<a>` with a visible
 `:focus-visible` ring, the palette is a proper modal with focus trap and `Escape` to close,
@@ -377,3 +351,24 @@ rather than snapping.
 - No layout thrash: read all geometry in one pass, write in the next.
 - Every `addEventListener` in a module has a matching removal in its `dispose`.
 - Zero console errors or unhandled rejections in a normal session.
+
+## 7. Development and release
+
+Preview with `python3 -m http.server 8765`, then open `http://127.0.0.1:8765/docs/`.
+Use Node 24. Run `npm ci`, `npm test`, then `npx playwright install chromium` and
+`npm run test:browser`. These dependencies are development-only; the deployed site still has no
+bundler or build step. Unit tests validate shipped module syntax,
+relative asset paths, search behavior and escaping, and the curated seed's integrity.
+The persistent Playwright suite verifies offline fallback, silent/graphics-free initial browsing,
+combined search/category routes, focus isolation/restoration, keyboard appearance controls,
+mobile gutters, and automated contrast checks across all themes.
+Refresh public repository metadata with `python3 scripts/refresh-seed.py`.
+
+Before release, exercise search, category links, combined URL reload/back, empty results,
+command palette focus and touch selection, all themes, motion, explicit sound, and constellation
+fallback. Check 320px, 390px, desktop, reduced motion and JavaScript-disabled behavior.
+Automated accessibility scans supplement visual and keyboard review; they do not replace it.
+
+The Pages workflow runs validation on pull requests and before main-branch deployment.
+Only the deployment job receives Pages write permissions. The static `docs/` artifact is
+published unchanged. Confirm the deployed revision and perform a live smoke check after push.
