@@ -55,6 +55,23 @@ test('search and category survive reload together, with an actionable empty stat
   await expect(page.locator('#catalog-grid .card').first()).toBeVisible();
 });
 
+test('organization additions remain discoverable offline in their categories', async ({ page }) => {
+  await openSite(page);
+  const additions = {
+    'scenedeck-android': 'streaming', 'obs-effects-v2': 'streaming',
+    'airgradient-dms-widget': 'air', 'camx': 'iot',
+    'nerd-fonts-installer-scala': 'linux', 'obs-websocket-client': 'scala',
+    'macropad-nyxilab': 'cad', 'plastic-lighthouse': 'cad',
+  };
+  for (const [name, cluster] of Object.entries(additions)) {
+    await page.locator('#catalog-search').fill(name);
+    await page.locator(`[data-filter="${cluster}"]`).click();
+    const card = page.locator(`#card-${name}`);
+    await expect(card).toBeVisible();
+    await expect(card.locator('a[data-open]')).toHaveAttribute('href', `https://github.com/worxbend/${name}`);
+  }
+});
+
 test('command palette traps focus, isolates the background, and restores focus', async ({ page }) => {
   await openSite(page);
   const opener = page.locator('#open-palette');

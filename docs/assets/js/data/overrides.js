@@ -23,6 +23,46 @@
  * catalog.config.js is simply unused — it costs nothing, but it will not appear anywhere.
  */
 export const COPY = {
+  'worxbend/airgradient-dms-widget': {
+    tagline: 'AirGradient readings in the DankMaterialShell bar',
+    desc:
+      'A widget for DankMaterialShell, a Linux desktop shell, that reads an AirGradient monitor over the local network. It puts air-quality status in the bar and opens a popup with pollutant readings and a one-hour trend chart. Written in QML and JavaScript, with no build step.',
+  },
+  'worxbend/camx': {
+    tagline: 'Printable ESP32 camera pan-and-tilt rig',
+    desc:
+      'A prototype camera mount driven by an ESP32 microcontroller and two servos. The repository includes C++ firmware, parametric build123d models for the printed parts, an interactive 3D viewer and a browser remote. Physical fit and load testing are still pending; measure your components before printing or powering the rig.',
+  },
+  'worxbend/macropad-nyxilab': {
+    tagline: 'Hand-wired Pico 2 macropad with printable case',
+    desc:
+      'A build-it-yourself keyboard pad around a Raspberry Pi Pico 2: twelve keys, two colour screens, addressable lights and either a thumbstick or a rotary knob. Parametric Python models define the printed case; C++ firmware handles keyboard, media and mouse commands. Wiring maps and assembly guides accompany both editions.',
+  },
+  'worxbend/nerd-fonts-installer-scala': {
+    tagline: 'Nerd Fonts installer rebuilt as a native Scala tool',
+    desc:
+      'A Scala 3 rebuild of the Go Nerd Fonts installer, compiled with GraalVM into a standalone Linux executable that needs no Java installation. Choose fonts from a configuration file or terminal picker, preview the plan and install the selected families.',
+  },
+  'worxbend/obs-effects-v2': {
+    tagline: 'Configurable OBS overlays with a browser admin panel',
+    desc:
+      'A self-hosted system for managing visual effects in OBS Studio, the open-source streaming and recording program. Give each browser source a stable address, then choose its effect and parameters from an admin panel. A SolidJS interface draws the effects with three.js and PixiJS; a Scala service stores and validates the configuration in MongoDB.',
+  },
+  'worxbend/obs-websocket-client': {
+    tagline: 'Typed OBS Studio control for Scala 3',
+    desc:
+      'A Scala 3 library for controlling OBS Studio, the open-source streaming and recording program, through its WebSocket 5.x protocol. It provides typed requests, event subscriptions, scoped connections and several transport adapters behind one direct-style API. Implemented but unreleased: Maven Central publication has not happened yet.',
+  },
+  'worxbend/plastic-lighthouse': {
+    tagline: 'Parametric printable softbox for an E27 LED bulb',
+    desc:
+      'A compact light diffuser for an E27 LED bulb, with round and square variants generated from parametric Python models using manifold3d. Print-ready files include the reflector body, front diffuser and an optional inner baffle. Check the socket fit, material and heat guidance before assembly.',
+  },
+  'worxbend/scenedeck-android': {
+    tagline: 'OBS Studio remote for Android phones and tablets',
+    desc:
+      'An Android remote for OBS Studio, the open-source streaming and recording program, written in Kotlin with Jetpack Compose. Connect over the local network to switch scenes, adjust audio, control streaming and recording, and inspect stream health. Studio-mode preview and transitions are available from the same app.',
+  },
   'worxbend/airgradient-android': {
     tagline: 'Android app for a local AirGradient sensor',
     desc:
@@ -173,7 +213,7 @@ export const COPY = {
     desc:
       'A Go service that sits between webhook sources — home automation, monitoring stacks, automation tools — and an ESP8266-driven 8x8 LED matrix. You post a JSON event, configured rules decide which animation plays, and echo pushes it to one or more panels over TCP with automatic reconnection, while exposing Prometheus metrics and an interactive Swagger API page.',
   },
-  'w0rxbend/echoctl': {
+  'worxbend/echoctl': {
     tagline: 'Command-line client for the echo LED proxy',
     desc:
       'A command-line tool written in Scala 3 for driving echo, the LED matrix proxy. It deliberately talks only to echo’s HTTP API — health checks, device lists, animations, firmware presets, brightness and colour, the idle background and the playback queue — and never to the panel’s raw firmware protocol.',
@@ -188,22 +228,22 @@ export const COPY = {
     desc:
       'The single source of truth for a self-hosted homelab of Raspberry Pi, Rock64 and similar ARM machines, where the whole setup is described in files kept in Git rather than configured by hand. It covers host inventory, Ansible automation for users, SSH, packages and firewall, K3s (a lightweight Kubernetes distribution) managed with Flux CD, Docker Compose and Docker Swarm stacks, and a policy for encrypted secrets.',
   },
-  'w0rxbend/instachron': {
+  'worxbend/instachron': {
     tagline: 'TCP frame server for the spycam ESP32 cameras',
     desc:
       'A Go service that listens on a raw TCP socket (a plain network connection with no HTTP, JSON or text framing on top) and receives JPEG camera frames pushed by the spycam and spycam-s3 firmware. It is the server half of that camera link: once frames arrive it republishes them through an HTTP interface, restreaming proxies, optional detection and upscaling, and a timelapse recorder.',
   },
-  'w0rxbend/kui': {
+  'worxbend/kui': {
     tagline: 'Browser console for operating Apache Kafka',
     desc:
       'A web console for running Apache Kafka, the system many organisations use to move streams of events between their services. It replaces the usual handful of separate tools with one screen: broker and cluster health, topics and their partitions, a record browser that decodes Avro, Protobuf and JSON Schema payloads through a Schema Registry, consumer lag with previewed offset resets, Kafka Connect and ksqlDB, and a live alert feed. The services are written in Scala 3 and publish OpenAPI contracts that generate the TypeScript client its SolidJS interface uses. Each area keeps working when an optional service is unavailable, and anything destructive needs a previewed plan and a confirmation token.',
   },
-  'w0rxbend/led-matrix-controller': {
+  'worxbend/led-matrix-controller': {
     tagline: 'ESP8266 firmware for a WS2812B 8x8 LED matrix',
     desc:
       'Firmware for an ESP8266 NodeMCU, a small Wi-Fi microcontroller board, that drives an 8x8 panel of WS2812B addressable LEDs. It runs a TCP server (a plain network socket, port 7777) accepting compact binary commands to set single pixels, fill the panel, change brightness or push a whole frame, and it falls back to its own Wi-Fi access point when no credentials are configured.',
   },
-  'w0rxbend/neoncore': {
+  'worxbend/neoncore': {
     tagline: 'ESP32 LED indicator for AirGradient air quality',
     desc:
       'Firmware for an ESP32 microcontroller driving a 4x4 panel of WS2812B addressable LEDs, used as a remote display for an AirGradient ONE air-quality monitor. A scraper reads the monitor’s local network interface and pushes a status over Wi-Fi TCP, and the panel shows one of thirteen colour-and-animation states so the reading can be read across the room without a legend.',
@@ -223,17 +263,17 @@ export const COPY = {
     desc:
       'An experimental rewrite of lichess.org’s scalachess chess-rules library in Flix, a functional programming language on the Java Virtual Machine. It covers 96 percent of the original hand-written core — move generation, FEN and PGN notation, clocks, ratings, opening data and ten chess variants — checked against the same published move-count fixtures the Scala test-kit uses, but the README is explicit that it is not a drop-in replacement.',
   },
-  'w0rxbend/scalacv': {
+  'worxbend/scalacv': {
     tagline: 'Scala 3 binding for the OpenCV vision library',
     desc:
       'A Scala 3 binding for OpenCV 4.13, the open-source computer-vision library for working with images and video. It gives you a typed, resource-safe image pipeline on top of the complete Java bindings, so native memory is released exactly once, and it adds layers for detection, pose estimation, camera calibration and 2D drawing.',
   },
-  'w0rxbend/spycam': {
+  'worxbend/spycam': {
     tagline: 'ESP32-CAM firmware feeding the instachron server',
     desc:
       'Firmware for the ESP32-CAM, a small Wi-Fi microcontroller board with a camera attached, that captures JPEG images and pushes the newest one over a long-lived raw TCP connection (a plain network socket with no HTTP or text framing). It is the client half of a camera link whose server is instachron, and it drops stale frames and reconnects with backoff whenever the network or the server goes away.',
   },
-  'w0rxbend/spycam-s3': {
+  'worxbend/spycam-s3': {
     tagline: 'ESP32-S3-CAM firmware feeding instachron',
     desc:
       'The same camera client as spycam rebuilt for ESP32-S3 camera boards, a newer generation of the Wi-Fi microcontroller, with a pin map for the GOOUUU OV2640 layout. It adds a camera identifier to every frame header so several boards can feed the instachron TCP frame server at once, which is the receiving half of the camera link.',
@@ -243,7 +283,7 @@ export const COPY = {
     desc:
       'A multi-distribution bootstrap for a Linux development machine, covering Fedora, Arch Linux and openSUSE. Shell scripts install packages and standalone binaries, link configuration files with Dotbot, add Nerd Fonts, and set up terminals, Neovim and desktop environments such as GNOME, COSMIC and Sway.',
   },
-  'w0rxbend/twitch-musicplayer': {
+  'worxbend/twitch-musicplayer': {
     tagline: 'Music player and visualiser for live streams',
     desc:
       'A two-part project for playing background music on a live stream: a Go backend that indexes MP3 files, serves them over HTTP and coordinates playback over WebSockets (a two-way browser connection), and a browser front end that plays the audio and draws a visualiser with PixiJS and WebGL. Playback history is kept in SQLite, a small database that lives in a single file.',
@@ -253,12 +293,12 @@ export const COPY = {
     desc:
       'A self-hosted overlay system with two halves: a Python backend that subscribes to Twitch EventSub (Twitch’s push feed of chat and channel events) and rebroadcasts it over WebSocket, and TypeScript browser scenes rendered with PixiJS. The scenes display chat messages with emotes and emoji plus follows, subscriptions, gift subs, cheers and raids inside OBS Studio, the open-source live-streaming program.',
   },
-  'w0rxbend/twitch-voxer': {
+  'worxbend/twitch-voxer': {
     tagline: 'Text-to-speech bot that reads Twitch chat aloud',
     desc:
       'A self-hosted bot that turns each Twitch chat message into synthesised speech and pushes the audio over a WebSocket (a two-way browser connection) to a browser source in OBS Studio, the open-source live-streaming and recording program. It detects Ukrainian or English, gives every chatter a voice that stays the same across sessions, expands abbreviations, skips known bots, and posts scheduled messages to chat.',
   },
-  'w0rxbend/Zephyr': {
+  'worxbend/Zephyr': {
     tagline: 'Desktop manager for the SDKMAN toolchain installer',
     desc:
       'A desktop application built with Kotlin Multiplatform and Compose Desktop that wraps SDKMAN, the command-line tool for installing and switching between Java Development Kits and other software development kits. Its main purpose is to gather local-only versions — builds still on disk but no longer listed upstream — from every candidate into one screen so they can be cleaned up safely; Linux releases are published as AppImage, Snap and Flatpak.',
@@ -268,7 +308,7 @@ export const COPY = {
     desc:
       'A native Linux desktop application for raising and lowering a standing desk, written in Rust with GTK4 and Relm4 (a toolkit and a framework for building desktop windows). It draws an animated side view of the desk, offers hold-to-move buttons and sit/stand presets, and can schedule automatic changes by time of day. The desk itself is driven by an ESP32 board, which the application reaches through a small proxy server rather than directly; that link is currently mocked while the proxy is being built.',
   },
-  'oleksandr-balyshyn/glyphora': {
+  'worxbend/glyphora': {
     tagline: 'Terminal user-interface toolkit for Scala 3',
     desc:
       'A library for building full-screen terminal applications in Scala 3, the way a browser framework builds a web page: state is held in reactive signals, and the screen redraws itself when a signal changes. It ships more than fifty widgets, keyboard and mouse handling, composable animation and a headless mode so an interface can be tested without a terminal, and it compiles ahead of time with GraalVM native-image using no runtime reflection.',

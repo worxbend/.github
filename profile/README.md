@@ -11,7 +11,7 @@
     <img src="https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg" alt="Stand With Ukraine" />
   </a>
   <a href="https://worxbend.github.io/.github/">
-    <img src="https://img.shields.io/badge/browse_every_repo-worxbend.github.io-6f42c1?style=for-the-badge&logo=githubpages&logoColor=white" alt="Browse every repository at worxbend.github.io" />
+    <img src="https://img.shields.io/badge/explore_projects-worxbend.github.io-6f42c1?style=for-the-badge&logo=githubpages&logoColor=white" alt="Explore projects at worxbend.github.io" />
   </a>
   <a href="http://about.worxbend.com">
     <img src="https://img.shields.io/badge/about-worxbend.com-00b894?style=for-the-badge&logo=firefoxbrowser&logoColor=white" alt="about.worxbend.com" />
@@ -35,8 +35,7 @@
       <p>
         I learn a system by building it, so some of these exist only because I wanted to understand
         something. Read the code before you run it. This page is a summary — the
-        <a href="https://worxbend.github.io/.github/"><strong>project site</strong></a> has every repo,
-        searchable.
+        <a href="https://worxbend.github.io/.github/"><strong>project site</strong></a> has a curated, searchable catalogue.
       </p>
     </td>
   </tr>
@@ -52,9 +51,9 @@ If you open one thing, open one of these. The rest is grouped below.
 | | [worxbend/worxbend → `libs/commons/reveal`](https://github.com/worxbend/worxbend/tree/main/libs/commons/reveal) | Same idea, `derives PrettyPrintable`, all resolved at compile time. Zero reflection, zero per-call cost, zero runtime deps. Enums, sealed traits, opaque types. |
 | **OBS & streaming** | [worxbend/obs-stats](https://github.com/worxbend/obs-stats) | btop for OBS. CPU, frame pacing, encoder health, scenes, audio — live, in a terminal. |
 | | [worxbend/obsctl](https://github.com/worxbend/obsctl) · [worxbend/obsctl-rs](https://github.com/worxbend/obsctl-rs) | Script OBS from the shell. Written twice: Crystal, then Rust. |
-| **Air quality** | [worxbend/airgradient-desktop](https://github.com/worxbend/airgradient-desktop) · [·-android](https://github.com/worxbend/airgradient-android) · [·-cli](https://github.com/worxbend/airgradient-cli) · [·-papr](https://github.com/worxbend/airgradient-papr) | One sensor, read five ways: GTK, Android, CLI, e-paper, GNOME applet. LAN only, no cloud account. |
+| **Air quality** | [worxbend/airgradient-desktop](https://github.com/worxbend/airgradient-desktop) · [·-android](https://github.com/worxbend/airgradient-android) · [·-cli](https://github.com/worxbend/airgradient-cli) · [·-papr](https://github.com/worxbend/airgradient-papr) | One sensor, read on desktop, Android, terminal, e-paper and Linux shell widgets. LAN only, no cloud account. |
 | **Linux setup** | [worxbend/fluxion.cr](https://github.com/worxbend/fluxion.cr) · [w0rxbend/system-bootstrap](https://github.com/w0rxbend/system-bootstrap) | Wiped disk to working dev machine, driven from Git. |
-| **Hardware** | [w0rxbend/spycam](https://github.com/w0rxbend/spycam) + [w0rxbend/instachron](https://github.com/w0rxbend/instachron) | Two halves of one link. ESP32-CAM pushes JPEG frames over a raw TCP socket; a Go server catches them. |
+| **Hardware** | [worxbend/spycam](https://github.com/worxbend/spycam) + [worxbend/instachron](https://github.com/worxbend/instachron) | Two halves of one link. ESP32-CAM pushes JPEG frames over a raw TCP socket; a Go server catches them. |
 
 <details>
 <summary><h2>🎛️ OBS and streaming tools</h2></summary>
@@ -64,6 +63,7 @@ Everything that runs while the stream is live. Most of it drives OBS over **obs-
 | Project | What it does | Built with |
 | --- | --- | --- |
 | [worxbend/scenedeck](https://github.com/worxbend/scenedeck) | Desktop window for Linux: switch scenes, toggle sources, start and stop the stream. Shipped on [Snapcraft](https://snapcraft.io/scenedeck). | Rust, GTK4 |
+| [worxbend/scenedeck-android](https://github.com/worxbend/scenedeck-android) | OBS remote on a phone or tablet: scenes, mixer, stream and recording controls, studio mode and health figures. | Kotlin, Jetpack Compose |
 | [worxbend/obs-stats](https://github.com/worxbend/obs-stats) | btop for OBS health, live in a terminal. | Rust, Ratatui |
 | [worxbend/obsctl](https://github.com/worxbend/obsctl) | CLI plus TUI for scenes, audio and profiles. A daemon keeps the socket warm so commands are instant. | Crystal |
 | [worxbend/obsctl-rs](https://github.com/worxbend/obsctl-rs) | Same controller, rewritten in Rust. Keyboard-driven, full screen. | Rust, Ratatui |
@@ -73,9 +73,10 @@ Everything that runs while the stream is live. Most of it drives OBS over **obs-
 | [worxbend/streaming-tools-site](https://github.com/worxbend/streaming-tools-site) | Interactive map of how these tools wire into OBS, Twitch and YouTube. [obs.worxbend.com](https://obs.worxbend.com) | JavaScript, PixiJS |
 | [worxbend/twitch-screen](https://github.com/worxbend/twitch-screen) | A 240x240 round LCD on the desk: live/offline, viewers, uptime, followers, subs, chat activity, and animated cards for follows, gifts, cheers and raids. Relay, firmware and printable shell in one repo. | Scala 3, C++, ESP32 |
 | [w0rxbend/obs-effects](https://github.com/w0rxbend/obs-effects) | Animated transparent overlays, dropped into OBS as browser sources. [obs-effects.worxbend.com](https://obs-effects.worxbend.com) | TypeScript, PixiJS 8 |
-| [w0rxbend/twitch-voxer](https://github.com/w0rxbend/twitch-voxer) | Reads chat aloud. Detects Ukrainian or English, pins one voice per chatter. | Python |
+| [worxbend/obs-effects-v2](https://github.com/worxbend/obs-effects-v2) | Stable browser-source URLs, effects and knobs managed from a web admin panel. Self-hosted with Docker. | Scala 3, SolidJS, three.js, PixiJS |
+| [worxbend/twitch-voxer](https://github.com/worxbend/twitch-voxer) | Reads chat aloud. Detects Ukrainian or English, pins one voice per chatter. | Python |
 | [w0rxbend/twitch-vizer](https://github.com/w0rxbend/twitch-vizer) | Alerts for follows, subs, cheers and raids, off Twitch EventSub. | Python, TypeScript |
-| [w0rxbend/twitch-musicplayer](https://github.com/w0rxbend/twitch-musicplayer) | Go service serves the library, browser front end plays it and draws the visualiser. | Go, TypeScript |
+| [worxbend/twitch-musicplayer](https://github.com/worxbend/twitch-musicplayer) | Go service serves the library, browser front end plays it and draws the visualiser. | Go, TypeScript |
 | [w0rxbend/chat-brawl](https://github.com/w0rxbend/chat-brawl) | Type in chat, spawn into an on-screen fighting arena. | TypeScript, PixiJS |
 
 </details>
@@ -90,13 +91,15 @@ their own repos. Mill build, reusable pieces under `libs/`.
 | --- | --- | --- |
 | [`libs/commons/pretty-printo`](https://github.com/worxbend/worxbend/tree/main/libs/commons/pretty-printo) | Configurable string rendering for any value. `@Excluded` and `@Redacted` fields are described from their declared type, so the printer never touches the value — which is what makes redaction and `null` safe. | Scala 3, Magnolia |
 | [`libs/commons/reveal`](https://github.com/worxbend/worxbend/tree/main/libs/commons/reveal) | The successor, derived by macro. Omissions, redactions and type spellings are all decided during expansion. No reflection, no runtime deps. Enums, sealed families, opaque types. | Scala 3 macros |
-| [w0rxbend/scalacv](https://github.com/w0rxbend/scalacv) | Scala 3 API over OpenCV 4.13. Typed pipeline that frees native memory exactly once. [Docs](https://w0rxbend.github.io/scalacv) | Scala 3, OpenCV |
+| [worxbend/scalacv](https://github.com/worxbend/scalacv) | Scala 3 API over OpenCV 4.13. Typed pipeline that frees native memory exactly once. [Docs](https://worxbend.github.io/scalacv/) | Scala 3, OpenCV |
 | [worxbend/gitea-scala-client](https://github.com/worxbend/gitea-scala-client) | Typed Gitea client, verified against the OpenAPI contract. [Site](https://worxbend.github.io/gitea-scala-client/) | Scala 3, ZIO 2 |
 | [worxbend/codeberg4s](https://github.com/worxbend/codeberg4s) | Codeberg and Forgejo client returning plain `Future`. No effect system dragged into your build. | Scala 3, sttp |
+| [worxbend/obs-websocket-client](https://github.com/worxbend/obs-websocket-client) | Typed OBS requests and event subscriptions in Scala 3, scoped connections and interchangeable transports. Implemented, not yet released to Maven Central. | Scala 3, Ox, sttp |
+| [worxbend/glyphora](https://github.com/worxbend/glyphora) | Reactive terminal interfaces in Scala 3: widgets, keyboard and mouse handling, animations and headless tests. | Scala 3, GraalVM |
 | [w0rxbend/shield](https://github.com/w0rxbend/shield) | Self-hostable auth server, wire-compatible with SuperTokens clients. | Scala 3, ZIO |
 | [w0rxbend/compression-flix](https://github.com/w0rxbend/compression-flix) | Lichess clock and move compression ported to Flix, byte-for-byte. One differing bit would invalidate every stored game. | Flix |
 | [w0rxbend/scalachess-flix](https://github.com/w0rxbend/scalachess-flix) | Lichess chess rules in Flix, checked against the upstream fixtures. Not a drop-in replacement. | Flix |
-| [w0rxbend/kui](https://github.com/w0rxbend/kui) | Kafka console in a browser. Topics, records, consumer lag, schemas, Connect, ksqlDB — one screen instead of five tools. Scala 3 services publish the OpenAPI contract the frontend client is generated from. | Scala 3, SolidJS |
+| [worxbend/kui](https://github.com/worxbend/kui) | Kafka console in a browser. Topics, records, consumer lag, schemas, Connect, ksqlDB — one screen instead of five tools. Scala 3 services publish the OpenAPI contract the frontend client is generated from. | Scala 3, SolidJS |
 | [w0rxbend/data-engineering](https://github.com/w0rxbend/data-engineering) | Kafka, Kafka Connect and Flink sandbox, with a custom partitioner for the S3 sink. | Scala, Kafka |
 | [worxbend/playground](https://github.com/worxbend/playground) | One event-streaming service, three web frameworks, side by side. | Scala 3, Kafka |
 | [worxbend/worxbend](https://github.com/worxbend/worxbend) | The monorepo: small Scala apps, the libraries above, deploy recipes, notes. | Scala, Mill |
@@ -117,6 +120,7 @@ language, because the problem stops being the problem.
 | [worxbend/fluxion](https://github.com/worxbend/fluxion) | The original, on the JVM. Records what it installed so the second run skips finished work. [Site](https://worxbend.github.io/fluxion/) | Java |
 | [worxbend/binstaller](https://github.com/worxbend/binstaller) | Same prebuilt binaries on every machine from one profile. SHA-256 checked, lock file written. [Site](https://worxbend.github.io/binstaller/) | Scala 3, GraalVM |
 | [worxbend/nerd-fonts-installer](https://github.com/worxbend/nerd-fonts-installer) | Nerd Fonts from one config file, with an interactive picker. [Site](https://worxbend.github.io/nerd-fonts-installer/) | Go |
+| [worxbend/nerd-fonts-installer-scala](https://github.com/worxbend/nerd-fonts-installer-scala) | The Go font installer rebuilt in Scala. Config or terminal picker, dry-run plans, standalone Linux binary without a JVM. | Scala 3, GraalVM |
 | [worxbend/dotbot-go](https://github.com/worxbend/dotbot-go) · [worxbend/dotbot-scala](https://github.com/worxbend/dotbot-scala) | Dotbot rewritten twice. The Scala one compiles to a static binary, so the target box needs no JVM. | Go · Scala 3 |
 | [w0rxbend/infrastruct](https://github.com/w0rxbend/infrastruct) | An ARM homelab as files in Git: inventory, Ansible, K3s with Flux CD, Docker stacks, encrypted secrets. | Python, Ansible |
 | [w0rxbend/ops-dashboard](https://github.com/w0rxbend/ops-dashboard) | Watches that homelab. Exporters, VictoriaMetrics, Grafana, uptime checks, one browser dashboard. | TypeScript, SolidJS |
@@ -131,11 +135,11 @@ Raw TCP, no broker, no cloud.
 
 ### The ESP32-CAM link — three repos, one system
 
-[`spycam`](https://github.com/w0rxbend/spycam) is the camera half: ESP32-CAM firmware that captures JPEGs and
+[`spycam`](https://github.com/worxbend/spycam) is the camera half: ESP32-CAM firmware that captures JPEGs and
 pushes the newest one over a long-lived raw TCP socket, dropping stale frames and reconnecting on its own.
-[`instachron`](https://github.com/w0rxbend/instachron) is the server half: a Go service that listens on that
+[`instachron`](https://github.com/worxbend/instachron) is the server half: a Go service that listens on that
 socket, stores frames, and republishes them over HTTP with restreaming, optional detection and upscaling, and
-a timelapse recorder. [`spycam-s3`](https://github.com/w0rxbend/spycam-s3) is the camera half rebuilt for
+a timelapse recorder. [`spycam-s3`](https://github.com/worxbend/spycam-s3) is the camera half rebuilt for
 ESP32-S3, stamping a camera ID into every frame so several boards feed one server.
 
 ### AirGradient
@@ -150,9 +154,10 @@ over LAN. No cloud account, no vendor app.
 | [worxbend/airgradient-cli](https://github.com/worxbend/airgradient-cli) | Reads the desktop app's config, fetches once, prints compact. | Rust |
 | [worxbend/airgradient-papr](https://github.com/worxbend/airgradient-papr) | E-paper firmware. Portable readout with weather and forecast. | C++, ESP32 |
 | [worxbend/airgradient-gnome-extension](https://github.com/worxbend/airgradient-gnome-extension) | One icon in the GNOME top bar, coloured by air quality, gauges in the popup. | JavaScript |
+| [worxbend/airgradient-dms-widget](https://github.com/worxbend/airgradient-dms-widget) | AirGradient status in the DankMaterialShell bar, with pollutant gauges and a one-hour trend chart in the popup. | QML, JavaScript |
 | [worxbend/airgradient-observability](https://github.com/worxbend/airgradient-observability) | Self-hosted metrics: collector scrapes the sensor into VictoriaMetrics, Grafana on top. | TypeScript, Go |
 | [worxbend/tv-dashboard](https://github.com/worxbend/tv-dashboard) | Always-on TV dashboard: air quality, weather, indoor climate, agenda, system status. | TypeScript, SolidJS |
-| [w0rxbend/neoncore](https://github.com/w0rxbend/neoncore) | Addressable LED panel as an air-quality indicator. Readable across the room, no legend needed. | C++, ESP32 |
+| [worxbend/neoncore](https://github.com/worxbend/neoncore) | Addressable LED panel as an air-quality indicator. Readable across the room, no legend needed. | C++, ESP32 |
 
 ### Other boards
 
@@ -160,8 +165,25 @@ over LAN. No cloud account, no vendor app.
 | --- | --- | --- |
 | [worxbend/frostfire](https://github.com/worxbend/frostfire) | ESP32 across a PC power-button header. Remote power-on. Fixed-length pulses, relay off at boot, token required. | C++ |
 | [worxbend/frostfire-backend](https://github.com/worxbend/frostfire-backend) | The guarded service in front of that relay. Every request hits a safety policy before it reaches hardware. | Python, FastAPI |
-| [w0rxbend/led-matrix-controller](https://github.com/w0rxbend/led-matrix-controller) | ESP8266 driving an 8x8 panel. Binary command protocol over TCP, falls back to its own AP when unconfigured. | C++ |
+| [worxbend/camx](https://github.com/worxbend/camx) | ESP32 camera pan-and-tilt rig: firmware, printable parts, 3D viewer and browser remote. Prototype; physical fit and load testing still pending. | C++, Python, build123d, SolidJS |
+| [worxbend/led-matrix-controller](https://github.com/worxbend/led-matrix-controller) | ESP8266 driving an 8x8 panel. Binary command protocol over TCP, falls back to its own AP when unconfigured. | C++ |
 | [w0rxbend/echo](https://github.com/w0rxbend/echo) | Webhook to LED panel. Post an event, rules pick an animation, echo pushes it over TCP and reconnects itself. | Go |
+| [worxbend/echoctl](https://github.com/worxbend/echoctl) | Command-line control for echo: devices, animations, brightness and playback queue, through its HTTP API. | Scala 3 |
+
+</details>
+
+
+<details>
+<summary><h2>📐 CAD and printable hardware</h2></summary>
+
+Models, print-ready files and build guides. Check your component dimensions before printing;
+software validation is not a physical fit test.
+
+| Project | What it does | Built with |
+| --- | --- | --- |
+| [worxbend/macropad-nyxilab](https://github.com/worxbend/macropad-nyxilab) | Hand-wired Pico 2 macropad: twelve keys, two screens, lights, and a thumbstick or rotary knob. Printed case, wiring maps and firmware in one repo. | Python, build123d, C++ |
+| [worxbend/plastic-lighthouse](https://github.com/worxbend/plastic-lighthouse) | Round or square printable softbox for an E27 LED bulb. Parametric models, fit-test parts and heat/material guidance. | Python, manifold3d |
+| [w0rxbend/FreeCAD-Projects](https://github.com/w0rxbend/FreeCAD-Projects) | Camera housings, board mounts, network-device holders and one-off brackets. | FreeCAD |
 
 </details>
 
